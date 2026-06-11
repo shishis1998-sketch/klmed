@@ -10,8 +10,8 @@
     --text: #1A1A1A;
     --text-muted: #545454;
     --accent-blue: #91BED4;
-    --accent-navy: #003354;
-    --accent-orange: #F26101;
+    --accent-navy: #5d72d9;
+    --accent-orange: #7b92ff;
     --accent-dark-orange: #9C3E00;
     --border: #CFCFCF;
     --bg: #F2F2F2;
@@ -20,7 +20,8 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
-    background: linear-gradient(135deg, #6aaec8 0%, #91bed4 30%, #bcd4e2 58%, #d4bfb2 80%, #c4a898 100%);
+    background:
+linear-gradient(135deg,#edf2ff 0%,#e8eefc 25%,#dfe8f7 50%,#d7e5f8 75%,#edf3ff 100%);
     min-height:100vh;
     color:var(--text);
     line-height:1.7;
@@ -45,11 +46,11 @@
 
   header.title{
     background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.45);
     border-top: 3px solid var(--accent-navy);
-    border-radius:0;
+    border-radius:28px;
     padding:28px 32px;
     box-shadow: var(--glass-shadow-lg);
     margin-bottom:4px;
@@ -68,7 +69,7 @@
     -webkit-backdrop-filter: blur(16px) saturate(160%);
     border: 1px solid rgba(255,255,255,0.40);
     border-left: 3px solid var(--accent-orange);
-    border-radius:0;
+    border-radius:28px;
     padding:18px 22px;
     font-size:15px;
     color:var(--text);
@@ -82,11 +83,11 @@
   .trigger b{color:var(--accent-navy);font-weight:700}
 
   .step{
-    background: rgba(255,255,255,0.16);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.42);
-    border-radius:0;
+    border-radius:28px;
     padding:22px 24px;
     margin-bottom:14px;
     position:relative;
@@ -101,7 +102,7 @@
   }
   .step-head{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid rgba(207,207,207,0.60)}
   .num{
-    flex:0 0 38px;height:38px;border-radius:0;
+    flex:0 0 38px;height:38px;border-radius:28px;
     background: var(--accent-navy);
     border: none;
     color:#ffffff;
@@ -128,7 +129,7 @@
 
   .tag{
     display:inline-block;font-size:12px;font-weight:600;
-    padding:3px 10px;border-radius:0;margin-left:10px;
+    padding:3px 10px;border-radius:28px;margin-left:10px;
     background: rgba(145,190,212,0.15);
     border: 1px solid var(--accent-blue);
     color:var(--accent-navy);vertical-align:middle;
@@ -139,7 +140,7 @@
     background: rgba(145,190,212,0.10);
     color:var(--text);
     border: 1px solid var(--accent-blue);
-    border-radius:0;
+    border-radius:28px;
     padding:12px 16px;font-family:"Consolas","Courier New",monospace;
     font-size:13.5px;margin:10px 0;word-break:break-all;letter-spacing:.5px;
   }
@@ -151,7 +152,7 @@
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(255,255,255,0.35);
     border-left: 3px solid rgba(242,97,1,0.70);
-    border-radius:0;
+    border-radius:28px;
     padding:16px 18px;margin-top:10px;
   }
   .invoice-box h3{font-size:14px;color:var(--accent-navy);margin-bottom:8px;font-weight:700}
@@ -159,7 +160,7 @@
   .invoice-box li{position:relative;padding-left:20px;margin-bottom:7px;font-size:14px;color:var(--text-muted)}
   .invoice-box li::before{
     content:"›";position:absolute;left:4px;top:0;color:var(--accent-orange);font-weight:700;font-size:16px;
-    width:auto;height:auto;background:none;border-radius:0;
+    width:auto;height:auto;background:none;border-radius:28px;
   }
 
   .note{
@@ -168,7 +169,7 @@
     -webkit-backdrop-filter: blur(16px) saturate(160%);
     border: 1px solid rgba(255,255,255,0.38);
     border-left: 3px solid var(--accent-blue);
-    border-radius:0;
+    border-radius:28px;
     padding:18px 22px;margin-top:8px;
     box-shadow: var(--glass-shadow);
   }
@@ -179,14 +180,14 @@
   .formula{
     background: rgba(145,190,212,0.15);
     border: 1px solid var(--accent-blue);
-    border-radius:0;
+    border-radius:28px;
     padding:6px 10px;margin-top:6px;font-size:13.5px;font-weight:600;color:var(--accent-navy);display:inline-block;
   }
 
   .shot{
     margin-top:14px;
     border: 1px solid var(--border);
-    border-radius:0;
+    border-radius:28px;
     overflow:hidden;
     background: #ffffff;
     display:inline-block;
@@ -209,7 +210,7 @@
     border-left:3px solid var(--accent-blue);
     padding:2px 8px 2px 10px;
     font-weight:600;color:var(--accent-navy);
-    border-radius:0;
+    border-radius:28px;
     cursor:pointer;
     box-decoration-break:clone;-webkit-box-decoration-break:clone;
     transition: var(--transition);
@@ -220,7 +221,7 @@
     font-size:10px;font-weight:700;line-height:1;
     color:#ffffff;background:var(--accent-navy);
     padding:2px 4px;margin-right:6px;
-    vertical-align:1px;letter-spacing:.5px;border-radius:0;
+    vertical-align:1px;letter-spacing:.5px;border-radius:28px;
   }
   .kg-link:hover{background:rgba(145,190,212,0.28);}
 
@@ -230,7 +231,7 @@
     border-left:3px solid var(--accent-dark-orange);
     padding:2px 8px 2px 10px;
     font-weight:600;color:var(--accent-dark-orange);
-    border-radius:0;
+    border-radius:28px;
     box-decoration-break:clone;-webkit-box-decoration-break:clone;
     transition: var(--transition);
   }
@@ -240,7 +241,7 @@
     font-size:10px;font-weight:700;line-height:1;
     color:#ffffff;background:var(--accent-dark-orange);
     padding:2px 4px;margin-right:6px;
-    vertical-align:1px;letter-spacing:.5px;border-radius:0;
+    vertical-align:1px;letter-spacing:.5px;border-radius:28px;
   }
   .ref-link:hover{background:rgba(156,62,0,0.15);}
 
@@ -254,6 +255,10 @@
   }
   #popup-overlay.show{display:block;}
   #popup{
+background:rgba(255,255,255,0.82) !important;
+backdrop-filter:blur(50px) saturate(180%) !important;
+-webkit-backdrop-filter:blur(50px) saturate(180%) !important;
+
     visibility:hidden;opacity:0;
     position:fixed;
     top:50%;left:50%;
@@ -270,7 +275,7 @@
     -webkit-backdrop-filter:blur(36px) saturate(170%);
     border:1px solid rgba(255,255,255,0.45);
     border-top:3px solid var(--accent-navy);
-    border-radius:0;
+    border-radius:28px;
     padding:24px 28px 22px;
     box-shadow:0 10px 32px rgba(0,53,84,0.14),inset 0 1px 0 rgba(255,255,255,1);
     transition:opacity 0.35s cubic-bezier(0.16,1,0.3,1),transform 0.35s cubic-bezier(0.16,1,0.3,1),visibility 0.35s;
@@ -288,13 +293,13 @@
     width:26px;height:26px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
     border:1px solid var(--border);
-    border-radius:0;
+    border-radius:28px;
     transition:all 0.25s;
   }
   #popup-close:hover{background:rgba(0,53,84,0.12);color:var(--text);}
   #popup-body{font-size:14px;color:var(--text);padding-right:2px;}
   #popup-body .note{
-    margin-top:0;border-left:none;background:transparent;
+    margin-top:0;border-left:none;background:rgba(255,255,255,0.15);
     box-shadow:none;padding:0;border:none;
   }
   #popup-body .note h3{
@@ -311,7 +316,7 @@
     backdrop-filter: blur(24px) saturate(160%);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     border: 1px solid rgba(255,255,255,0.42);
-    border-radius:0;
+    border-radius:28px;
     padding:5px 6px;gap:2px;align-items:center;
     box-shadow:0 6px 18px rgba(0,53,84,0.12),inset 0 1px 0 rgba(255,255,255,1);
     white-space:nowrap;
@@ -323,7 +328,7 @@
     font-size:14px;font-weight:700;
     padding:4px 8px;line-height:1;
     position:relative;min-width:26px;
-    border-radius:0;
+    border-radius:28px;
     transition: var(--transition);
   }
   #fmtbar button:hover{background:var(--bg);}
@@ -337,14 +342,14 @@
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
     border: 1px solid rgba(255,255,255,0.80);
-    border-radius:0;
+    border-radius:28px;
     padding:6px;
     box-shadow:0 6px 18px rgba(0,53,84,0.12);
     grid-template-columns:repeat(5,18px);gap:5px;z-index:210;
   }
   #fmtbar .pop.show{display:grid;}
   #fmtbar .sw{
-    width:18px;height:18px;padding:0;border:1px solid var(--border);cursor:pointer;border-radius:0;
+    width:18px;height:18px;padding:0;border:1px solid var(--border);cursor:pointer;border-radius:28px;
   }
   #fmtbar .sw:hover{transform:scale(1.12);}
   #fmtbar .sw.none{background:rgba(255,255,255,0.70);position:relative;}
@@ -359,7 +364,7 @@
 
   #toolbar{
     position:sticky;top:0;z-index:50;
-    background: rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.45);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     border-bottom: 1px solid rgba(255,255,255,0.38);
@@ -370,7 +375,7 @@
   #toolbar .hint{font-size:12.5px;color:var(--text-muted);margin-right:auto}
   .btn{
     border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;
-    padding:9px 16px;border-radius:0;
+    padding:9px 16px;border-radius:28px;
     transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
   }
   .btn.primary{
@@ -415,6 +420,19 @@
     #toolbar,#popup,#popup-overlay{display:none !important}
     *{color:#000 !important}
   }
+
+body::after{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background:
+radial-gradient(circle at 20% 30%, rgba(255,255,255,.8), transparent 25%),
+radial-gradient(circle at 80% 60%, rgba(255,255,255,.5), transparent 20%),
+linear-gradient(110deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
+mix-blend-mode:screen;
+}
+
 </style>
 </head>
 <body>
@@ -432,8 +450,8 @@
 
   <header class="title">
     <div class="kicker">内部作业流程 · PROCESO INTERNO</div>
-    <h1>因运输公司原因，导致货物缺失或损坏的退款申请流程</h1>
-    <p>Proceso para solicitar el abono por falta de bulto o mercancía dañada — por causa de las agencias de transporte</p>
+    <h1>运输公司_导致货物缺失或损坏_退款申请流程</h1>
+    <p>Proceso para solicitar el abono por causa de las agencias de transporte</p>
   </header>
 
   <div class="trigger">
@@ -462,7 +480,7 @@
         <li>邮件需<strong>抄送（CC）给 Felipe 和 Shishi</strong></li>
         <li>邮件主题按以下格式填写：<strong>EXPEDICION / 客户名称 / SINIESTRO</strong>（即：运单号 / 客户名 / 理赔案件号）</li>
       </ul>
-      <div style="background:rgba(145,190,212,0.10);border:1px solid #CFCFCF;border-left:4px solid #91BED4;border-radius:0;padding:14px 18px;margin-bottom:14px;">
+      <div style="background:rgba(145,190,212,0.10);border:1px solid #CFCFCF;border-left:4px solid #91BED4;border-radius:28px;padding:14px 18px;margin-bottom:14px;">
         <p style="font-size:14px;color:#1A1A1A;margin-bottom:8px;font-weight:600;">📋 提出索赔前：agencia 通常会先向我们索取以下资料</p>
         <ul style="margin:0 0 10px 4px;list-style:none;">
           <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:#545454;"><span style="position:absolute;left:2px;color:#F26101;font-weight:700;">■</span> 货物的照片（如有）</li>
@@ -557,12 +575,9 @@
   <!-- 左侧固定栏：目录 + 卡片，整体随页面滚动 -->
 
   <!-- 弹窗遮罩 -->
-  <div id="popup-overlay" onclick="closePopup()"></div>
+  
   <!-- 弹窗主体 -->
-  <div id="popup" role="dialog" aria-modal="true">
-    <button id="popup-close" onclick="closePopup()" title="关闭">✕</button>
-    <div id="popup-body"></div>
-  </div>
+  
 
   <!-- 弹窗内容模板（隐藏） -->
   <template id="specialNote-tpl">
@@ -624,48 +639,7 @@
 
 
 <!-- 选中文字浮动格式工具栏 -->
-<div id="fmtbar" aria-hidden="true">
-  <button type="button" data-cmd="bold" title="加粗 (Ctrl+B)" style="font-weight:800;"><span class="ic">B</span></button>
-  <button type="button" data-cmd="italic" title="斜体 (Ctrl+I)" style="font-style:italic;"><span class="ic">I</span></button>
-  <button type="button" data-cmd="underline" title="下划线 (Ctrl+U)" style="text-decoration:underline;"><span class="ic">U</span></button>
-  <button type="button" data-cmd="strike" title="删除线"><span class="ic" style="text-decoration:line-through;">S</span></button>
-  <span class="sep"></span>
-  <!-- 文字颜色 -->
-  <span class="pop-wrap">
-    <button type="button" class="colbtn" data-pop="color" title="文字颜色"><span class="ic">A</span><span class="bar" id="colBar"></span></button>
-    <div class="pop" id="colorPop">
-      <button type="button" class="sw" data-color="#1a1a1a" style="background:#1a1a1a;" title="深藏蓝"></button>
-      <button type="button" class="sw" data-color="#37352f" style="background:#37352f;" title="品牌蓝"></button>
-      <button type="button" class="sw" data-color="#1a1a1a" style="background:#1a1a1a;" title="黑"></button>
-      <button type="button" class="sw" data-color="#c0392b" style="background:#c0392b;" title="红"></button>
-      <button type="button" class="sw" data-color="#e08a1e" style="background:#e08a1e;" title="橙"></button>
-      <button type="button" class="sw" data-color="#2e8b57" style="background:#2e8b57;" title="绿"></button>
-      <button type="button" class="sw" data-color="#7d3c98" style="background:#7d3c98;" title="紫"></button>
-      <button type="button" class="sw" data-color="#787774" style="background:#787774;" title="灰蓝"></button>
-      <button type="button" class="sw" data-color="#ffffff" style="background:rgba(255,255,255,0.38)fff;" title="白"></button>
-      <button type="button" class="sw none" data-color="__none__" title="默认色"></button>
-    </div>
-  </span>
-  <!-- 高亮 -->
-  <span class="pop-wrap">
-    <button type="button" class="colbtn hlbtn" data-pop="hl" title="高亮"><span class="ic">🖊</span><span class="bar"></span></button>
-    <div class="pop" id="hlPop">
-      <button type="button" class="sw" data-hl="#ffe14d" style="background:#ffe14d;" title="黄"></button>
-      <button type="button" class="sw" data-hl="#bde8b0" style="background:#bde8b0;" title="绿"></button>
-      <button type="button" class="sw" data-hl="#aee0f0" style="background:#aee0f0;" title="蓝"></button>
-      <button type="button" class="sw" data-hl="#f7c0c0" style="background:#f7c0c0;" title="红"></button>
-      <button type="button" class="sw" data-hl="#e6cdf0" style="background:#e6cdf0;" title="紫"></button>
-      <button type="button" class="sw none" data-hl="__none__" title="去高亮"></button>
-    </div>
-  </span>
-  <span class="sep"></span>
-  <!-- 标题 -->
-  <button type="button" data-cmd="h1" title="大标题"><span class="ic">H1</span></button>
-  <button type="button" data-cmd="h2" title="小标题"><span class="ic">H2</span></button>
-  <button type="button" data-cmd="p" title="正文"><span class="ic">¶</span></button>
-  <span class="sep"></span>
-  <button type="button" data-cmd="clear" title="清除格式"><span class="ic">✕</span></button>
-</div>
+
 
 <script>
 (function(){
