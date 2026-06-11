@@ -5,16 +5,22 @@
 <title>货物缺失或损坏退款申请流程</title>
 <style>
   :root{
-    --glass-shadow: 0 3px 10px rgba(80,110,160,0.06),inset 0 1px 0 rgba(255,255,255,0.80);
-    --glass-shadow-lg: 0 6px 20px rgba(80,110,160,0.09),0 0 0 1px rgba(255,255,255,0.45),inset 0 1px 0 rgba(255,255,255,0.90);
-    --text: rgba(15,25,55,0.88);
-    --text-muted: rgba(15,25,55,0.52);
+    --glass-shadow: 0 3px 10px rgba(0,53,84,0.08),inset 0 1px 0 rgba(255,255,255,0.80);
+    --glass-shadow-lg: 0 6px 20px rgba(0,53,84,0.10),0 0 0 1px rgba(207,207,207,0.50),inset 0 1px 0 rgba(255,255,255,0.90);
+    --text: #1A1A1A;
+    --text-muted: #545454;
+    --accent-blue: #91BED4;
+    --accent-navy: #003354;
+    --accent-orange: #F26101;
+    --accent-dark-orange: #9C3E00;
+    --border: #CFCFCF;
+    --bg: #F2F2F2;
     --transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
-    background: linear-gradient(145deg, #dde8f5 0%, #eaf1fb 35%, #e4eef9 65%, #d8e6f4 100%);
+    background: var(--bg);
     min-height:100vh;
     color:var(--text);
     line-height:1.7;
@@ -24,10 +30,7 @@
     content:"";
     position:fixed;
     top:0;left:0;right:0;bottom:0;
-    background:
-      radial-gradient(ellipse 70% 55% at 10% 10%, rgba(180,210,255,0.28) 0%, transparent 60%),
-      radial-gradient(ellipse 55% 65% at 88% 88%, rgba(160,200,255,0.20) 0%, transparent 60%),
-      radial-gradient(ellipse 45% 45% at 65% 25%, rgba(220,235,255,0.18) 0%, transparent 50%);
+    background: none;
     pointer-events:none;
     z-index:0;
   }
@@ -38,177 +41,160 @@
   .wrap{margin:0 auto;max-width:780px;padding-left:20px;padding-right:20px}
 
   header.title{
-    background: rgba(255,255,255,0.58);
-    backdrop-filter: blur(60px) saturate(180%);
-    -webkit-backdrop-filter: blur(60px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.75);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent-navy);
     border-radius:0;
     padding:28px 32px;
     box-shadow: var(--glass-shadow-lg);
-    background-image: linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0.35) 50%);
     margin-bottom:4px;
   }
   header.title .kicker{
     font-size:12px;letter-spacing:3px;text-transform:uppercase;
     color:var(--text-muted);margin-bottom:7px;
   }
-  header.title h1{font-size:22px;font-weight:700;margin-bottom:6px;color:var(--text)}
+  header.title h1{font-size:22px;font-weight:700;margin-bottom:6px;color:var(--accent-navy)}
   header.title p{font-size:13px;color:var(--text-muted)}
 
   .trigger{
     margin:20px 0;
-    background: rgba(255,255,255,0.50);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.68);
-    border-left: 3px solid rgba(80,130,220,0.45);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-orange);
     border-radius:0;
     padding:18px 22px;
     font-size:15px;
     color:var(--text);
-    box-shadow: 0 3px 10px rgba(80,110,160,0.06),inset 0 1px 0 rgba(255,255,255,0.80);
+    box-shadow: var(--glass-shadow);
     transition: var(--transition);
   }
   .trigger:hover{
-    background: rgba(255,255,255,0.65);
-    box-shadow: 0 6px 16px rgba(80,110,160,0.09),inset 0 1px 0 rgba(255,255,255,0.90);
+    background: #fafafa;
+    box-shadow: 0 6px 16px rgba(0,53,84,0.10);
   }
-  .trigger b{color:rgba(15,25,55,0.95);font-weight:700}
+  .trigger b{color:var(--accent-navy);font-weight:700}
 
   .step{
-    background: rgba(255,255,255,0.52);
-    backdrop-filter: blur(60px) saturate(180%);
-    -webkit-backdrop-filter: blur(60px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.72);
+    background: #ffffff;
+    border: 1px solid var(--border);
     border-radius:0;
     padding:22px 24px;
     margin-bottom:14px;
     position:relative;
     scroll-margin-top:70px;
     box-shadow: var(--glass-shadow);
-    background-image: linear-gradient(to bottom, rgba(255,255,255,0.72), rgba(255,255,255,0.30) 50%);
     transition: var(--transition);
   }
   .step:hover{
-    background: rgba(255,255,255,0.65);
-    box-shadow: 0 8px 24px rgba(80,110,160,0.10),0 0 0 1px rgba(255,255,255,0.55),inset 0 1px 0 rgba(255,255,255,0.95);
+    background: #fafafa;
+    box-shadow: 0 8px 24px rgba(0,53,84,0.10),0 0 0 1px var(--border);
     transform: translateY(-1px);
   }
-  .step-head{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid rgba(80,110,160,0.10)}
+  .step-head{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
   .num{
     flex:0 0 38px;height:38px;border-radius:0;
-    background: rgba(255,255,255,0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.90);
-    color:rgba(15,25,55,0.85);
+    background: var(--accent-navy);
+    border: none;
+    color:#ffffff;
     display:flex;align-items:center;justify-content:center;
     font-weight:700;font-size:17px;
-    box-shadow: 0 2px 6px rgba(80,110,160,0.08),inset 0 1px 0 rgba(255,255,255,1);
+    box-shadow: 0 2px 6px rgba(0,53,84,0.25);
   }
-  .step-head h2{font-size:18px;font-weight:700;color:var(--text)}
+  .step-head h2{font-size:18px;font-weight:700;color:var(--accent-navy)}
   .step-body{margin:14px 0 0 0}
   .step-body p{margin-bottom:8px;font-size:15px;color:var(--text)}
   .step-body ul{margin:8px 0 8px 4px;list-style:none}
   .step-body li{
-    position:relative;padding-left:20px;margin-bottom:7px;font-size:14.5px;color:rgba(15,25,55,0.80);
+    position:relative;padding-left:20px;margin-bottom:7px;font-size:14.5px;color:var(--text-muted);
   }
   .step-body li::before{
     content:"";position:absolute;left:2px;top:10px;
     width:7px;height:7px;border-radius:50%;
-    background: rgba(80,120,200,0.45);
+    background: var(--accent-blue);
   }
   .arrow{
-    text-align:center;color:rgba(80,110,180,0.35);
+    text-align:center;color:var(--accent-orange);
     font-size:22px;line-height:1;margin:2px 0 12px;
   }
 
   .tag{
     display:inline-block;font-size:12px;font-weight:600;
     padding:3px 10px;border-radius:0;margin-left:10px;
-    background: rgba(255,255,255,0.60);
-    border: 1px solid rgba(255,255,255,0.80);
-    color:rgba(15,25,55,0.70);vertical-align:middle;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(145,190,212,0.15);
+    border: 1px solid var(--accent-blue);
+    color:var(--accent-navy);vertical-align:middle;
   }
-  .tag.green{background:rgba(255,255,255,0.50);color:rgba(15,25,55,0.65)}
+  .tag.green{background:rgba(145,190,212,0.10);color:var(--accent-navy)}
 
   .fmt{
-    background: rgba(220,232,248,0.50);
-    color:rgba(15,25,55,0.82);
-    border: 1px solid rgba(200,218,240,0.55);
+    background: rgba(145,190,212,0.10);
+    color:var(--text);
+    border: 1px solid var(--accent-blue);
     border-radius:0;
     padding:12px 16px;font-family:"Consolas","Courier New",monospace;
     font-size:13.5px;margin:10px 0;word-break:break-all;letter-spacing:.5px;
   }
-  .fmt span{color:rgba(20,60,160,0.90);font-weight:600}
+  .fmt span{color:var(--accent-navy);font-weight:600}
 
   .invoice-box{
-    background: rgba(255,255,255,0.45);
-    border: 1px solid rgba(255,255,255,0.68);
+    background: rgba(242,97,1,0.05);
+    border: 1px solid rgba(242,97,1,0.20);
     border-radius:0;
     padding:16px 18px;margin-top:10px;
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
   }
-  .invoice-box h3{font-size:14px;color:rgba(15,25,55,0.88);margin-bottom:8px;font-weight:700}
+  .invoice-box h3{font-size:14px;color:var(--accent-navy);margin-bottom:8px;font-weight:700}
   .invoice-box ul{list-style:none}
-  .invoice-box li{position:relative;padding-left:20px;margin-bottom:7px;font-size:14px;color:rgba(15,25,55,0.75)}
+  .invoice-box li{position:relative;padding-left:20px;margin-bottom:7px;font-size:14px;color:var(--text-muted)}
   .invoice-box li::before{
-    content:"›";position:absolute;left:4px;top:0;color:rgba(80,120,200,0.55);font-weight:700;font-size:16px;
+    content:"›";position:absolute;left:4px;top:0;color:var(--accent-orange);font-weight:700;font-size:16px;
     width:auto;height:auto;background:none;border-radius:0;
   }
 
   .note{
-    background: rgba(255,255,255,0.48);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.68);
-    border-left: 3px solid rgba(80,130,220,0.40);
+    background: rgba(145,190,212,0.08);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-blue);
     border-radius:0;
     padding:18px 22px;margin-top:8px;
-    box-shadow: 0 3px 10px rgba(80,110,160,0.06),inset 0 1px 0 rgba(255,255,255,0.80);
+    box-shadow: var(--glass-shadow);
   }
-  .note h3{font-size:15px;color:rgba(15,25,55,0.92);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .note h3{font-size:15px;color:var(--accent-navy);margin-bottom:10px;display:flex;align-items:center;gap:8px}
   .note table{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px}
-  .note td{padding:8px 10px;border:1px solid rgba(80,110,160,0.10);vertical-align:top;color:rgba(15,25,55,0.78)}
-  .note td.k{background:rgba(255,255,255,0.55);font-weight:600;width:120px;white-space:nowrap;color:rgba(15,25,55,0.90)}
+  .note td{padding:8px 10px;border:1px solid var(--border);vertical-align:top;color:var(--text-muted)}
+  .note td.k{background:rgba(145,190,212,0.12);font-weight:600;width:120px;white-space:nowrap;color:var(--text)}
   .formula{
-    background: rgba(255,255,255,0.60);
-    border: 1px solid rgba(255,255,255,0.80);
+    background: rgba(145,190,212,0.15);
+    border: 1px solid var(--accent-blue);
     border-radius:0;
-    padding:6px 10px;margin-top:6px;font-size:13.5px;font-weight:600;color:rgba(20,60,160,0.85);display:inline-block;
+    padding:6px 10px;margin-top:6px;font-size:13.5px;font-weight:600;color:var(--accent-navy);display:inline-block;
   }
 
   .shot{
     margin-top:14px;
-    border: 1px solid rgba(255,255,255,0.70);
+    border: 1px solid var(--border);
     border-radius:0;
     overflow:hidden;
-    background: rgba(255,255,255,0.40);
+    background: #ffffff;
     display:inline-block;
     max-width:100%;
   }
   .shot .cap{
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding:9px 14px;font-size:12.5px;color:rgba(15,25,55,0.80);font-weight:600;
+    background: #f8f8f8;
+    padding:9px 14px;font-size:12.5px;color:var(--text-muted);font-weight:600;
     display:flex;align-items:center;gap:8px;
-    border-bottom: 1px solid rgba(80,110,160,0.10);
+    border-bottom: 1px solid var(--border);
   }
   .shot .cap::before{content:"📷";font-size:13px}
-  .shot img{display:block;max-width:100%;width:auto;height:auto;padding:10px;background:rgba(255,255,255,0.30)}
+  .shot img{display:block;max-width:100%;width:auto;height:auto;padding:10px;background:#ffffff}
 
-  .highlight{color:rgba(15,25,55,0.95);font-weight:600}
+  .highlight{color:var(--accent-navy);font-weight:600}
 
   .kg-link{
     position:relative;
-    background:rgba(200,220,255,0.25);
-    border-left:3px solid rgba(80,130,220,0.45);
+    background:rgba(145,190,212,0.15);
+    border-left:3px solid var(--accent-blue);
     padding:2px 8px 2px 10px;
-    font-weight:600;color:rgba(15,25,55,0.88);
+    font-weight:600;color:var(--accent-navy);
     border-radius:0;
     cursor:pointer;
     box-decoration-break:clone;-webkit-box-decoration-break:clone;
@@ -218,18 +204,18 @@
     content:"kg";
     display:inline-block;
     font-size:10px;font-weight:700;line-height:1;
-    color:rgba(255,255,255,0.95);background:rgba(60,100,200,0.70);
+    color:#ffffff;background:var(--accent-navy);
     padding:2px 4px;margin-right:6px;
     vertical-align:1px;letter-spacing:.5px;border-radius:0;
   }
-  .kg-link:hover{background:rgba(180,210,255,0.35);}
+  .kg-link:hover{background:rgba(145,190,212,0.28);}
 
   .ref-link{
     position:relative;cursor:pointer;
-    background:rgba(200,210,230,0.22);
-    border-left:3px solid rgba(120,130,160,0.40);
+    background:rgba(156,62,0,0.08);
+    border-left:3px solid var(--accent-dark-orange);
     padding:2px 8px 2px 10px;
-    font-weight:600;color:rgba(15,25,55,0.80);
+    font-weight:600;color:var(--accent-dark-orange);
     border-radius:0;
     box-decoration-break:clone;-webkit-box-decoration-break:clone;
     transition: var(--transition);
@@ -238,18 +224,18 @@
     content:"CBL";
     display:inline-block;
     font-size:10px;font-weight:700;line-height:1;
-    color:rgba(255,255,255,0.95);background:rgba(80,90,130,0.60);
+    color:#ffffff;background:var(--accent-dark-orange);
     padding:2px 4px;margin-right:6px;
     vertical-align:1px;letter-spacing:.5px;border-radius:0;
   }
-  .ref-link:hover{background:rgba(180,190,220,0.32);}
+  .ref-link:hover{background:rgba(156,62,0,0.15);}
 
   /* ===== 弹窗 ===== */
   #popup-overlay{
     display:none;position:fixed;inset:0;
-    background:rgba(15,25,55,0.10);
-    backdrop-filter:blur(4px) saturate(130%);
-    -webkit-backdrop-filter:blur(4px) saturate(130%);
+    background:rgba(0,53,84,0.15);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
     z-index:100;
   }
   #popup-overlay.show{display:block;}
@@ -265,13 +251,12 @@
     max-width:min(640px,88vw);
     max-height:80vh;
     overflow-y:auto;
-    background:rgba(255,255,255,0.88);
-    backdrop-filter:blur(60px) saturate(180%);
-    -webkit-backdrop-filter:blur(60px) saturate(180%);
-    border:1px solid rgba(255,255,255,0.92);
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-top:3px solid var(--accent-navy);
     border-radius:0;
     padding:24px 28px 22px;
-    box-shadow:0 10px 32px rgba(80,110,160,0.12),inset 0 1px 0 rgba(255,255,255,1);
+    box-shadow:0 10px 32px rgba(0,53,84,0.15);
     transition:opacity 0.35s cubic-bezier(0.16,1,0.3,1),transform 0.35s cubic-bezier(0.16,1,0.3,1),visibility 0.35s;
   }
   #popup.show{
@@ -281,128 +266,120 @@
   }
   #popup-close{
     position:absolute;top:10px;right:12px;
-    border:none;background:rgba(80,110,160,0.08);
-    color:rgba(15,25,55,0.55);
+    border:none;background:rgba(0,53,84,0.06);
+    color:var(--text-muted);
     font-size:15px;font-weight:700;
     width:26px;height:26px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    border:1px solid rgba(80,110,160,0.12);
+    border:1px solid var(--border);
     border-radius:0;
     transition:all 0.25s;
   }
-  #popup-close:hover{background:rgba(80,110,160,0.15);color:rgba(15,25,55,0.88);}
-  #popup-body{font-size:14px;color:rgba(15,25,55,0.82);padding-right:2px;}
+  #popup-close:hover{background:rgba(0,53,84,0.12);color:var(--text);}
+  #popup-body{font-size:14px;color:var(--text);padding-right:2px;}
   #popup-body .note{
     margin-top:0;border-left:none;background:transparent;
-    backdrop-filter:none;-webkit-backdrop-filter:none;
     box-shadow:none;padding:0;border:none;
   }
   #popup-body .note h3{
-    font-size:15px;font-weight:700;color:rgba(15,25,55,0.92);
+    font-size:15px;font-weight:700;color:var(--accent-navy);
     margin-bottom:12px;padding-bottom:10px;
-    border-bottom:1px solid rgba(80,110,160,0.10);
+    border-bottom:1px solid var(--border);
   }
   #popup-body table{width:100%;}
-  #popup-body .formula{background:rgba(220,232,248,0.60);}
+  #popup-body .formula{background:rgba(145,190,212,0.15);}
 
   #fmtbar{
     position:absolute;z-index:200;display:none;
-    background: rgba(240,245,255,0.90);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.80);
+    background: #ffffff;
+    border: 1px solid var(--border);
     border-radius:0;
     padding:5px 6px;gap:2px;align-items:center;
-    box-shadow:0 6px 18px rgba(80,110,160,0.12),inset 0 1px 0 rgba(255,255,255,1);
+    box-shadow:0 6px 18px rgba(0,53,84,0.12);
     white-space:nowrap;
   }
   #fmtbar.show{display:inline-flex;}
   #fmtbar button{
     border:none;cursor:pointer;font-family:inherit;
-    background:transparent;color:rgba(15,25,55,0.80);
+    background:transparent;color:var(--text);
     font-size:14px;font-weight:700;
     padding:4px 8px;line-height:1;
     position:relative;min-width:26px;
     border-radius:0;
     transition: var(--transition);
   }
-  #fmtbar button:hover{background:rgba(255,255,255,0.75);}
-  #fmtbar button.active{background:rgba(255,255,255,0.90);}
+  #fmtbar button:hover{background:var(--bg);}
+  #fmtbar button.active{background:rgba(145,190,212,0.20);}
   #fmtbar .ic{display:inline-block;line-height:1;}
-  #fmtbar .sep{width:1px;height:18px;background:rgba(80,110,160,0.18);margin:0 3px;flex:0 0 auto;}
+  #fmtbar .sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex:0 0 auto;}
   #fmtbar .pop-wrap{position:relative;display:inline-flex;}
   #fmtbar .pop{
     display:none;position:absolute;top:100%;left:0;margin-top:4px;
-    background: rgba(240,245,255,0.92);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255,255,255,0.80);
+    background: #ffffff;
+    border: 1px solid var(--border);
     border-radius:0;
     padding:6px;
-    box-shadow:0 6px 18px rgba(80,110,160,0.12);
+    box-shadow:0 6px 18px rgba(0,53,84,0.12);
     grid-template-columns:repeat(5,18px);gap:5px;z-index:210;
   }
   #fmtbar .pop.show{display:grid;}
   #fmtbar .sw{
-    width:18px;height:18px;padding:0;border:1px solid rgba(80,110,160,0.25);cursor:pointer;border-radius:0;
+    width:18px;height:18px;padding:0;border:1px solid var(--border);cursor:pointer;border-radius:0;
   }
   #fmtbar .sw:hover{transform:scale(1.12);}
   #fmtbar .sw.none{background:rgba(255,255,255,0.70);position:relative;}
   #fmtbar .sw.none::after{content:"";position:absolute;left:1px;right:1px;top:50%;height:2px;background:#c0392b;transform:rotate(-45deg);}
   #fmtbar .colbtn{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:3px 6px;}
-  #fmtbar .colbtn .bar{width:16px;height:3px;background:rgba(15,25,55,0.70);}
+  #fmtbar .colbtn .bar{width:16px;height:3px;background:#1A1A1A;}
   #fmtbar .hlbtn .bar{width:16px;height:3px;background:rgba(255,200,50,0.80);}
 
-  .step-body h1,.step > h1{font-size:20px;font-weight:700;color:rgba(15,25,55,0.92);margin:10px 0 6px;line-height:1.3}
-  .step-body h2,.step > h2{font-size:17px;font-weight:700;color:rgba(15,25,55,0.78);margin:8px 0 5px;line-height:1.3}
-  .step-body > h3,.step > h3{font-size:15px;font-weight:700;color:rgba(15,25,55,0.88);margin:12px 0 6px;}
+  .step-body h1,.step > h1{font-size:20px;font-weight:700;color:var(--accent-navy);margin:10px 0 6px;line-height:1.3}
+  .step-body h2,.step > h2{font-size:17px;font-weight:700;color:var(--accent-navy);margin:8px 0 5px;line-height:1.3}
+  .step-body > h3,.step > h3{font-size:15px;font-weight:700;color:var(--text);margin:12px 0 6px;}
 
   #toolbar{
     position:sticky;top:0;z-index:50;
-    background: rgba(225,235,250,0.78);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border-bottom: 1px solid rgba(255,255,255,0.65);
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
     padding:10px 0;margin:-40px 0 24px;
+    box-shadow: 0 2px 8px rgba(0,53,84,0.08);
   }
   #toolbar .inner{max-width:780px;margin:0 auto;padding:0 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  #toolbar .hint{font-size:12.5px;color:rgba(15,25,55,0.45);margin-right:auto}
+  #toolbar .hint{font-size:12.5px;color:var(--text-muted);margin-right:auto}
   .btn{
     border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;
     padding:9px 16px;border-radius:0;
     transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
   }
   .btn.primary{
-    background:rgba(255,255,255,0.72);
-    border: 1px solid rgba(255,255,255,0.90);
-    color:rgba(15,25,55,0.88);
-    box-shadow: 0 3px 10px rgba(80,110,160,0.08),inset 0 1px 0 rgba(255,255,255,1);
+    background:var(--accent-orange);
+    border: 1px solid var(--accent-orange);
+    color:#ffffff;
+    box-shadow: 0 3px 10px rgba(242,97,1,0.25);
   }
   .btn.primary:hover{
-    background:rgba(255,255,255,0.88);
-    border-color:rgba(255,255,255,1);
-    box-shadow: 0 6px 16px rgba(80,110,160,0.12),inset 0 1px 0 rgba(255,255,255,1);
+    background:#d95700;
+    border-color:#d95700;
+    box-shadow: 0 6px 16px rgba(242,97,1,0.30);
     transform:translateY(-1px);
   }
   .btn.ghost{
-    background:rgba(255,255,255,0.50);
-    color:rgba(15,25,55,0.68);
-    border: 1px solid rgba(255,255,255,0.75);
-    box-shadow: 0 2px 6px rgba(80,110,160,0.06),inset 0 1px 0 rgba(255,255,255,0.90);
+    background:#ffffff;
+    color:var(--text-muted);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,53,84,0.06);
   }
   .btn.ghost:hover{
-    background:rgba(255,255,255,0.70);
-    border-color:rgba(255,255,255,0.90);
-    color:rgba(15,25,55,0.88);
+    background:var(--bg);
+    border-color:#b0b0b0;
+    color:var(--text);
   }
 
-  [contenteditable="true"]:hover{outline:1px dashed rgba(80,120,200,0.30);outline-offset:3px;}
+  [contenteditable="true"]:hover{outline:1px dashed rgba(145,190,212,0.60);outline-offset:3px;}
   [contenteditable="true"]:focus{outline:none;
-    box-shadow:0 0 0 2px rgba(100,150,230,0.35), 0 4px 16px rgba(80,110,160,0.08), inset 0 1px 0 rgba(255,255,255,0.90);}
+    box-shadow:0 0 0 2px rgba(145,190,212,0.50), 0 4px 16px rgba(0,53,84,0.08);}
 
-  hr{border:none;border-top:1px solid rgba(80,110,160,0.10);margin:18px 0}
+  hr{border:none;border-top:1px solid var(--border);margin:18px 0}
 
   @media (max-width:860px){
     .wrap{margin:0 12px}
@@ -411,10 +388,9 @@
 
   @media print{
     body{background:#fff;padding:0}
-    .step,.note,.trigger{box-shadow:none;backdrop-filter:none;background:rgba(0,0,0,0.03);border-color:#ddd}
-    header.title{box-shadow:none;background:rgba(0,0,0,0.05)}
+    .step,.note,.trigger{box-shadow:none;background:#fff;border-color:#ccc}
+    header.title{box-shadow:none;background:#fff}
     #toolbar,#popup,#popup-overlay{display:none !important}
-    body::before{display:none}
     *{color:#000 !important}
   }
 </style>
@@ -457,19 +433,19 @@
         <li>根据 CBL 要求收集和确认相关资料。</li>
         <li>如最终确认属于运输公司责任且需要申请赔偿，再进入后续索赔流程。</li>
       </ul>
-      <hr style="margin:18px 0;border:none;border-top:1px solid rgba(80,110,160,0.10);">
-      <h3 style="color:rgba(15,25,55,0.90);margin-bottom:10px;">后续：向运输公司提出索赔</h3>
+      <hr style="margin:18px 0;border:none;border-top:1px solid #CFCFCF;">
+      <h3 style="color:#003354;margin-bottom:10px;">后续：向运输公司提出索赔</h3>
 <p>第一时间向运输公司（agencia）发起索赔邮件。</p>
       <ul>
         <li>邮件需<strong>抄送（CC）给 Felipe 和 Shishi</strong></li>
         <li>邮件主题按以下格式填写：<strong>EXPEDICION / 客户名称 / SINIESTRO</strong>（即：运单号 / 客户名 / 理赔案件号）</li>
       </ul>
-      <div style="background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.68);border-left:4px solid rgba(80,130,220,0.40);border-radius:0;padding:14px 18px;margin-bottom:14px;">
-        <p style="font-size:14px;color:rgba(15,25,55,0.80);margin-bottom:8px;font-weight:600;color:rgba(15,25,55,0.90);">📋 提出索赔前：agencia 通常会先向我们索取以下资料</p>
+      <div style="background:rgba(145,190,212,0.10);border:1px solid #CFCFCF;border-left:4px solid #91BED4;border-radius:0;padding:14px 18px;margin-bottom:14px;">
+        <p style="font-size:14px;color:#1A1A1A;margin-bottom:8px;font-weight:600;">📋 提出索赔前：agencia 通常会先向我们索取以下资料</p>
         <ul style="margin:0 0 10px 4px;list-style:none;">
-          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:rgba(15,25,55,0.80);"><span style="position:absolute;left:2px;color:rgba(15,25,55,0.80);font-weight:700;">■</span> 货物的照片（如有）</li>
-          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:rgba(15,25,55,0.80);"><span style="position:absolute;left:2px;color:rgba(15,25,55,0.80);font-weight:700;">■</span> 商业发票（注明受损商品的具体参考编号）</li>
-          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:rgba(15,25,55,0.80);"><span style="position:absolute;left:2px;color:rgba(15,25,55,0.80);font-weight:700;">■</span> 受损货物明细（<strong>数量 + 重量</strong>）</li>
+          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:#545454;"><span style="position:absolute;left:2px;color:#F26101;font-weight:700;">■</span> 货物的照片（如有）</li>
+          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:#545454;"><span style="position:absolute;left:2px;color:#F26101;font-weight:700;">■</span> 商业发票（注明受损商品的具体参考编号）</li>
+          <li style="position:relative;padding-left:18px;margin-bottom:6px;font-size:14px;color:#545454;"><span style="position:absolute;left:2px;color:#F26101;font-weight:700;">■</span> 受损货物明细（<strong>数量 + 重量</strong>）</li>
         </ul>
       </div>
       <div class="shot">
@@ -569,7 +545,7 @@
   <!-- 弹窗内容模板（隐藏） -->
   <template id="specialNote-tpl">
     <div class="note">
-      <h3><span class="kg-badge" style="display:inline-block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.95);background:rgba(60,100,200,0.70);padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;">kg</span>当运输公司按公斤（kg）赔偿时</h3>
+      <h3><span class="kg-badge" style="display:inline-block;font-size:10px;font-weight:700;color:#ffffff;background:#003354;padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;">kg</span>当运输公司按公斤（kg）赔偿时</h3>
       <div class="body">
       <table>
         <tbody><tr>
@@ -581,7 +557,7 @@
           <td>
             按<strong>丢失包裹的重量 × 1.5</strong> 进行索赔。
             <div class="formula">索赔重量 = 丢失包裹重量 × 1.5</div>
-            <div style="margin-top:8px;font-size:13px;color:rgba(15,25,55,0.55)">
+            <div style="margin-top:8px;font-size:13px;color:#545454">
               ⚠️ 结果<strong>不得超过整个订单的总重量</strong>。
             </div>
           </td>
@@ -593,28 +569,28 @@
 
   <template id="refNote-tpl">
     <div class="note">
-      <h3><span class="ref-badge" style="display:inline-block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.95);background:rgba(80,90,130,0.60);padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;">CBL</span>CBL 流程要点 · GESTIÓN DE INCIDENCIAS</h3>
+      <h3><span class="ref-badge" style="display:inline-block;font-size:10px;font-weight:700;color:#ffffff;background:#9C3E00;padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;">CBL</span>CBL 流程要点 · GESTIÓN DE INCIDENCIAS</h3>
       <div class="body">
-        <h4 style="font-size:13px;color:rgba(15,25,55,0.90);margin:10px 0 4px;font-weight:700;">① 货物出库时先提醒客户</h4>
+        <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">① 货物出库时先提醒客户</h4>
         <p><strong>重要：</strong>收货时若发现货物损坏或缺件，必须当场在运输公司的签收单 / PDA 上注明；否则视为客户已确认无误，事后无法索赔。</p>
         <p>CBL 强调：客户须在签收时于「签收确认单」上写明实际情况，「待检查」字样无效；有可见损坏必须当场注明，否则不予受理索赔。</p>
 
-        <h4 style="font-size:13px;color:rgba(15,25,55,0.90);margin:10px 0 4px;font-weight:700;">② 发生货损时如何处理</h4>
+        <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">② 发生货损时如何处理</h4>
         <ul style="list-style:none;margin:0 0 6px;padding:0;">
           <li style="position:relative;padding-left:14px;margin-bottom:4px;font-size:13px;">请客户提供受损货物照片，并说明受损总量。</li>
-          <li style="position:relative;padding-left:14px;margin-bottom:4px;font-size:13px;">联系 CBL 的 Yolanda 报案：<span style="color:rgba(20,60,160,0.75);text-decoration:underline;word-break:break-all;">madrid.sac12@cbl-logistica.com</span></li>
+          <li style="position:relative;padding-left:14px;margin-bottom:4px;font-size:13px;">联系 CBL 的 Yolanda 报案：<span style="color:#003354;text-decoration:underline;word-break:break-all;">madrid.sac12@cbl-logistica.com</span></li>
           <li style="position:relative;padding-left:14px;margin-bottom:4px;font-size:13px;">附上照片 + 受损明细 + 对应的运单号（expedición）。</li>
         </ul>
 
-        <h4 style="font-size:13px;color:rgba(15,25,55,0.90);margin:10px 0 4px;font-weight:700;">③ 货物赔偿（开票）</h4>
-        <p style="font-size:13px;margin:0 0 6px;">Yolanda 确认无误后，会要求开具一张载明受损货物金额的发票，发送给 Yolanda 和负责会计的 Macarena：<span style="color:rgba(20,60,160,0.75);text-decoration:underline;word-break:break-all;">madrid.administracion3@cbl-logistica.com</span></p>
+        <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">③ 货物赔偿（开票）</h4>
+        <p style="font-size:13px;margin:0 0 6px;">Yolanda 确认无误后，会要求开具一张载明受损货物金额的发票，发送给 Yolanda 和负责会计的 Macarena：<span style="color:#003354;text-decoration:underline;word-break:break-all;">madrid.administracion3@cbl-logistica.com</span></p>
         <p style="font-size:13px;margin:0 0 6px;">会计审核通过后，方可开具向 CBL 收款的发票。发票抬头：<strong>INMUEBLES Y LOGISTICA SA</strong>。</p>
 
-        <h4 style="font-size:13px;color:rgba(15,25,55,0.90);margin:10px 0 4px;font-weight:700;">④ CBL 何时付款</h4>
+        <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">④ CBL 何时付款</h4>
         <p style="font-size:13px;margin:0 0 6px;">资料经会计确认无误后，付款周期通常与我方账期一致（如月结即约一个月）。</p>
 
-        <h4 style="font-size:13px;color:rgba(15,25,55,0.90);margin:10px 0 4px;font-weight:700;">⑤ 案件拖延 / 与运输公司有纠纷时</h4>
-        <p style="font-size:13px;margin:0 0 6px;">可直接联系 CBL 业务员 JUAN CARLOS：<span style="color:rgba(20,60,160,0.75);text-decoration:underline;word-break:break-all;">carlos.garcia@cbl-logistica.com</span>，由其直接对接负责人。相关邮箱与电话见文件夹 456 → Agenda → CBL LOGISTICA。</p>
+        <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">⑤ 案件拖延 / 与运输公司有纠纷时</h4>
+        <p style="font-size:13px;margin:0 0 6px;">可直接联系 CBL 业务员 JUAN CARLOS：<span style="color:#003354;text-decoration:underline;word-break:break-all;">carlos.garcia@cbl-logistica.com</span>，由其直接对接负责人。相关邮箱与电话见文件夹 456 → Agenda → CBL LOGISTICA。</p>
       </div>
     </div>
   </template>
@@ -682,6 +658,9 @@
     if (!tpl) return;
     var body = document.getElementById('popup-body');
     body.innerHTML = tpl.innerHTML;
+    body.querySelectorAll('h3,h4,p,.body,td').forEach(function(el){
+      el.setAttribute('contenteditable','true');
+    });
     document.getElementById('popup-overlay').classList.add('show');
     document.getElementById('popup').classList.add('show');
     document.getElementById('popup').scrollTop = 0;
