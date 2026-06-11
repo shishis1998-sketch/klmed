@@ -712,8 +712,7 @@
     var fb = clone.querySelector('#fmtbar'); if(fb) fb.remove();
     var po = clone.querySelector('#popup-overlay'); if(po) po.remove();
     var pp = clone.querySelector('#popup'); if(pp) pp.remove();
-    var html = '<!DOCTYPE html>
-' + clone.outerHTML;
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
     var blob = new Blob([html], {type:'text/html;charset=utf-8'});
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
