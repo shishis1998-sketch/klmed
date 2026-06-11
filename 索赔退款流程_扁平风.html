@@ -20,7 +20,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
-    background: var(--bg);
+    background: linear-gradient(145deg, #cde0ec 0%, #e4edf4 35%, #f0eeec 70%, #ede5df 100%);
     min-height:100vh;
     color:var(--text);
     line-height:1.7;
@@ -31,9 +31,9 @@
     position:fixed;
     top:0;left:0;right:0;bottom:0;
     background:
-      radial-gradient(ellipse 70% 55% at 10% 10%, rgba(145,190,212,0.45) 0%, transparent 55%),
-      radial-gradient(ellipse 55% 65% at 90% 88%, rgba(0,53,84,0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 45% 40% at 60% 50%, rgba(242,97,1,0.08) 0%, transparent 50%);
+      radial-gradient(ellipse 60% 50% at 5% 5%, rgba(145,190,212,0.55) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 55% at 95% 90%, rgba(0,53,84,0.22) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 35% at 75% 20%, rgba(242,97,1,0.12) 0%, transparent 45%);
     pointer-events:none;
     z-index:0;
   }
@@ -44,10 +44,10 @@
   .wrap{margin:0 auto;max-width:780px;padding-left:20px;padding-right:20px}
 
   header.title{
-    background: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.50);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.70);
+    border: 1px solid rgba(255,255,255,0.65);
     border-top: 3px solid var(--accent-navy);
     border-radius:0;
     padding:28px 32px;
@@ -63,7 +63,7 @@
 
   .trigger{
     margin:20px 0;
-    background: rgba(255,255,255,0.42);
+    background: rgba(255,255,255,0.38);
     backdrop-filter: blur(20px) saturate(150%);
     -webkit-backdrop-filter: blur(20px) saturate(150%);
     border: 1px solid rgba(255,255,255,0.62);
@@ -82,10 +82,10 @@
   .trigger b{color:var(--accent-navy);font-weight:700}
 
   .step{
-    background: rgba(255,255,255,0.45);
-    backdrop-filter: blur(22px) saturate(155%);
-    -webkit-backdrop-filter: blur(22px) saturate(155%);
-    border: 1px solid rgba(255,255,255,0.65);
+    background: rgba(255,255,255,0.40);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.60);
     border-radius:0;
     padding:22px 24px;
     margin-bottom:14px;
@@ -95,7 +95,7 @@
     transition: var(--transition);
   }
   .step:hover{
-    background: rgba(255,255,255,0.60);
+    background: rgba(255,255,255,0.55);
     box-shadow: 0 8px 24px rgba(0,53,84,0.10),inset 0 1px 0 rgba(255,255,255,0.95);
     transform: translateY(-1px);
   }
@@ -265,10 +265,10 @@
     max-width:min(640px,88vw);
     max-height:80vh;
     overflow-y:auto;
-    background:rgba(255,255,255,0.72);
-    backdrop-filter:blur(40px) saturate(165%);
-    -webkit-backdrop-filter:blur(40px) saturate(165%);
-    border:1px solid rgba(255,255,255,0.75);
+    background:rgba(255,255,255,0.62);
+    backdrop-filter:blur(40px) saturate(168%);
+    -webkit-backdrop-filter:blur(40px) saturate(168%);
+    border:1px solid rgba(255,255,255,0.68);
     border-top:3px solid var(--accent-navy);
     border-radius:0;
     padding:24px 28px 22px;
