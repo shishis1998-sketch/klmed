@@ -652,10 +652,13 @@
     .forEach(function(el){ el.setAttribute('contenteditable','true'); });
 
   // ===== 弹窗逻辑 =====
+  var currentPopupType = null;
+
   window.openPopup = function(type) {
     var tplId = type === 'kg' ? 'specialNote-tpl' : 'refNote-tpl';
     var tpl = document.getElementById(tplId);
     if (!tpl) return;
+    currentPopupType = type;
     var body = document.getElementById('popup-body');
     body.innerHTML = tpl.innerHTML;
     body.querySelectorAll('h3,h4,p,.body,td').forEach(function(el){
@@ -666,7 +669,22 @@
     document.getElementById('popup').scrollTop = 0;
   };
 
+  // 关闭前把弹窗里的修改写回模板，这样再次打开或“保存到本地”都能保留
+  function persistPopupEdits(){
+    if (!currentPopupType) return;
+    var tplId = currentPopupType === 'kg' ? 'specialNote-tpl' : 'refNote-tpl';
+    var tpl = document.getElementById(tplId);
+    var body = document.getElementById('popup-body');
+    if (!tpl || !body) return;
+    var tmp = document.createElement('div');
+    tmp.innerHTML = body.innerHTML;
+    tmp.querySelectorAll('[contenteditable]').forEach(function(el){ el.removeAttribute('contenteditable'); });
+    tpl.innerHTML = tmp.innerHTML;
+  }
+
   window.closePopup = function() {
+    persistPopupEdits();
+    currentPopupType = null;
     document.getElementById('popup-overlay').classList.remove('show');
     document.getElementById('popup').classList.remove('show');
   };
@@ -686,6 +704,7 @@
 
   // 保存：把当前页面（含你的修改）导出成 HTML 文件下载到本地
   function saveLocal(){
+    persistPopupEdits();
     var clone = document.documentElement.cloneNode(true);
     clone.querySelectorAll('[contenteditable]').forEach(function(el){ el.removeAttribute('contenteditable'); });
     // 保留弹窗和格式工具栏元素（否则保存后的文件弹窗会失效），只重置它们的显示状态
