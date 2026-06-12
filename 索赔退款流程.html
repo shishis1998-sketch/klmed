@@ -286,7 +286,7 @@
     margin-bottom:12px;padding-bottom:10px;
     border-bottom:1px solid var(--border);
   }
-  #popup-body table{width:100%;}
+  #popup-body table{width:auto;max-width:100%;}
   #popup-body .formula{background:rgba(145,190,212,0.15);}
 
   #fmtbar{
@@ -329,6 +329,13 @@
   #fmtbar .sw:hover{transform:scale(1.12);}
   #fmtbar .sw.none{background:rgba(255,255,255,0.70);position:relative;}
   #fmtbar .sw.none::after{content:"";position:absolute;left:1px;right:1px;top:50%;height:2px;background:#c0392b;transform:rotate(-45deg);}
+  #fmtbar .fmtsel{
+    border:1px solid var(--border);background:#ffffff;color:var(--text);
+    font-family:inherit;font-size:13px;font-weight:600;
+    height:28px;padding:0 4px;cursor:pointer;border-radius:0;
+    flex:0 0 auto;
+  }
+  #fmtbar .fmtsel:hover{background:var(--bg);}
   #fmtbar .colbtn{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:3px 6px;}
   #fmtbar .colbtn .bar{width:16px;height:3px;background:#1A1A1A;}
   #fmtbar .hlbtn .bar{width:16px;height:3px;background:rgba(255,200,50,0.80);}
@@ -637,10 +644,24 @@
     </div>
   </span>
   <span class="sep"></span>
-  <!-- 标题 -->
-  <button type="button" data-cmd="h1" title="大标题"><span class="ic">H1</span></button>
-  <button type="button" data-cmd="h2" title="小标题"><span class="ic">H2</span></button>
-  <button type="button" data-cmd="p" title="正文"><span class="ic">¶</span></button>
+  <!-- 段落 / 标题 样式 -->
+  <select class="fmtsel" id="blockSel" title="段落样式 / Párrafo">
+    <option value="p">Párrafo</option>
+    <option value="h1">Título 1</option>
+    <option value="h2">Título 2</option>
+  </select>
+  <!-- 字号 -->
+  <select class="fmtsel" id="sizeSel" title="字号 / Tamaño">
+    <option value="">字号</option>
+    <option value="12px">12</option>
+    <option value="13px">13</option>
+    <option value="14px">14</option>
+    <option value="16px">16</option>
+    <option value="18px">18</option>
+    <option value="20px">20</option>
+    <option value="24px">24</option>
+    <option value="28px">28</option>
+  </select>
   <span class="sep"></span>
   <button type="button" data-cmd="clear" title="清除格式"><span class="ic">✕</span></button>
 </div>
@@ -758,9 +779,61 @@
   }
   function hideBar(){ fmtbar.classList.remove('show'); fmtbar.setAttribute('aria-hidden','true'); closePops(); }
 
+  var lastRange = null;
   document.addEventListener('selectionchange', function(){
-    setTimeout(function(){ positionBar(); if(fmtbar.classList.contains('show')) syncActive(); }, 0);
+    setTimeout(function(){
+      // 正在操作工具栏里的下拉框时，保持工具栏与选区不变
+      if(fmtbar.contains(document.activeElement)) return;
+      var sel = window.getSelection();
+      if(sel && sel.rangeCount && !sel.isCollapsed && inEditable(sel)){
+        lastRange = sel.getRangeAt(0).cloneRange();
+      }
+      positionBar(); if(fmtbar.classList.contains('show')) syncActive();
+    }, 0);
   });
+
+  // 使用下拉框前选区会失焦，这里把之前记住的选区恢复回来
+  function restoreRange(){
+    if(!lastRange) return false;
+    var node = lastRange.commonAncestorContainer;
+    if(node.nodeType === 3) node = node.parentNode;
+    var editable = node && node.closest ? node.closest('[contenteditable="true"]') : null;
+    if(editable) editable.focus();
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(lastRange);
+    return true;
+  }
+
+  // 段落 / 标题 样式
+  var blockSel = document.getElementById('blockSel');
+  if(blockSel){
+    blockSel.addEventListener('change', function(){
+      restoreRange();
+      document.execCommand('formatBlock', false, blockSel.value);
+      setTimeout(function(){ positionBar(); syncActive(); }, 0);
+    });
+  }
+
+  // 字号
+  var sizeSel = document.getElementById('sizeSel');
+  if(sizeSel){
+    sizeSel.addEventListener('change', function(){
+      var px = sizeSel.value;
+      sizeSel.selectedIndex = 0; // 复位标签，便于再次选同一字号
+      if(!px) return;
+      restoreRange();
+      // execCommand 的 fontSize 只支持 1-7 级，这里用占位级别再换成具体 px
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('fontSize', false, '7');
+      document.execCommand('styleWithCSS', false, true);
+      document.querySelectorAll('font[size="7"]').forEach(function(f){
+        f.removeAttribute('size');
+        f.style.fontSize = px;
+      });
+      setTimeout(function(){ positionBar(); }, 0);
+    });
+  }
   window.addEventListener('scroll', function(){ if(fmtbar.classList.contains('show')) positionBar(); }, true);
 
   fmtbar.addEventListener('mousedown', function(e){
@@ -827,6 +900,10 @@
       setActive('italic','italic');
       setActive('underline','underline');
       setActive('strike','strikeThrough');
+      if(blockSel){
+        var fb = (document.queryCommandValue('formatBlock') || '').toLowerCase();
+        blockSel.value = (fb === 'h1' || fb === 'h2') ? fb : 'p';
+      }
     }catch(e){}
   }
   function setActive(cmdAttr, queryCmd){
