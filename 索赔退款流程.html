@@ -535,9 +535,12 @@
   <!-- 左侧固定栏：目录 + 卡片，整体随页面滚动 -->
 
   <!-- 弹窗遮罩 -->
-  
+  <div id="popup-overlay" onclick="closePopup()"></div>
   <!-- 弹窗主体 -->
-  
+  <div id="popup" role="dialog" aria-modal="true">
+    <button id="popup-close" onclick="closePopup()" title="关闭">✕</button>
+    <div id="popup-body"></div>
+  </div>
 
   <!-- 弹窗内容模板（隐藏） -->
   <template id="specialNote-tpl">
@@ -599,7 +602,48 @@
 
 
 <!-- 选中文字浮动格式工具栏 -->
-
+<div id="fmtbar" aria-hidden="true">
+  <button type="button" data-cmd="bold" title="加粗 (Ctrl+B)" style="font-weight:800;"><span class="ic">B</span></button>
+  <button type="button" data-cmd="italic" title="斜体 (Ctrl+I)" style="font-style:italic;"><span class="ic">I</span></button>
+  <button type="button" data-cmd="underline" title="下划线 (Ctrl+U)" style="text-decoration:underline;"><span class="ic">U</span></button>
+  <button type="button" data-cmd="strike" title="删除线"><span class="ic" style="text-decoration:line-through;">S</span></button>
+  <span class="sep"></span>
+  <!-- 文字颜色 -->
+  <span class="pop-wrap">
+    <button type="button" class="colbtn" data-pop="color" title="文字颜色"><span class="ic">A</span><span class="bar" id="colBar"></span></button>
+    <div class="pop" id="colorPop">
+      <button type="button" class="sw" data-color="#003354" style="background:#003354;" title="深藏蓝"></button>
+      <button type="button" class="sw" data-color="#37352f" style="background:#37352f;" title="品牌蓝"></button>
+      <button type="button" class="sw" data-color="#1a1a1a" style="background:#1a1a1a;" title="黑"></button>
+      <button type="button" class="sw" data-color="#c0392b" style="background:#c0392b;" title="红"></button>
+      <button type="button" class="sw" data-color="#e08a1e" style="background:#e08a1e;" title="橙"></button>
+      <button type="button" class="sw" data-color="#2e8b57" style="background:#2e8b57;" title="绿"></button>
+      <button type="button" class="sw" data-color="#7d3c98" style="background:#7d3c98;" title="紫"></button>
+      <button type="button" class="sw" data-color="#787774" style="background:#787774;" title="灰蓝"></button>
+      <button type="button" class="sw" data-color="#ffffff" style="background:#ffffff;border:1px solid #CFCFCF;" title="白"></button>
+      <button type="button" class="sw none" data-color="__none__" title="默认色"></button>
+    </div>
+  </span>
+  <!-- 高亮 -->
+  <span class="pop-wrap">
+    <button type="button" class="colbtn hlbtn" data-pop="hl" title="高亮"><span class="ic">🖊</span><span class="bar"></span></button>
+    <div class="pop" id="hlPop">
+      <button type="button" class="sw" data-hl="#ffe14d" style="background:#ffe14d;" title="黄"></button>
+      <button type="button" class="sw" data-hl="#bde8b0" style="background:#bde8b0;" title="绿"></button>
+      <button type="button" class="sw" data-hl="#aee0f0" style="background:#aee0f0;" title="蓝"></button>
+      <button type="button" class="sw" data-hl="#f7c0c0" style="background:#f7c0c0;" title="红"></button>
+      <button type="button" class="sw" data-hl="#e6cdf0" style="background:#e6cdf0;" title="紫"></button>
+      <button type="button" class="sw none" data-hl="__none__" title="去高亮"></button>
+    </div>
+  </span>
+  <span class="sep"></span>
+  <!-- 标题 -->
+  <button type="button" data-cmd="h1" title="大标题"><span class="ic">H1</span></button>
+  <button type="button" data-cmd="h2" title="小标题"><span class="ic">H2</span></button>
+  <button type="button" data-cmd="p" title="正文"><span class="ic">¶</span></button>
+  <span class="sep"></span>
+  <button type="button" data-cmd="clear" title="清除格式"><span class="ic">✕</span></button>
+</div>
 
 <script>
 (function(){
@@ -644,9 +688,17 @@
   function saveLocal(){
     var clone = document.documentElement.cloneNode(true);
     clone.querySelectorAll('[contenteditable]').forEach(function(el){ el.removeAttribute('contenteditable'); });
-    var fb = clone.querySelector('#fmtbar'); if(fb) fb.remove();
-    var po = clone.querySelector('#popup-overlay'); if(po) po.remove();
-    var pp = clone.querySelector('#popup'); if(pp) pp.remove();
+    // 保留弹窗和格式工具栏元素（否则保存后的文件弹窗会失效），只重置它们的显示状态
+    var fb = clone.querySelector('#fmtbar');
+    if(fb){
+      fb.classList.remove('show');
+      fb.setAttribute('aria-hidden','true');
+      fb.removeAttribute('style');
+      fb.querySelectorAll('.pop.show').forEach(function(p){ p.classList.remove('show'); });
+    }
+    var po = clone.querySelector('#popup-overlay'); if(po) po.classList.remove('show');
+    var pp = clone.querySelector('#popup'); if(pp) pp.classList.remove('show');
+    var pb = clone.querySelector('#popup-body'); if(pb) pb.innerHTML = '';
     var html = '<!DOCTYPE html>\n' + clone.outerHTML;
     var blob = new Blob([html], {type:'text/html;charset=utf-8'});
     var a = document.createElement('a');
