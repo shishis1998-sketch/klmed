@@ -394,8 +394,8 @@
     *{color:#000 !important}
   }
 </style>
-<input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script></head>
-<body>
+<input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script></head><body><input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script>
+
 
 <div id="toolbar">
   <div class="inner">
@@ -535,9 +535,9 @@
   <!-- 左侧固定栏：目录 + 卡片，整体随页面滚动 -->
 
   <!-- 弹窗遮罩 -->
-  <div id="popup-overlay" onclick="closePopup()"></div>
+  <div id="popup-overlay" onclick="closePopup()" class=""></div>
   <!-- 弹窗主体 -->
-  <div id="popup" role="dialog" aria-modal="true">
+  <div id="popup" role="dialog" aria-modal="true" class="">
     <button id="popup-close" onclick="closePopup()" title="关闭">✕</button>
     <div id="popup-body"></div>
   </div>
@@ -572,8 +572,8 @@
       <h3><span class="ref-badge" style="display:inline-block;font-size:10px;font-weight:700;color:#ffffff;background:#9C3E00;padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;">CBL</span>CBL 流程要点 · GESTIÓN DE INCIDENCIAS</h3>
       <div class="body">
         <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">① 货物出库时先提醒客户</h4>
-        <p><strong>重要：</strong>收货时若发现货物损坏或缺件，必须当场在运输公司的签收单 / PDA 上注明；否则视为客户已确认无误，事后无法索赔。</p>
-        <p>CBL 强调：客户须在签收时于「签收确认单」上写明实际情况，「待检查」字样无效；有可见损坏必须当场注明，否则不予受理索赔。</p>
+        <p><strong>重要：</strong>收货时若发现货物损坏或缺件，必须<span style="background-color: rgb(255, 225, 77);">当场在签收单上注明</span>；否则视为客户已确认无误，事后无法索赔。</p>
+        <p>运输公司强调：在签收时写&nbsp;<span style="background-color: rgb(255, 225, 77);">「待检查 / PENDIENTE DE REVISAR」字样无效</span>；有可见损坏必须当场注明，否则不予受理索赔。</p>
 
         <h4 style="font-size:13px;color:#003354;margin:10px 0 4px;font-weight:700;">② 发生货损时如何处理</h4>
         <ul style="list-style:none;margin:0 0 6px;padding:0;">
@@ -602,7 +602,7 @@
 
 
 <!-- 选中文字浮动格式工具栏 -->
-<div id="fmtbar" aria-hidden="true">
+<div id="fmtbar" aria-hidden="true" class="">
   <button type="button" data-cmd="bold" title="加粗 (Ctrl+B)" style="font-weight:800;"><span class="ic">B</span></button>
   <button type="button" data-cmd="italic" title="斜体 (Ctrl+I)" style="font-style:italic;"><span class="ic">I</span></button>
   <button type="button" data-cmd="underline" title="下划线 (Ctrl+U)" style="text-decoration:underline;"><span class="ic">U</span></button>
