@@ -246,9 +246,10 @@
     transform:translate(-50%,-48%) scale(0.97);
     pointer-events:none;
     z-index:101;
-    min-width:280px;
+    min-width:auto;
     width:max-content;
-    max-width:min(640px,88vw);
+    width:fit-content;
+    max-width:min(520px,92vw);
     max-height:80vh;
     overflow-y:auto;
     background:#ffffff;
@@ -276,13 +277,13 @@
     transition:all 0.25s;
   }
   #popup-close:hover{background:rgba(0,53,84,0.12);color:var(--text);}
-  #popup-body{font-size:14px;color:var(--text);padding-right:2px;}
+  #popup-body{font-size:14px;color:var(--text);padding-right:2px;width:max-content;max-width:100%;}
   #popup-body .note{
     margin-top:0;border-left:none;background:transparent;
     box-shadow:none;padding:0;border:none;
     width:max-content;max-width:100%;
   }
-  #popup-body .note .body{width:auto;}
+  #popup-body .note .body{width:max-content;max-width:100%;}
   #popup-body .note h3{
     font-size:15px;font-weight:700;color:var(--accent-navy);
     margin-bottom:12px;padding-bottom:10px;
@@ -721,6 +722,11 @@
 
 <script>
 (function(){
+  // 每次刷新/打开页面都回到顶部（关闭浏览器的滚动位置记忆）
+  if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
+  window.scrollTo(0,0);
+  window.addEventListener('load', function(){ window.scrollTo(0,0); });
+
   // 让卡片内的文字内容可直接编辑
   document.querySelectorAll('.wrap .step, .wrap .trigger, .wrap .note .body, .wrap header.title h1, .wrap header.title p')
     .forEach(function(el){ el.setAttribute('contenteditable','true'); });
