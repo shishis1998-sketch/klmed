@@ -336,6 +336,15 @@
     flex:0 0 auto;
   }
   #fmtbar .fmtsel:hover{background:var(--bg);}
+  #fmtbar .listbtn{padding:4px 8px;font-size:15px;}
+  #fmtbar .pop.listpop{grid-template-columns:repeat(4,auto);gap:4px;}
+  #fmtbar .lsw{
+    width:auto;height:28px;min-width:30px;padding:0 6px;
+    border:1px solid var(--border);background:#ffffff;color:var(--text);
+    font-size:14px;line-height:1;cursor:pointer;border-radius:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #fmtbar .lsw:hover{background:var(--bg);transform:none;}
   #fmtbar .colbtn{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:3px 6px;}
   #fmtbar .colbtn .bar{width:16px;height:3px;background:#1A1A1A;}
   #fmtbar .hlbtn .bar{width:16px;height:3px;background:rgba(255,200,50,0.80);}
@@ -387,6 +396,36 @@
     box-shadow:0 0 0 2px rgba(145,190,212,0.50), 0 4px 16px rgba(0,53,84,0.08);}
 
   hr{border:none;border-top:1px solid var(--border);margin:18px 0}
+
+  /* ===== 可编辑区域内的列表样式（由浮动工具栏的“列表”选择器设置 data-ls）===== */
+  [contenteditable] ul[data-ls],[contenteditable] ol[data-ls]{
+    margin:8px 0;padding-left:26px;list-style-position:outside;
+  }
+  [contenteditable] ul[data-ls] > li,[contenteditable] ol[data-ls] > li{
+    position:static;padding-left:0;margin-bottom:5px;font-size:inherit;color:inherit;
+  }
+  /* 去掉文档默认的小圆点伪元素 */
+  [contenteditable] ul[data-ls] > li::before,[contenteditable] ol[data-ls] > li::before{content:none;}
+  [contenteditable] ul[data-ls="disc"]{list-style:disc;}
+  [contenteditable] ul[data-ls="circle"]{list-style:circle;}
+  [contenteditable] ul[data-ls="square"]{list-style:square;}
+  [contenteditable] ol[data-ls="number"]{list-style:decimal;}
+  /* 符号 / emoji 项目符号 */
+  [contenteditable] ul[data-ls="diamond"],[contenteditable] ul[data-ls="triangle"],
+  [contenteditable] ul[data-ls="star"],[contenteditable] ul[data-ls="check"],
+  [contenteditable] ul[data-ls="pin"],[contenteditable] ul[data-ls="rocket"],
+  [contenteditable] ul[data-ls="arrow"]{list-style:none;padding-left:6px;}
+  [contenteditable] ul[data-ls="diamond"] > li,[contenteditable] ul[data-ls="triangle"] > li,
+  [contenteditable] ul[data-ls="star"] > li,[contenteditable] ul[data-ls="check"] > li,
+  [contenteditable] ul[data-ls="pin"] > li,[contenteditable] ul[data-ls="rocket"] > li,
+  [contenteditable] ul[data-ls="arrow"] > li{position:relative;padding-left:24px;}
+  [contenteditable] ul[data-ls="diamond"] > li::before{content:"◆";position:absolute;left:2px;top:0;color:var(--accent-navy);}
+  [contenteditable] ul[data-ls="triangle"] > li::before{content:"▶";position:absolute;left:2px;top:0;color:var(--accent-orange);font-size:.85em;}
+  [contenteditable] ul[data-ls="star"] > li::before{content:"✦";position:absolute;left:2px;top:0;color:var(--accent-orange);}
+  [contenteditable] ul[data-ls="check"] > li::before{content:"✅";position:absolute;left:0;top:0;}
+  [contenteditable] ul[data-ls="pin"] > li::before{content:"📌";position:absolute;left:0;top:0;}
+  [contenteditable] ul[data-ls="rocket"] > li::before{content:"🚀";position:absolute;left:0;top:0;}
+  [contenteditable] ul[data-ls="arrow"] > li::before{content:"➤";position:absolute;left:2px;top:0;color:var(--accent-orange);}
 
   @media (max-width:860px){
     .wrap{margin:0 12px}
@@ -644,12 +683,24 @@
     </div>
   </span>
   <span class="sep"></span>
-  <!-- 段落 / 标题 样式 -->
-  <select class="fmtsel" id="blockSel" title="段落样式 / Párrafo">
-    <option value="p">Párrafo</option>
-    <option value="h1">Título 1</option>
-    <option value="h2">Título 2</option>
-  </select>
+  <!-- 列表样式 -->
+  <span class="pop-wrap">
+    <button type="button" class="listbtn" data-pop="list" title="列表 / Lista"><span class="ic">☰</span></button>
+    <div class="pop listpop" id="listPop">
+      <button type="button" class="lsw" data-list="none" title="无">无</button>
+      <button type="button" class="lsw" data-list="disc" title="实心圆">●</button>
+      <button type="button" class="lsw" data-list="circle" title="空心圆">○</button>
+      <button type="button" class="lsw" data-list="square" title="方块">▪</button>
+      <button type="button" class="lsw" data-list="number" title="数字">1.</button>
+      <button type="button" class="lsw" data-list="diamond" title="菱形">◆</button>
+      <button type="button" class="lsw" data-list="triangle" title="三角">▶</button>
+      <button type="button" class="lsw" data-list="star" title="星">✦</button>
+      <button type="button" class="lsw" data-list="check" title="对勾">✅</button>
+      <button type="button" class="lsw" data-list="pin" title="图钉">📌</button>
+      <button type="button" class="lsw" data-list="rocket" title="火箭">🚀</button>
+      <button type="button" class="lsw" data-list="arrow" title="箭头">➤</button>
+    </div>
+  </span>
   <!-- 字号 -->
   <select class="fmtsel" id="sizeSel" title="字号 / Tamaño">
     <option value="">字号</option>
@@ -805,14 +856,37 @@
     return true;
   }
 
-  // 段落 / 标题 样式
-  var blockSel = document.getElementById('blockSel');
-  if(blockSel){
-    blockSel.addEventListener('change', function(){
-      restoreRange();
-      document.execCommand('formatBlock', false, blockSel.value);
-      setTimeout(function(){ positionBar(); syncActive(); }, 0);
-    });
+  // 列表样式：根据所选符号创建/转换列表，并在列表元素上记录 data-ls
+  function getSelectedList(){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return null;
+    var n = sel.getRangeAt(0).commonAncestorContainer;
+    if(n.nodeType === 3) n = n.parentNode;
+    return n && n.closest ? n.closest('ul,ol') : null;
+  }
+  function convertListTag(list, toTag){
+    if(list.tagName.toLowerCase() === toTag) return list;
+    var nl = document.createElement(toTag);
+    while(list.firstChild) nl.appendChild(list.firstChild);
+    if(list.parentNode) list.parentNode.replaceChild(nl, list);
+    return nl;
+  }
+  function applyList(type){
+    restoreRange();
+    if(type === 'none'){
+      var l = getSelectedList();
+      if(l) document.execCommand(l.tagName === 'OL' ? 'insertOrderedList' : 'insertUnorderedList');
+      return;
+    }
+    var ordered = (type === 'number');
+    var list = getSelectedList();
+    if(!list){
+      document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList');
+      list = getSelectedList();
+    }
+    if(!list) return;
+    list = convertListTag(list, ordered ? 'ol' : 'ul');
+    list.setAttribute('data-ls', type);
   }
 
   // 字号
@@ -864,9 +938,19 @@
       closePops(); setTimeout(positionBar, 0); return;
     }
 
+    var listType = btn.getAttribute('data-list');
+    if(listType !== null){
+      applyList(listType);
+      closePops();
+      setTimeout(function(){ positionBar(); syncActive(); }, 0);
+      return;
+    }
+
     var pop = btn.getAttribute('data-pop');
     if(pop){
-      var target = pop === 'color' ? document.getElementById('colorPop') : document.getElementById('hlPop');
+      var target = pop === 'color' ? document.getElementById('colorPop')
+                 : pop === 'hl'    ? document.getElementById('hlPop')
+                 :                   document.getElementById('listPop');
       var wasOpen = target.classList.contains('show');
       closePops();
       if(!wasOpen) target.classList.add('show');
@@ -892,6 +976,7 @@
   function closePops(){
     var cp = document.getElementById('colorPop'); if(cp) cp.classList.remove('show');
     var hp = document.getElementById('hlPop'); if(hp) hp.classList.remove('show');
+    var lp = document.getElementById('listPop'); if(lp) lp.classList.remove('show');
   }
 
   function syncActive(){
@@ -900,10 +985,6 @@
       setActive('italic','italic');
       setActive('underline','underline');
       setActive('strike','strikeThrough');
-      if(blockSel){
-        var fb = (document.queryCommandValue('formatBlock') || '').toLowerCase();
-        blockSel.value = (fb === 'h1' || fb === 'h2') ? fb : 'p';
-      }
     }catch(e){}
   }
   function setActive(cmdAttr, queryCmd){
