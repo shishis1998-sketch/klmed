@@ -87,9 +87,28 @@
   .icon-btn.del:hover{background:var(--rose);}
   .icon-btn.copy:hover{background:var(--gold);}
 
+  /* ===== 思维导图折叠模式 ===== */
+  .stage-head{ cursor:pointer; }
+  .stage-toggle{
+    flex:none;font-size:13px;margin-left:8px;opacity:.85;
+    transition:transform .28s ease;letter-spacing:0;
+  }
+  .stage.open .stage-toggle{ transform:rotate(90deg); }
+  /* 控制按钮默认隐藏，hover 或展开时才显示 */
+  .stage-ctrl{
+    opacity:0;transition:opacity .18s;
+  }
+  .stage:hover .stage-ctrl,
+  .stage.open .stage-ctrl{ opacity:1; }
+
   .steps{
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:stretch;
-    gap:0;padding:18px 8px 4px;min-height:40px;
+    gap:0;padding:0 8px;min-height:0;
+    max-height:0;overflow:hidden;
+    transition:max-height .38s ease, padding .28s ease;
+  }
+  .stage.open .steps{
+    padding:18px 8px 4px;min-height:40px;max-height:3000px;
   }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
@@ -392,9 +411,10 @@
   .mini-actions button:not(.primary):hover{background:#f3f1ec;}
 
   @media print{
-    .toolbar,#fmtbar,.add-step,.icon-btn,.node-del,.node-grip,.grip,.insert-here,.node-open,#detail,#miniModal,.module-tabs{display:none!important;}
+    .toolbar,#fmtbar,.add-step,.icon-btn,.node-del,.node-grip,.grip,.insert-here,.node-open,#detail,#miniModal,.module-tabs,.stage-toggle{display:none!important;}
     body{background:#fff;padding:0;}
-    .steps{break-inside:avoid;}
+    .steps{break-inside:avoid;max-height:none!important;padding:18px 8px 4px!important;overflow:visible!important;}
+    .stage-ctrl{opacity:1!important;}
   }
   @media(max-width:680px){.node{max-width:100%;}}
 
@@ -421,7 +441,8 @@
     margin-left:0;flex:1 1 100%;font-size:11.5px;white-space:normal;
   }
 
-  .steps{gap:0;padding:12px 0 4px;flex-direction:column;align-items:stretch;}
+  .steps{gap:0;flex-direction:column;align-items:stretch;}
+  .stage.open .steps{padding:12px 0 4px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
@@ -1303,6 +1324,7 @@
           <button class="icon-btn ins" title="在此阶段后插入新阶段">＋</button>
           <button class="icon-btn del" title="删除整个阶段">✕</button>
         </span>
+        <span class="stage-toggle">▶</span>
       </div>
       <div class="steps"></div>`;
     const steps = stage.querySelector('.steps');
@@ -1340,6 +1362,15 @@
     };
     stage.querySelector('.del').onclick=()=>{ stage.remove(); renumber(stage.closest('.flow')||activeFlow()); };
     stage.querySelector('.copy').onclick=()=>openCopyModal(stage);
+
+    // 折叠/展开：点击标题栏切换（避开按钮、拖拽手柄、可编辑文字区）
+    stage.querySelector('.stage-head').addEventListener('click', e => {
+      if(e.target.closest('button') || e.target.closest('.grip')) return;
+      const ce = e.target.closest('[contenteditable]');
+      if(ce && ce.contentEditable === 'true') return;
+      stage.classList.toggle('open');
+    });
+
     return stage;
   }
 
