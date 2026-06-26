@@ -108,7 +108,14 @@
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:stretch;
     gap:0;padding:18px 8px 4px;
     overflow:hidden;height:0;
-    transition:height .24s cubic-bezier(.4,0,.2,1);
+    transition:height .18s ease-out;
+  }
+  @keyframes sop-node-in{
+    from{ opacity:0; transform:translateY(18px) scale(.93); }
+    to  { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .node.anim-in{
+    animation:sop-node-in .38s cubic-bezier(.34,1.56,.64,1) both;
   }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
@@ -1068,25 +1075,41 @@
   function toggleStage(stage){
     const steps = stage.querySelector('.steps');
     const isOpen = stage.classList.contains('open');
-    // 清除上一次未结束的 transitionend 监听
+    // 清除上一次未结束的监听
     steps._onEnd && steps.removeEventListener('transitionend', steps._onEnd);
+    // 停止还在飞的卡片动画
+    steps.querySelectorAll('.node.anim-in').forEach(n=>{
+      n.classList.remove('anim-in');
+      n.style.animationDelay='';
+    });
+
     if(isOpen){
-      // 关闭：先固定当前像素高度，下一帧归零
+      // 关闭：先固定高度，再归零
       steps.style.height = steps.scrollHeight + 'px';
       stage.classList.remove('open');
-      steps.offsetHeight; // force reflow
+      steps.offsetHeight;
       steps.style.height = '0';
-      steps._onEnd = () => { steps.style.height = ''; steps._onEnd = null; };
-      steps.addEventListener('transitionend', steps._onEnd, { once: true });
+      steps._onEnd = ()=>{ steps.style.height=''; steps._onEnd=null; };
+      steps.addEventListener('transitionend', steps._onEnd, { once:true });
     } else {
-      // 展开：测量自然高度，动画到该值，结束后改为 auto
+      // 展开：容器先撑开（快，.18s），卡片随后逐张弹入
       stage.classList.add('open');
       const fullH = steps.scrollHeight;
       steps.style.height = '0';
-      steps.offsetHeight; // force reflow
+      steps.offsetHeight;
       steps.style.height = fullH + 'px';
-      steps._onEnd = () => { steps.style.height = 'auto'; steps._onEnd = null; };
-      steps.addEventListener('transitionend', steps._onEnd, { once: true });
+      steps._onEnd = ()=>{ steps.style.height='auto'; steps._onEnd=null; };
+      steps.addEventListener('transitionend', steps._onEnd, { once:true });
+
+      // 每张 .node 错开 60ms 弹入
+      steps.querySelectorAll('.node').forEach((n, i)=>{
+        n.style.animationDelay = (i * 60) + 'ms';
+        n.classList.add('anim-in');
+        n.addEventListener('animationend', ()=>{
+          n.classList.remove('anim-in');
+          n.style.animationDelay = '';
+        }, { once:true });
+      });
     }
   }
 
