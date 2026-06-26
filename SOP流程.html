@@ -58,57 +58,57 @@
   .stage.dragging{opacity:.4;}
 
   .stage-head{
-    display:flex;align-items:center;gap:12px;
-    background:var(--accent);color:#fff;
-    padding:13px 18px 13px 14px;border-radius:4px;
-    box-shadow:var(--shadow);font-weight:700;font-size:18px;
+    display:flex;align-items:center;gap:10px;
+    background:#fff;color:var(--ink);
+    border:1px solid var(--line);border-left:4px solid var(--accent);
+    padding:10px 14px 10px 12px;border-radius:0 4px 4px 0;
+    box-shadow:0 1px 4px rgba(53,71,84,.07);font-weight:700;font-size:15px;
+    cursor:pointer;transition:background .15s;
   }
+  .stage-head:hover{ background:var(--accent-soft); }
+  .stage.open .stage-head{ background:var(--accent-soft); }
   .grip{
-    cursor:grab;font-size:16px;opacity:.7;user-select:none;
+    cursor:grab;font-size:15px;opacity:.45;user-select:none;
     padding:2px 4px;line-height:1;flex:none;
   }
   .grip:active{cursor:grabbing;}
   .stage-num{
-    background:#fff;color:var(--accent);width:28px;height:28px;border-radius:4px;
-    display:grid;place-items:center;font-size:14px;font-weight:800;flex:none;
+    background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;
+    display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;
   }
-  .stage-head .stitle{flex:none;}
+  .stage-head .stitle{flex:none;font-size:14px;}
   .stage-head .meta{
-    margin-left:auto;font-size:12.5px;font-weight:600;opacity:.9;
-    background:rgba(255,255,255,.16);padding:4px 12px;border-radius:4px;
+    margin-left:auto;font-size:12px;font-weight:500;color:#7a8898;
+    background:none;padding:0;
   }
   .stage-ctrl{display:flex;gap:5px;flex:none;}
   .icon-btn{
-    background:rgba(255,255,255,.18);border:none;color:#fff;cursor:pointer;
+    background:rgba(53,71,84,.07);border:none;color:var(--ink);cursor:pointer;
     width:26px;height:26px;border-radius:3px;font-size:14px;line-height:1;
     display:grid;place-items:center;transition:.12s;
   }
-  .icon-btn:hover{background:rgba(255,255,255,.35);}
-  .icon-btn.del:hover{background:var(--rose);}
-  .icon-btn.copy:hover{background:var(--gold);}
+  .icon-btn:hover{background:var(--accent);color:#fff;}
+  .icon-btn.del:hover{background:var(--rose);color:#fff;}
+  .icon-btn.copy:hover{background:var(--gold);color:#fff;}
 
   /* ===== 思维导图折叠模式 ===== */
-  .stage-head{ cursor:pointer; }
   .stage-toggle{
-    flex:none;font-size:13px;margin-left:8px;opacity:.85;
-    transition:transform .28s ease;letter-spacing:0;
+    flex:none;font-size:11px;color:var(--accent);margin-left:4px;
+    transition:transform .24s cubic-bezier(.4,0,.2,1);letter-spacing:0;
   }
   .stage.open .stage-toggle{ transform:rotate(90deg); }
   /* 控制按钮默认隐藏，hover 或展开时才显示 */
   .stage-ctrl{
-    opacity:0;transition:opacity .18s;
+    opacity:0;transition:opacity .15s;
   }
   .stage:hover .stage-ctrl,
   .stage.open .stage-ctrl{ opacity:1; }
 
   .steps{
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:stretch;
-    gap:0;padding:0 8px;min-height:0;
-    max-height:0;overflow:hidden;
-    transition:max-height .38s ease, padding .28s ease;
-  }
-  .stage.open .steps{
-    padding:18px 8px 4px;min-height:40px;max-height:3000px;
+    gap:0;padding:18px 8px 4px;
+    overflow:hidden;height:0;
+    transition:height .24s cubic-bezier(.4,0,.2,1);
   }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
@@ -166,7 +166,7 @@
 
   .arrow{
     display:flex;justify-content:center;align-items:center;gap:10px;
-    margin:10px 0;color:var(--accent);font-size:30px;font-weight:900;line-height:1;
+    margin:3px 0;color:var(--line);font-size:14px;font-weight:400;line-height:1;
   }
   .insert-here{
     background:#fff;border:1px solid var(--line);color:var(--accent);
@@ -434,15 +434,14 @@
   .flow{margin-top:18px;}
 
   .stage-head{
-    flex-wrap:wrap;padding:11px 12px;font-size:15px;gap:8px;
+    flex-wrap:wrap;padding:9px 10px;font-size:14px;gap:8px;
   }
-  .stage-head .stitle{flex:1 1 100%;font-size:14px;line-height:1.4;}
+  .stage-head .stitle{font-size:13px;}
   .stage-head .meta{
-    margin-left:0;flex:1 1 100%;font-size:11.5px;white-space:normal;
+    margin-left:auto;flex:none;font-size:11px;
   }
 
   .steps{gap:0;flex-direction:column;align-items:stretch;}
-  .stage.open .steps{padding:12px 0 4px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
@@ -1065,6 +1064,32 @@
 </div>
 
 <script>
+  /* ============ 阶段折叠/展开动画（精确 height 过渡，无卡顿）============ */
+  function toggleStage(stage){
+    const steps = stage.querySelector('.steps');
+    const isOpen = stage.classList.contains('open');
+    // 清除上一次未结束的 transitionend 监听
+    steps._onEnd && steps.removeEventListener('transitionend', steps._onEnd);
+    if(isOpen){
+      // 关闭：先固定当前像素高度，下一帧归零
+      steps.style.height = steps.scrollHeight + 'px';
+      stage.classList.remove('open');
+      steps.offsetHeight; // force reflow
+      steps.style.height = '0';
+      steps._onEnd = () => { steps.style.height = ''; steps._onEnd = null; };
+      steps.addEventListener('transitionend', steps._onEnd, { once: true });
+    } else {
+      // 展开：测量自然高度，动画到该值，结束后改为 auto
+      stage.classList.add('open');
+      const fullH = steps.scrollHeight;
+      steps.style.height = '0';
+      steps.offsetHeight; // force reflow
+      steps.style.height = fullH + 'px';
+      steps._onEnd = () => { steps.style.height = 'auto'; steps._onEnd = null; };
+      steps.addEventListener('transitionend', steps._onEnd, { once: true });
+    }
+  }
+
   let editOn = true;
 
   // ===== 标签类型配置（可管理：决定卡片颜色）=====
@@ -1368,7 +1393,7 @@
       if(e.target.closest('button') || e.target.closest('.grip')) return;
       const ce = e.target.closest('[contenteditable]');
       if(ce && ce.contentEditable === 'true') return;
-      stage.classList.toggle('open');
+      toggleStage(stage);
     });
 
     return stage;
