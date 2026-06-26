@@ -57,19 +57,26 @@
   .stage.drag-over{box-shadow:0 0 0 3px var(--accent);}
   .stage.dragging{opacity:.4;}
 
+  /* ===== 阶段标题：pill 胶囊样式 ===== */
   .stage-head{
-    display:flex;align-items:center;gap:10px;
+    display:inline-flex;align-items:center;gap:10px;
     background:#fff;color:var(--ink);
-    border:1px solid var(--line);border-left:4px solid var(--accent);
-    padding:10px 14px 10px 12px;border-radius:0 4px 4px 0;
-    box-shadow:0 1px 4px rgba(53,71,84,.07);font-weight:700;font-size:15px;
-    cursor:pointer;transition:background .15s;
+    border:1.5px solid var(--line);
+    padding:7px 14px 7px 7px;border-radius:50px;
+    font-weight:700;font-size:14px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s, box-shadow .15s;
   }
-  .stage-head:hover{ background:var(--accent-soft); }
-  .stage.open .stage-head{ background:var(--accent-soft); }
+  .stage-head:hover{
+    border-color:var(--accent);background:var(--accent-soft);
+    box-shadow:0 2px 8px rgba(0,112,194,.12);
+  }
+  .stage.open .stage-head{
+    border-color:var(--accent);background:var(--accent-soft);
+  }
   .grip{
-    cursor:grab;font-size:15px;opacity:.45;user-select:none;
-    padding:2px 4px;line-height:1;flex:none;
+    cursor:grab;font-size:14px;opacity:.35;user-select:none;
+    padding:2px 2px;line-height:1;flex:none;
   }
   .grip:active{cursor:grabbing;}
   .stage-num{
@@ -77,14 +84,16 @@
     display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;
   }
   .stage-head .stitle{flex:none;font-size:14px;}
+  /* 负责人：收起时隐藏，展开后显示 */
   .stage-head .meta{
-    margin-left:auto;font-size:12px;font-weight:500;color:#7a8898;
-    background:none;padding:0;
+    display:none;font-size:11.5px;font-weight:500;color:#7a8898;
+    padding:0 0 0 4px;
   }
+  .stage.open .stage-head .meta{ display:inline; }
   .stage-ctrl{display:flex;gap:5px;flex:none;}
   .icon-btn{
     background:rgba(53,71,84,.07);border:none;color:var(--ink);cursor:pointer;
-    width:26px;height:26px;border-radius:3px;font-size:14px;line-height:1;
+    width:26px;height:26px;border-radius:50%;font-size:13px;line-height:1;
     display:grid;place-items:center;transition:.12s;
   }
   .icon-btn:hover{background:var(--accent);color:#fff;}
@@ -93,30 +102,36 @@
 
   /* ===== 思维导图折叠模式 ===== */
   .stage-toggle{
-    flex:none;font-size:11px;color:var(--accent);margin-left:4px;
-    transition:transform .24s cubic-bezier(.4,0,.2,1);letter-spacing:0;
+    flex:none;font-size:10px;color:var(--accent);margin-left:2px;
+    transition:transform .24s cubic-bezier(.4,0,.2,1);
   }
   .stage.open .stage-toggle{ transform:rotate(90deg); }
-  /* 控制按钮默认隐藏，hover 或展开时才显示 */
-  .stage-ctrl{
-    opacity:0;transition:opacity .15s;
-  }
+  /* 控制按钮收起时隐藏 */
+  .stage-ctrl{ opacity:0;transition:opacity .15s; }
   .stage:hover .stage-ctrl,
   .stage.open .stage-ctrl{ opacity:1; }
 
+  /* 折叠容器：wrapper 控制高度，steps 只管布局 */
+  .steps-wrap{
+    overflow:hidden;height:0;
+    transition:height .2s ease-out;
+  }
   .steps{
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:stretch;
-    gap:0;padding:18px 8px 4px;
-    overflow:hidden;height:0;
-    transition:height .18s ease-out;
+    gap:0;padding:14px 0 6px 32px;min-height:0;
   }
+  /* 弹入动画 */
   @keyframes sop-node-in{
     from{ opacity:0; transform:translateY(18px) scale(.93); }
     to  { opacity:1; transform:translateY(0) scale(1); }
   }
-  .node.anim-in{
-    animation:sop-node-in .38s cubic-bezier(.34,1.56,.64,1) both;
+  .node.anim-in{ animation:sop-node-in .38s cubic-bezier(.34,1.56,.64,1) both; }
+  /* 弹出（关闭）动画 */
+  @keyframes sop-node-out{
+    from{ opacity:1; transform:translateY(0) scale(1); }
+    to  { opacity:0; transform:translateY(10px) scale(.96); }
   }
+  .node.anim-out{ animation:sop-node-out .16s ease-in both; }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
     align-self:center;flex:0 0 auto;
@@ -172,8 +187,14 @@
   .add-step:hover{background:var(--accent-soft);border-color:var(--accent);}
 
   .arrow{
-    display:flex;justify-content:center;align-items:center;gap:10px;
-    margin:3px 0;color:var(--line);font-size:14px;font-weight:400;line-height:1;
+    display:flex;align-items:center;gap:8px;
+    margin:0 0 0 18px;padding:3px 0;
+    color:transparent;font-size:0;line-height:1;
+    position:relative;
+  }
+  .arrow::before{
+    content:'';display:block;width:2px;height:18px;
+    background:var(--line);border-radius:1px;flex:none;
   }
   .insert-here{
     background:#fff;border:1px solid var(--line);color:var(--accent);
@@ -420,8 +441,10 @@
   @media print{
     .toolbar,#fmtbar,.add-step,.icon-btn,.node-del,.node-grip,.grip,.insert-here,.node-open,#detail,#miniModal,.module-tabs,.stage-toggle{display:none!important;}
     body{background:#fff;padding:0;}
-    .steps{break-inside:avoid;max-height:none!important;padding:18px 8px 4px!important;overflow:visible!important;}
+    .steps-wrap{height:auto!important;overflow:visible!important;}
+    .steps{break-inside:avoid;}
     .stage-ctrl{opacity:1!important;}
+    .stage-head .meta{display:inline!important;}
   }
   @media(max-width:680px){.node{max-width:100%;}}
 
@@ -440,15 +463,9 @@
   .module-tab{padding:8px 14px;font-size:13px;}
   .flow{margin-top:18px;}
 
-  .stage-head{
-    flex-wrap:wrap;padding:9px 10px;font-size:14px;gap:8px;
-  }
+  .stage-head{ padding:6px 12px 6px 6px;font-size:13px;gap:8px; }
   .stage-head .stitle{font-size:13px;}
-  .stage-head .meta{
-    margin-left:auto;flex:none;font-size:11px;
-  }
-
-  .steps{gap:0;flex-direction:column;align-items:stretch;}
+  .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 0 4px 28px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
@@ -1074,41 +1091,51 @@
   /* ============ 阶段折叠/展开动画（精确 height 过渡，无卡顿）============ */
   function toggleStage(stage){
     const steps = stage.querySelector('.steps');
+    const wrap  = stage.querySelector('.steps-wrap');
     const isOpen = stage.classList.contains('open');
-    // 清除上一次未结束的监听
-    steps._onEnd && steps.removeEventListener('transitionend', steps._onEnd);
-    // 停止还在飞的卡片动画
-    steps.querySelectorAll('.node.anim-in').forEach(n=>{
-      n.classList.remove('anim-in');
+
+    // 清除未结束的动画和监听
+    steps.querySelectorAll('.node.anim-in,.node.anim-out').forEach(n=>{
+      n.classList.remove('anim-in','anim-out');
       n.style.animationDelay='';
     });
+    wrap._onEnd && wrap.removeEventListener('transitionend', wrap._onEnd);
+
+    const nodes = [...steps.querySelectorAll('.node')];
 
     if(isOpen){
-      // 关闭：先固定高度，再归零
-      steps.style.height = steps.scrollHeight + 'px';
+      // 关闭：卡片先淡出收起，wrap 同步折叠
+      nodes.forEach((n,i)=>{
+        n.style.animationDelay = (i*20)+'ms';
+        n.classList.add('anim-out');
+        n.addEventListener('animationend',()=>{
+          n.classList.remove('anim-out');
+          n.style.animationDelay='';
+        },{ once:true });
+      });
+      wrap.style.height = wrap.scrollHeight+'px';
       stage.classList.remove('open');
-      steps.offsetHeight;
-      steps.style.height = '0';
-      steps._onEnd = ()=>{ steps.style.height=''; steps._onEnd=null; };
-      steps.addEventListener('transitionend', steps._onEnd, { once:true });
+      wrap.offsetHeight;
+      wrap.style.height = '0';
+      wrap._onEnd = ()=>{ wrap.style.height=''; wrap._onEnd=null; };
+      wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
     } else {
-      // 展开：容器先撑开（快，.18s），卡片随后逐张弹入
+      // 展开：wrap 先撑开，卡片随后逐张弹入
       stage.classList.add('open');
-      const fullH = steps.scrollHeight;
-      steps.style.height = '0';
-      steps.offsetHeight;
-      steps.style.height = fullH + 'px';
-      steps._onEnd = ()=>{ steps.style.height='auto'; steps._onEnd=null; };
-      steps.addEventListener('transitionend', steps._onEnd, { once:true });
+      const fullH = wrap.scrollHeight;
+      wrap.style.height = '0';
+      wrap.offsetHeight;
+      wrap.style.height = fullH+'px';
+      wrap._onEnd = ()=>{ wrap.style.height='auto'; wrap._onEnd=null; };
+      wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
 
-      // 每张 .node 错开 60ms 弹入
-      steps.querySelectorAll('.node').forEach((n, i)=>{
-        n.style.animationDelay = (i * 60) + 'ms';
+      nodes.forEach((n,i)=>{
+        n.style.animationDelay = (i*60)+'ms';
         n.classList.add('anim-in');
-        n.addEventListener('animationend', ()=>{
+        n.addEventListener('animationend',()=>{
           n.classList.remove('anim-in');
-          n.style.animationDelay = '';
-        }, { once:true });
+          n.style.animationDelay='';
+        },{ once:true });
       });
     }
   }
@@ -1374,7 +1401,7 @@
         </span>
         <span class="stage-toggle">▶</span>
       </div>
-      <div class="steps"></div>`;
+      <div class="steps-wrap"><div class="steps"></div></div>`;
     const steps = stage.querySelector('.steps');
     const nodesData = d.nodes||[null];
     nodesData.forEach((n, i)=>{
