@@ -63,7 +63,8 @@
   /* 阶段 = 一张网格卡片，收起 / 展开都只占自己那一列 */
   .stage{
     margin:0;border:1.5px solid var(--line);border-radius:10px;
-    background:#fff;overflow:hidden;align-self:start;transition:.15s;
+    /* 不能用 overflow:hidden，否则标题胶囊无法 sticky 吸顶 */
+    background:#fff;align-self:start;transition:.15s;
   }
   .stage:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(0,112,194,.10);}
   .stage.open{border-color:var(--accent);box-shadow:0 6px 18px rgba(0,112,194,.12);}
@@ -76,7 +77,12 @@
     background:transparent;color:var(--ink);border:none;
     padding:12px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
+    /* 标题胶囊吸顶：展开后滚动时标题固定在视口顶部，收起/展开都从固定位置触发 */
+    position:sticky;top:0;z-index:5;
+    border-radius:9px 9px 0 0;background-clip:padding-box;
   }
+  /* 收起状态：标题即卡片全部，四角都圆 */
+  .stage:not(.open) .stage-head{ border-radius:9px; }
   .stage-head:hover{ background:var(--accent-soft); }
   .stage.open .stage-head{
     background:var(--accent-soft);border-bottom:1px solid var(--line);
@@ -130,6 +136,7 @@
   .steps-wrap{
     overflow:hidden;height:0;
     transition:height .2s ease-out;
+    border-radius:0 0 9px 9px;
   }
   .steps{
     display:flex;flex-direction:column;align-items:stretch;
@@ -1113,7 +1120,12 @@
   function toggleStage(stage){
     const steps = stage.querySelector('.steps');
     const wrap  = stage.querySelector('.steps-wrap');
+    const head  = stage.querySelector('.stage-head');
     const isOpen = stage.classList.contains('open');
+
+    // 收起前判断标题胶囊是否处于吸顶（已滚动进入该阶段）状态：
+    // 若是，收起后把标题锚定回视口顶部，避免页面随旧滚动位置跳动。
+    const wasPinned = isOpen && head.getBoundingClientRect().top <= 0.5;
 
     // 清除未结束的动画和监听
     steps.querySelectorAll('.node.anim-in,.node.anim-out').forEach(n=>{
@@ -1140,6 +1152,12 @@
       wrap.style.height = '0';
       wrap._onEnd = ()=>{ wrap.style.height=''; wrap._onEnd=null; };
       wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
+
+      // 标题胶囊保持固定：把卡片顶部对齐到视口顶部，标题不动、内容向上收拢
+      if(wasPinned){
+        const y = window.scrollY + stage.getBoundingClientRect().top;
+        window.scrollTo({ top: Math.max(0, Math.round(y)) });
+      }
     } else {
       // 展开：wrap 先撑开，卡片随后逐张弹入
       stage.classList.add('open');
