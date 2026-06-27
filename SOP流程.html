@@ -2119,11 +2119,14 @@
     const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
     const panel = document.querySelector('.module-panel.active');
     const rail = panel && panel.querySelector(':scope > .flow-rail');
-    // 路线条与模块栏之间留 10px（见 .flow-rail margin-top），标题需停在路线条整体下方
-    const railH = rail ? rail.getBoundingClientRect().height + 10 : 0;
+    // 标题要紧贴路线条底部：用路线条 border-box 高度（吸顶后其上方 10px 外边距不占位），
+    // 再让标题向上重叠 1px 塞到路线条下沿之内，吃掉亚像素缝隙——否则两栏间会露出
+    // 一条横缝，背后滚动的卡片内容会从缝里透出来。路线条层级更高，会盖住这 1px 重叠。
+    const railH = rail ? rail.getBoundingClientRect().height : 0;
+    const overlap = 1;   // 无路线条时标题改塞到模块栏下沿之内，同样不留缝
     const root = document.documentElement.style;
     root.setProperty('--tabs-h', tabsH + 'px');
-    root.setProperty('--head-top', (tabsH + railH) + 'px');
+    root.setProperty('--head-top', (tabsH + railH - overlap) + 'px');
   }
   window.addEventListener('load', updateStickyOffsets);
   window.addEventListener('resize', updateStickyOffsets);
