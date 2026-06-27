@@ -30,6 +30,16 @@
     padding:calc(var(--top-offset,130px) + 16px) 24px 90px;
   }
 
+  /* 常驻顶栏背后的「全宽底板」：顶栏本身只有内容宽度，两侧留白处会露出卡片向外
+     溢出的投影（卡片阴影约 28px，会渗进 24px 的侧边留白）。下滑时这些阴影从顶栏
+     两角透出来。用一条贯穿整屏宽的纸色底板盖住顶栏所在的横带，遮掉两角的阴影。
+     层级介于内容(0)与路线条(55)之间，只挡内容、不挡顶栏本身。 */
+  body::before{
+    content:'';position:fixed;top:0;left:0;right:0;
+    height:var(--top-offset,130px);background:var(--paper);
+    z-index:54;pointer-events:none;
+  }
+
   header{max-width:1200px;margin:0 auto 26px;}
   .eyebrow{
     font-size:12px;letter-spacing:.32em;text-transform:uppercase;
