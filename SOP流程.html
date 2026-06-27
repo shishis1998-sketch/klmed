@@ -25,7 +25,9 @@
     font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
     background:var(--paper);
     color:var(--ink);
-    padding:36px 24px 90px;
+    /* 顶栏改成常驻 fixed 后脱离文档流，顶部留出顶栏高度（--top-offset 由 JS 实时算出，
+       含模块栏+路线条），让标题/工具栏/内容整体下移，不被悬浮顶栏盖住。 */
+    padding:calc(var(--top-offset,130px) + 16px) 24px 90px;
   }
 
   header{max-width:1200px;margin:0 auto 26px;}
@@ -105,9 +107,7 @@
     background:transparent;color:var(--ink);border:none;
     padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
-    /* 标题胶囊吸顶：展开后滚动时标题固定在「模块栏+步骤路线」下方，收起/展开都从固定位置触发。
-       --head-top 由 JS 按当前固定顶部栏的总高度实时计算，保证标题正好停在路线条下边。 */
-    position:sticky;top:var(--head-top,0px);z-index:5;
+    /* 阶段标题不再吸顶：只有「模块栏 + 步骤路线条」常驻固定，标题随内容正常滚动。 */
     border-radius:9px 9px 0 0;background-clip:padding-box;
     /* 锁定胶囊高度：无论标题字数多少，所有阶段标题统一高度，不随文字增减 */
     height:60px;
@@ -572,14 +572,16 @@
      顶部一条由所有阶段串成的路线：随阅读/展开进度，走过的连接线依次变蓝点亮，
      当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
   .flow-rail{
-    max-width:1200px;margin:10px auto 0;
     display:flex;align-items:center;gap:0;
     padding:9px 16px;background:#fff;border:1px solid var(--line);
-    border-radius:10px;box-shadow:var(--shadow);
+    border-top:none;                        /* 紧贴模块栏底沿，去掉重复的上边线 */
+    border-radius:0 0 10px 10px;            /* 只圆下角，与上方模块栏拼成一条整栏 */
+    box-shadow:0 10px 20px -12px rgba(53,71,84,.35);   /* 整条常驻顶栏只在底部投一道影 */
     overflow-x:auto;scrollbar-width:thin;
-    /* 步骤路线吸顶：固定在模块栏（--tabs-h）正下方，滚动时一直可见，
-       不用回到顶部就能切换 / 跳转到任意阶段。 */
-    position:sticky;top:var(--tabs-h,52px);z-index:55;
+    /* 常驻顶栏·第二层：固定吸在模块栏（--tabs-h）正下方，和模块栏拼成同一条顶栏，
+       从页面顶部就一直悬浮，滚到哪都能切换 / 跳转到任意阶段。 */
+    position:fixed;top:var(--tabs-h,52px);left:50%;transform:translateX(-50%);
+    width:min(1200px,calc(100% - 48px));z-index:55;
   }
   .flow-rail .rail-dot{
     display:flex;align-items:center;gap:11px;flex:none;
@@ -617,10 +619,12 @@
 
   /* ===== 模块 Tab ===== */
   .module-tabs{
-    max-width:1200px;margin:0 auto 0;display:flex;gap:0;flex-wrap:wrap;
+    display:flex;gap:0;flex-wrap:wrap;
     border-bottom:2px solid var(--accent);
-    /* 模块栏吸顶：固定在视口最上方，滚到哪儿都能直接切换模块，不用回顶部 */
-    position:sticky;top:0;z-index:60;background:var(--paper);
+    /* 常驻顶栏·第一层：fixed 从页面顶部就一直悬浮在最上方（不再是滚到它才贴住），
+       和下方步骤路线条拼成同一条整栏；页面内容整体下移避免被盖住（见 body 顶部留白）。 */
+    position:fixed;top:0;left:50%;transform:translateX(-50%);
+    width:min(1200px,calc(100% - 48px));z-index:60;background:var(--paper);
     padding-top:8px;
   }
   .module-tab{
@@ -689,7 +693,9 @@
 
 /* ===== 移动端适配 ===== */
 @media(max-width:640px){
-  body{padding:18px 12px 70px;}
+  body{padding:calc(var(--top-offset,130px) + 12px) 12px 70px;}
+  /* 窄屏左右留白收窄到 12px，常驻顶栏宽度同步对齐，边缘与内容一致 */
+  .module-tabs,.flow-rail{width:min(1200px,calc(100% - 24px));}
   header{margin:0 auto 16px;}
   h1{font-size:21px;padding-left:10px;border-left-width:4px;}
   .hint{margin-left:14px;font-size:12px;}
@@ -2110,10 +2116,10 @@
     });
   }
 
-  /* ============ 固定顶部栏：实时计算各层吸顶偏移 ============
-     模块栏(--tabs-h) 固定在最上方，步骤路线条吸在它下面，
-     阶段标题再吸在路线条下面(--head-top)。高度会随换行/有无路线条变化，
-     所以统一在这里按实际渲染高度算出 CSS 变量，避免写死像素。 */
+  /* ============ 常驻顶栏：实时计算高度与偏移 ============
+     模块栏(--tabs-h) fixed 固定在最上方，步骤路线条吸在它正下方，二者拼成一条常驻顶栏；
+     --top-offset = 顶栏总高度，供 body 顶部留白；--head-top 供点圆点/展开时把阶段标题
+     滚到顶栏正下方做基线。高度随换行/有无路线条变化，统一按实际渲染高度算，避免写死像素。 */
   function updateStickyOffsets(){
     const tabs = document.getElementById('moduleTabs');
     const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
@@ -2127,6 +2133,8 @@
     const root = document.documentElement.style;
     root.setProperty('--tabs-h', tabsH + 'px');
     root.setProperty('--head-top', (tabsH + railH - overlap) + 'px');
+    // 常驻顶栏（模块栏+路线条）总高度：body 顶部按它留白，内容整体下移不被悬浮顶栏盖住
+    root.setProperty('--top-offset', (tabsH + railH) + 'px');
   }
   window.addEventListener('load', updateStickyOffsets);
   window.addEventListener('resize', updateStickyOffsets);
