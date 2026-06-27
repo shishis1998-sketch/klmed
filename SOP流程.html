@@ -36,7 +36,11 @@
      层级介于内容(0)与路线条(55)之间，只挡内容、不挡顶栏本身。 */
   body::before{
     content:'';position:fixed;top:0;left:0;right:0;
-    height:var(--top-offset,130px);background:var(--paper);
+    /* 整条顶栏的实体底：全屏宽纯白、底部平直，一道横贯整屏的投影做分隔。
+       模块栏/路线条都「浮」在它上面（透明背景），于是顶栏是一整条平底白栏，
+       卡片滑上来时被它整片盖住，不再从灰底、圆角缺口处透出卡片边缘。 */
+    height:var(--top-offset,130px);background:#fff;
+    box-shadow:0 4px 12px -6px rgba(53,71,84,.22);
     z-index:54;pointer-events:none;
   }
 
@@ -585,10 +589,7 @@
      当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
   .flow-rail{
     display:flex;align-items:center;gap:0;
-    padding:9px 16px;background:#fff;border:1px solid var(--line);
-    border-top:none;                        /* 紧贴模块栏底沿，去掉重复的上边线 */
-    border-radius:0 0 10px 10px;            /* 只圆下角，与上方模块栏拼成一条整栏 */
-    box-shadow:0 10px 20px -12px rgba(53,71,84,.35);   /* 整条常驻顶栏只在底部投一道影 */
+    padding:9px 16px;background:transparent;   /* 融进整条白色顶栏（背景由 body::before 提供），不再是独立白胶囊 */
     overflow-x:auto;scrollbar-width:thin;
     /* 常驻顶栏·第二层：固定吸在模块栏（--tabs-h）正下方，和模块栏拼成同一条顶栏，
        从页面顶部就一直悬浮，滚到哪都能切换 / 跳转到任意阶段。 */
@@ -636,7 +637,7 @@
     /* 常驻顶栏·第一层：fixed 从页面顶部就一直悬浮在最上方（不再是滚到它才贴住），
        和下方步骤路线条拼成同一条整栏；页面内容整体下移避免被盖住（见 body 顶部留白）。 */
     position:fixed;top:0;left:50%;transform:translateX(-50%);
-    width:min(1200px,calc(100% - 48px));z-index:60;background:var(--paper);
+    width:min(1200px,calc(100% - 48px));z-index:60;background:transparent;
     padding-top:8px;
   }
   .module-tab{
