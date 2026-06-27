@@ -1117,15 +1117,35 @@
 
 <script>
   /* ============ 阶段折叠/展开动画（精确 height 过渡，无卡顿）============ */
+  /* 折叠/展开动画期间，把被点击的标题胶囊锁定在它当前的视口位置：
+     - 有足够内容时标题“钉”在原地一丝不动；
+     - 收起后页面比视口还短、无法保持时，标题随收起动画平滑归位（浏览器
+       会把目标滚动值夹取到可用范围内，逐帧渐变，不会突然跳，且不留空白）。 */
+  let _anchorRAF = null;
+  function anchorHead(head){
+    const anchorTop = head.getBoundingClientRect().top;          // 想要保持的视口位置
+    const lock = ()=>{
+      // 标题在文档中的绝对偏移（其上方内容不变，所以恒定）
+      const headDocY = window.scrollY + head.getBoundingClientRect().top;
+      const targetScroll = Math.max(0, Math.round(headDocY - anchorTop));
+      // 直接滚到目标位；超出可滚动范围时浏览器自动夹取，标题随之平滑归位
+      if(Math.abs(window.scrollY - targetScroll) > 0.5) window.scrollTo(0, targetScroll);
+    };
+    cancelAnimationFrame(_anchorRAF);
+    const t0 = performance.now();
+    const step = ()=>{
+      lock();
+      if(performance.now() - t0 < 320){ _anchorRAF = requestAnimationFrame(step); }
+      else { _anchorRAF = null; }
+    };
+    _anchorRAF = requestAnimationFrame(step);
+  }
+
   function toggleStage(stage){
     const steps = stage.querySelector('.steps');
     const wrap  = stage.querySelector('.steps-wrap');
     const head  = stage.querySelector('.stage-head');
     const isOpen = stage.classList.contains('open');
-
-    // 收起前判断标题胶囊是否处于吸顶（已滚动进入该阶段）状态：
-    // 若是，收起后把标题锚定回视口顶部，避免页面随旧滚动位置跳动。
-    const wasPinned = isOpen && head.getBoundingClientRect().top <= 0.5;
 
     // 清除未结束的动画和监听
     steps.querySelectorAll('.node.anim-in,.node.anim-out').forEach(n=>{
@@ -1153,11 +1173,7 @@
       wrap._onEnd = ()=>{ wrap.style.height=''; wrap._onEnd=null; };
       wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
 
-      // 标题胶囊保持固定：把卡片顶部对齐到视口顶部，标题不动、内容向上收拢
-      if(wasPinned){
-        const y = window.scrollY + stage.getBoundingClientRect().top;
-        window.scrollTo({ top: Math.max(0, Math.round(y)) });
-      }
+      anchorHead(head);   // 收起过程中标题钉在原地，内容向上收拢
     } else {
       // 展开：wrap 先撑开，卡片随后逐张弹入
       stage.classList.add('open');
@@ -1167,6 +1183,8 @@
       wrap.style.height = fullH+'px';
       wrap._onEnd = ()=>{ wrap.style.height='auto'; wrap._onEnd=null; };
       wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
+
+      anchorHead(head);   // 展开过程中标题钉在原地，内容向下展开
 
       nodes.forEach((n,i)=>{
         n.style.animationDelay = (i*60)+'ms';
