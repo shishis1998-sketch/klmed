@@ -601,15 +601,14 @@
   }
   mark.hit{background:#c9cfe6;color:var(--ink);border-radius:2px;padding:0 1px;}
   .node.search-dim,.stage.search-dim{opacity:.28;}
-  .node.search-hit{box-shadow:0 0 0 3px var(--gold);}
-  /* 搜索定位：滚动到首个命中卡片后，闪一下并放大 1.03 再回弹，一眼锁定位置 */
+  /* 命中卡片：整卡片淡金色背景标记（不再用描边） */
+  .node.search-hit{ background:#fff6e2; }
+  /* 搜索定位：跳到该卡片后，整卡片背景由较明显的淡金闪一下，再淡淡落回标记色——不描边、不放大 */
   @keyframes sop-search-focus{
-    0%   { transform:scale(1);    box-shadow:0 0 0 3px var(--gold); }
-    25%  { transform:scale(1.03); box-shadow:0 0 0 4px var(--accent), 0 12px 30px rgba(0,112,194,.28); }
-    55%  { transform:scale(1.03); box-shadow:0 0 0 4px var(--accent), 0 12px 30px rgba(0,112,194,.28); }
-    100% { transform:scale(1);    box-shadow:0 0 0 3px var(--gold); }
+    0%   { background:#ffe1a0; }
+    100% { background:#fff6e2; }
   }
-  .node.search-focus{ animation:sop-search-focus .6s cubic-bezier(.22,1,.36,1); }
+  .node.search-focus{ animation:sop-search-focus 1.1s ease-out; }
 
   /* ===== 阶段导航：左侧竖栏（左右主从布局）=====
      左边一列阶段名（不带圆点），点哪个，右侧就显示哪个阶段、默认展开。
