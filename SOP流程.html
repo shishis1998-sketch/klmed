@@ -105,8 +105,9 @@
     background:transparent;color:var(--ink);border:none;
     padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
-    /* 标题胶囊吸顶：展开后滚动时标题固定在视口顶部，收起/展开都从固定位置触发 */
-    position:sticky;top:0;z-index:5;
+    /* 标题胶囊吸顶：展开后滚动时标题固定在「模块栏+步骤路线」下方，收起/展开都从固定位置触发。
+       --head-top 由 JS 按当前固定顶部栏的总高度实时计算，保证标题正好停在路线条下边。 */
+    position:sticky;top:var(--head-top,0px);z-index:5;
     border-radius:9px 9px 0 0;background-clip:padding-box;
     /* 锁定胶囊高度：无论标题字数多少，所有阶段标题统一高度，不随文字增减 */
     height:60px;
@@ -127,20 +128,22 @@
     padding:2px 2px;line-height:1;flex:none;
   }
   .grip:active{cursor:grabbing;}
+  /* 阶段标记：不再是 1/2/3 这种序号（实际流程不一定按固定顺序走），
+     改成一个中性的小圆点——只表示「当前读到哪个阶段」，不暗示先后次序。 */
   .stage-num{
-    background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;
-    display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;
+    width:11px;height:11px;border-radius:50%;flex:none;
+    background:var(--accent);
     transition:background .3s ease, transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
   }
-  /* 滚动跟随：随阅读位置点亮“当前阶段”的序号，营造“正在执行流程”的进度感。
-     当前 = 蓝色放大 + 光晕；前面（已读）= 灰；后面（未到）= 浅灰。
+  /* 滚动跟随：随阅读位置点亮“当前阶段”的圆点，营造“正在执行流程”的位置感。
+     当前 = 蓝色放大 + 光晕；其余 = 浅灰（不分前后，因为顺序不固定）。
      由 JS 加 is-current / is-passed / is-upcoming 类驱动。 */
-  .stage.is-passed   .stage-num{ background:#aeb4c0; }
+  .stage.is-passed   .stage-num{ background:#c2c8d2; }
   .stage.is-upcoming .stage-num{ background:#d4d8e0; }
   .stage.is-current  .stage-num{
     background:var(--accent);
-    transform:scale(1.28);
-    box-shadow:0 3px 10px rgba(0,112,194,.45);
+    transform:scale(1.7);
+    box-shadow:0 0 0 4px var(--accent-soft);
   }
   /* 标题只占文字本身的宽度，右侧空白用 auto 外边距撑开（把负责人/步骤数/控件推到右侧）。
      这样标题右边的空白属于标题栏而非可编辑文字，点空白处只会展开/收起、不会进入编辑。 */
@@ -535,21 +538,26 @@
      顶部一条由所有阶段串成的路线：随阅读/展开进度，走过的连接线依次变蓝点亮，
      当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
   .flow-rail{
-    max-width:1200px;margin:18px auto 0;
+    max-width:1200px;margin:10px auto 0;
     display:flex;align-items:center;gap:0;
-    padding:12px 16px;background:#fff;border:1px solid var(--line);
+    padding:9px 16px;background:#fff;border:1px solid var(--line);
     border-radius:10px;box-shadow:var(--shadow);
     overflow-x:auto;scrollbar-width:thin;
+    /* 步骤路线吸顶：固定在模块栏（--tabs-h）正下方，滚动时一直可见，
+       不用回到顶部就能切换 / 跳转到任意阶段。 */
+    position:sticky;top:var(--tabs-h,52px);z-index:55;
   }
   .flow-rail .rail-dot{
-    display:flex;align-items:center;gap:8px;flex:none;
-    background:none;border:none;cursor:pointer;padding:2px;
-    color:#9aa4b2;font:inherit;transition:color .25s;
+    display:flex;align-items:center;gap:7px;flex:none;
+    background:none;border:1px solid transparent;cursor:pointer;
+    padding:3px 10px 3px 8px;border-radius:18px;
+    color:#7a8898;font:inherit;transition:color .25s, background .2s, border-color .2s;
   }
+  .flow-rail .rail-dot:hover{ background:var(--accent-soft);border-color:var(--line); }
+  /* 路线圆点改成纯色小圆点（不再标 1/2/3 序号）：只点亮当前阶段，不暗示固定顺序 */
   .flow-rail .rail-node{
-    width:26px;height:26px;border-radius:50%;flex:none;
-    background:#d4d8e0;color:#fff;font-size:12px;font-weight:800;
-    display:grid;place-items:center;
+    width:11px;height:11px;border-radius:50%;flex:none;
+    background:#cfd5de;
     transition:background .35s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
   }
   .flow-rail .rail-label{
@@ -565,17 +573,21 @@
   .flow-rail .rail-dot.current{ color:var(--ink); }
   .flow-rail .rail-dot.passed .rail-node,
   .flow-rail .rail-dot.current .rail-node{ background:var(--accent); }
+  .flow-rail .rail-dot.current{ background:var(--accent-soft);border-color:var(--accent); }
   .flow-rail .rail-dot.current .rail-node{
-    transform:scale(1.18);box-shadow:0 3px 10px rgba(0,112,194,.45);
+    transform:scale(1.7);box-shadow:0 0 0 4px var(--accent-soft);
   }
   .flow-rail .rail-dot.hit .rail-node{ box-shadow:0 0 0 3px var(--gold); }
   .flow-rail .rail-dot:hover .rail-label{ text-decoration:underline; }
-  @media(max-width:760px){ .flow-rail .rail-label{ display:none; } }
+  /* 标签一直显示（圆点已无序号，仅靠标签区分阶段）；路线条本身可横向滚动，窄屏也放得下 */
 
   /* ===== 模块 Tab ===== */
   .module-tabs{
     max-width:1200px;margin:0 auto 0;display:flex;gap:0;flex-wrap:wrap;
     border-bottom:2px solid var(--accent);
+    /* 模块栏吸顶：固定在视口最上方，滚到哪儿都能直接切换模块，不用回顶部 */
+    position:sticky;top:0;z-index:60;background:var(--paper);
+    padding-top:8px;
   }
   .module-tab{
     padding:10px 28px;font-size:15px;font-weight:700;cursor:pointer;border:none;background:none;
@@ -1448,8 +1460,9 @@
     if(!flow) return;
     const stages = [...flow.querySelectorAll('.stage')];
     if(!stages.length) return;
-    // 以视口上方 ~160px 为“阅读基线”：标题已越过基线的最后一个阶段即当前阶段
-    const baseline = 160;
+    // 标题吸顶后会停在固定顶部栏（模块栏+路线条）下方，阅读基线随之下移到该高度
+    const headTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--head-top')) || 0;
+    const baseline = headTop + 24;
     let currentIdx = 0;
     stages.forEach((st,i)=>{
       const head = st.querySelector('.stage-head');
@@ -1459,11 +1472,11 @@
       st.classList.toggle('is-current',  i===currentIdx);
       st.classList.toggle('is-passed',   i<currentIdx);
       st.classList.toggle('is-upcoming', i>currentIdx);
-      // 标题吸顶投影：展开的阶段，当其标题被钉在视口顶部、且下方仍有内容在滚动时点亮
+      // 标题吸顶投影：展开的阶段，当其标题被钉在固定栏下方、且下方仍有内容在滚动时点亮
       const head = st.querySelector('.stage-head');
       const r = st.getBoundingClientRect();
       const hr = head ? head.getBoundingClientRect() : null;
-      const stuck = st.classList.contains('open') && hr && hr.top <= 0.5 && r.bottom > hr.height + 1;
+      const stuck = st.classList.contains('open') && hr && hr.top <= headTop + 0.5 && r.bottom > hr.top + hr.height + 1;
       st.classList.toggle('head-stuck', stuck);
     });
     // 同步顶部路线导航：点亮走过的连接线、放大当前圆点。
@@ -1765,7 +1778,7 @@
     stage.innerHTML = `
       <div class="stage-head">
         <span class="grip" title="拖动调整阶段顺序">⠿</span>
-        <span class="stage-num">0</span>
+        <span class="stage-num" aria-hidden="true"></span>
         <span class="stitle" contenteditable="false">${d.title}</span>
         <span class="meta" contenteditable="false">${d.meta}</span>
         <span class="step-count"></span>
@@ -1980,7 +1993,7 @@
     flow.querySelectorAll('.arrow').forEach(a=>a.remove());
     const stages = [...flow.querySelectorAll('.stage')];
     stages.forEach((s,i)=>{
-      s.querySelector('.stage-num').textContent = i+1;
+      // 阶段标记已改为中性圆点，不再写入 1/2/3 序号
       if(i < stages.length-1){
         const arrow = document.createElement('div');
         arrow.className='arrow';
@@ -1992,6 +2005,7 @@
       }
     });
     buildRail(flow);
+    updateStickyOffsets();
   }
 
   /* ============ 流程路线导航条（实时点亮）============ */
@@ -2018,8 +2032,7 @@
       dot.className = 'rail-dot';
       dot.dataset.idx = i;
       const num = document.createElement('span');
-      num.className = 'rail-node';
-      num.textContent = i+1;
+      num.className = 'rail-node';   // 纯圆点，不再标序号
       const label = document.createElement('span');
       label.className = 'rail-label';
       label.textContent = (st.querySelector('.stitle')?.textContent || '').trim() || ('阶段 '+(i+1));
@@ -2050,6 +2063,24 @@
     });
   }
 
+  /* ============ 固定顶部栏：实时计算各层吸顶偏移 ============
+     模块栏(--tabs-h) 固定在最上方，步骤路线条吸在它下面，
+     阶段标题再吸在路线条下面(--head-top)。高度会随换行/有无路线条变化，
+     所以统一在这里按实际渲染高度算出 CSS 变量，避免写死像素。 */
+  function updateStickyOffsets(){
+    const tabs = document.getElementById('moduleTabs');
+    const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
+    const panel = document.querySelector('.module-panel.active');
+    const rail = panel && panel.querySelector(':scope > .flow-rail');
+    // 路线条与模块栏之间留 10px（见 .flow-rail margin-top），标题需停在路线条整体下方
+    const railH = rail ? rail.getBoundingClientRect().height + 10 : 0;
+    const root = document.documentElement.style;
+    root.setProperty('--tabs-h', tabsH + 'px');
+    root.setProperty('--head-top', (tabsH + railH) + 'px');
+  }
+  window.addEventListener('load', updateStickyOffsets);
+  window.addEventListener('resize', updateStickyOffsets);
+
   /* ============ 顶部按钮 ============ */
   function activeFlow(){
     return document.querySelector('.module-panel.active .flow');
@@ -2072,6 +2103,8 @@
     document.querySelectorAll('.module-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+mod));
     // 切换时清搜索
     clearSearch();
+    // 模块不同→路线条高度可能不同，重算各层吸顶偏移
+    updateStickyOffsets();
     // 新激活的流程重新计算滚动跟随高亮
     updateScrollSpy();
   }
@@ -2132,6 +2165,7 @@
     URL.revokeObjectURL(a.href);
     // 导出后把当前页面的路线导航重新建回来
     document.querySelectorAll('.flow').forEach(f=>buildRail(f));
+    updateStickyOffsets();
     updateScrollSpy();
     const t=document.getElementById('toast'); t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'),1600);
