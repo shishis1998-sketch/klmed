@@ -249,6 +249,10 @@
   [contenteditable="true"]:focus{
     outline:2px dashed var(--accent);outline-offset:3px;border-radius:4px;
   }
+  /* 空的可编辑字段保留可点击的最小区域，方便清空后再次点入输入 */
+  .node-title:empty, .node-desc:empty, .stitle:empty, .meta:empty, .tag:empty{
+    min-width:2em; min-height:1em;
+  }
 
   .legend{
     max-width:1200px;margin:34px auto 0;display:flex;gap:22px;flex-wrap:wrap;
@@ -1131,6 +1135,44 @@
 </div>
 
 <script>
+  /* ============ 防止点击文字以外的空白处误触进入编辑框 ============ */
+  /* 卡片里的标题/描述等是 contenteditable，元素框往往比文字本身大（多行段落、
+     右侧/下方空白等）。这里在 mousedown 阶段判断点击点是否真的落在文字上：
+     不在文字上就阻止聚焦，于是点空白只是普通点击，不会弹出编辑光标/编辑框；
+     点到文字本身仍可正常编辑。覆盖文字的上、下、左、右所有空白方向。 */
+  function pointOnText(el, x, y){
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const rects = range.getClientRects();
+    const pad = 2; // 容差，便于点到文字边缘
+    for(const r of rects){
+      if(x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad) return true;
+    }
+    return false;
+  }
+  document.addEventListener('mousedown', function(e){
+    // 交互元素（按钮 / 链接 / 拖拽手柄 / 输入框）正常工作，不拦截
+    if(e.target.closest('button, a, input, textarea, select, [draggable="true"], .grip, .node-grip')) return;
+    // 直接点在可编辑元素上（含其文字与内边距）→ 允许正常编辑
+    if(e.target.closest('[contenteditable="true"]')) return;
+    // 只在含可编辑文字的卡片容器内做判断（步骤卡片 / 阶段标题栏）
+    const host = e.target.closest('.node, .stage-head');
+    if(!host) return;
+    const x = e.clientX, y = e.clientY;
+    for(const el of host.querySelectorAll('[contenteditable="true"]')){
+      const hasText = el.textContent && el.textContent.trim();
+      if(hasText){
+        if(pointOnText(el, x, y)) return;        // 点在文字上 → 允许编辑
+      } else {
+        const r = el.getBoundingClientRect();    // 空字段：点在其框内即可进入输入
+        if(x>=r.left-2 && x<=r.right+2 && y>=r.top-2 && y<=r.bottom+2) return;
+      }
+    }
+    // 否则点的是文字以外的空白（上/下/左/右任意方向）→ 阻止落光标，不进入编辑
+    e.preventDefault();
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }, true);
+
   /* ============ 阶段折叠/展开动画（精确 height 过渡，无卡顿）============ */
   /* 折叠/展开动画期间，把被点击的标题胶囊锁定在它当前的视口位置：
      - 有足够内容时标题“钉”在原地一丝不动；
