@@ -216,8 +216,10 @@
     padding:2px 9px;border-radius:3px;margin-bottom:8px;
     background:var(--lilac);color:var(--gold);
   }
-  .node-title{font-weight:700;font-size:15px;margin:0 0 4px;}
-  .node-desc{font-size:13.5px;color:#5a5e6e;line-height:1.55;margin:0;flex:1;}
+  /* align-self:flex-start 让可编辑的标题/描述只占文字本身宽度，不再横向铺满整张卡片，
+     这样点击文字右侧的空白处不会误触进入编辑框（只点到不可编辑的卡片本体）。 */
+  .node-title{font-weight:700;font-size:15px;margin:0 0 4px;align-self:flex-start;max-width:100%;}
+  .node-desc{font-size:13.5px;color:#5a5e6e;line-height:1.55;margin:0;flex:1;align-self:flex-start;max-width:100%;}
 
   .add-step{
     flex:0 0 44px;min-width:44px;align-self:stretch;display:grid;place-items:center;
