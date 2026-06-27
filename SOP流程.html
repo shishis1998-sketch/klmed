@@ -121,10 +121,14 @@
        这样同一时刻顶部只有一个阶段标题，上一个会随内容上滑、被顶栏盖住，不再叠在一起。 */
     position:sticky;top:var(--head-top,0px);
   }
-  /* 内容滚动到标题下方时（标题被吸顶钉住），给标题加一道投影，
-     让“固定的标题”和“正在滚动的内容”之间有清晰的层次分隔。 */
+  /* 内容滚动到标题下方时（标题被吸顶钉住）：
+     · 下方投影——分隔“钉住的标题”与“正在滚动的内容”，层次更清晰；
+     · 上方纸色挡帘（高度 = 路线条与标题之间的距离 --head-gap）——把滚进这段间距的
+       卡片盖住，让卡片只隐藏到本级标题背后、间距处始终是干净的页面底色，
+       不会再从路线条与标题之间的缝里透出卡片内容。 */
   .stage.head-stuck .stage-head{
-    box-shadow:0 8px 16px -10px rgba(53,71,84,.45);
+    box-shadow:0 8px 16px -10px rgba(53,71,84,.45),
+               0 calc(-1 * var(--head-gap,10px)) 0 0 var(--paper);
   }
   .grip{
     cursor:grab;font-size:14px;opacity:.35;user-select:none;
@@ -2122,14 +2126,15 @@
     const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
     const panel = document.querySelector('.module-panel.active');
     const rail = panel && panel.querySelector(':scope > .flow-rail');
-    // 标题要紧贴路线条底部：用路线条 border-box 高度（吸顶后其上方 10px 外边距不占位），
-    // 再让标题向上重叠 1px 塞到路线条下沿之内，吃掉亚像素缝隙——否则两栏间会露出
-    // 一条横缝，背后滚动的卡片内容会从缝里透出来。路线条层级更高，会盖住这 1px 重叠。
     const railH = rail ? rail.getBoundingClientRect().height : 0;
-    const overlap = 1;   // 无路线条时标题改塞到模块栏下沿之内，同样不留缝
+    // 路线条与阶段标题之间保留一段视觉距离（恢复原先的间距），别让两栏贴死在一起。
+    // 这段间距里滚动的卡片由阶段标题的“纸色挡帘”盖住（见 .stage.head-stuck .stage-head），
+    // 所以卡片只会隐藏到二级标题背后、间距处始终显示页面底色，而不会从缝里透出来。
+    const gap = 10;
     const root = document.documentElement.style;
     root.setProperty('--tabs-h', tabsH + 'px');
-    root.setProperty('--head-top', (tabsH + railH - overlap) + 'px');
+    root.setProperty('--head-gap', gap + 'px');
+    root.setProperty('--head-top', (tabsH + railH + gap) + 'px');
   }
   window.addEventListener('load', updateStickyOffsets);
   window.addEventListener('resize', updateStickyOffsets);
