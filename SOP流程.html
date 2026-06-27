@@ -601,14 +601,8 @@
   }
   mark.hit{background:#c9cfe6;color:var(--ink);border-radius:2px;padding:0 1px;}
   .node.search-dim,.stage.search-dim{opacity:.28;}
-  /* 命中卡片：整卡片淡金色背景标记（不再用描边） */
-  .node.search-hit{ background:#fff6e2; }
-  /* 搜索定位：跳到该卡片后，整卡片背景由较明显的淡金闪一下，再淡淡落回标记色——不描边、不放大 */
-  @keyframes sop-search-focus{
-    0%   { background:#ffe1a0; }
-    100% { background:#fff6e2; }
-  }
-  .node.search-focus{ animation:sop-search-focus 1.1s ease-out; }
+  /* 不再对卡片整体做高亮（底色/描边/闪动都去掉，避免突兀）：
+     搜索只高亮命中的关键词本身，见 mark.hit。 */
 
   /* ===== 阶段导航：左侧竖栏（左右主从布局）=====
      左边一列阶段名（不带圆点），点哪个，右侧就显示哪个阶段、默认展开。
@@ -2364,12 +2358,10 @@
   function jumpToResult(sIdx, node){
     const flow = activeFlow(); if(!flow || !node) return;
     activateStage(flow.closest('.module-panel'), sIdx);
+    // 只高亮命中的关键词本身（卡片不加任何底色/闪动）
     highlightIn(node, (document.getElementById('searchInput').value||'').trim().toLowerCase());
     requestAnimationFrame(()=>{
       node.scrollIntoView({behavior:'smooth', block:'center'});
-      node.classList.remove('search-focus'); void node.offsetWidth;
-      node.classList.add('search-focus');
-      node.addEventListener('animationend',()=>node.classList.remove('search-focus'),{once:true});
     });
   }
   function runSearch(qRaw){
