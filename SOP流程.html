@@ -105,9 +105,9 @@
     background:transparent;color:var(--ink);border:none;
     padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
-    /* 标题胶囊吸顶：展开后滚动时标题固定在「模块栏+步骤路线」下方，收起/展开都从固定位置触发。
-       --head-top 由 JS 按当前固定顶部栏的总高度实时计算，保证标题正好停在路线条下边。 */
-    position:sticky;top:var(--head-top,0px);z-index:5;
+    /* 默认不吸顶：只有「正在展开阅读」的阶段标题才固定。收起的阶段标题随内容正常滚动，
+       避免多个标题同时钉在顶部相互重叠（见 .stage.open .stage-head）。 */
+    position:relative;z-index:5;
     border-radius:9px 9px 0 0;background-clip:padding-box;
     /* 锁定胶囊高度：无论标题字数多少，所有阶段标题统一高度，不随文字增减 */
     height:60px;
@@ -117,6 +117,9 @@
   .stage-head:hover{ background:var(--accent-soft); }
   .stage.open .stage-head{
     background:var(--accent-soft);border-bottom:1px solid var(--line);
+    /* 只有展开的阶段标题吸顶：固定在「模块栏+步骤路线」下方。--head-top 由 JS 实时计算。
+       这样同一时刻顶部只有一个阶段标题，上一个会随内容上滑、被顶栏盖住，不再叠在一起。 */
+    position:sticky;top:var(--head-top,0px);
   }
   /* 内容滚动到标题下方时（标题被吸顶钉住），给标题加一道投影，
      让“固定的标题”和“正在滚动的内容”之间有清晰的层次分隔。 */
