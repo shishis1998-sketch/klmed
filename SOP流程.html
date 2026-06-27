@@ -50,6 +50,15 @@
   .toolbar button:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
   .toolbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
   .toolbar button.primary:hover{background:#003f7a;border-color:#003f7a;}
+  /* 按钮点击回弹：按下瞬间缩到 .94 再恢复，约 120ms，手感更“实在”。
+     统一给主要按钮加上过渡，确保松开后平滑弹回。 */
+  .toolbar button,.icon-btn,.node-open,.node-edit,.node-del,.detail-back,
+  .add-step,.mini-actions button,.mini-list button{
+    transition:transform .12s ease, background .15s, color .15s, border-color .15s, box-shadow .15s, opacity .15s;
+  }
+  .toolbar button:active,.icon-btn:active,.node-open:active,.node-edit:active,
+  .node-del:active,.detail-back:active,.add-step:active,
+  .mini-actions button:active,.mini-list button:active{ transform:scale(.94); }
 
   .flow{
     max-width:1200px;margin:34px auto 0;
@@ -65,10 +74,18 @@
   .stage{
     margin:0;border:1.5px solid var(--line);border-radius:10px;
     /* 不能用 overflow:hidden，否则标题胶囊无法 sticky 吸顶 */
-    background:#fff;align-self:start;transition:.15s;
+    background:#fff;align-self:start;
+    transition:border-color .15s, box-shadow .15s, opacity .3s ease;
   }
   .stage:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(0,112,194,.10);}
-  .stage.open{border-color:var(--accent);box-shadow:0 6px 18px rgba(0,112,194,.12);}
+  /* 当前阅读阶段突出：有阶段展开时，未展开的阶段淡出到 75%，
+     让正在看的阶段保持 100% 不透明 + 更深阴影 + 蓝色边框，聚焦阅读。 */
+  .flow.has-open .stage:not(.open){ opacity:.75; }
+  .stage.open{
+    border-color:var(--accent);
+    box-shadow:0 10px 28px rgba(0,112,194,.18);
+    opacity:1;
+  }
   /* 展开瞬间整张卡片轻微放大 1% 再回弹，营造“弹性展开”的手感。
      transform-origin 设为顶部，保证吸顶标题不抖动、内容只向下舒展。 */
   @keyframes sop-stage-pop{
@@ -106,6 +123,17 @@
   .stage-num{
     background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;
     display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;
+    transition:background .3s ease, transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+  }
+  /* 滚动跟随：随阅读位置点亮“当前阶段”的序号，营造“正在执行流程”的进度感。
+     当前 = 蓝色放大 + 光晕；前面（已读）= 灰；后面（未到）= 浅灰。
+     由 JS 加 is-current / is-passed / is-upcoming 类驱动。 */
+  .stage.is-passed   .stage-num{ background:#aeb4c0; }
+  .stage.is-upcoming .stage-num{ background:#d4d8e0; }
+  .stage.is-current  .stage-num{
+    background:var(--accent);
+    transform:scale(1.28);
+    box-shadow:0 3px 10px rgba(0,112,194,.45);
   }
   /* 标题只占文字本身的宽度，右侧空白用 auto 外边距撑开（把负责人/步骤数/控件推到右侧）。
      这样标题右边的空白属于标题栏而非可编辑文字，点空白处只会展开/收起、不会进入编辑。 */
@@ -188,6 +216,13 @@
     .stage.open{ animation:none; }
     .node.anim-in,.node.anim-out{ animation:none; }
     .node:hover{ transform:none; }
+    .node.search-focus{ animation:none; }
+    .detail-panel{ transition:opacity .2s ease; transform:none; }
+    #detail.show .detail-panel{ transform:none; }
+    .stage.is-current .stage-num{ transform:none; }
+    .toolbar button:active,.icon-btn:active,.node-open:active,.node-edit:active,
+    .node-del:active,.detail-back:active,.add-step:active,
+    .mini-actions button:active,.mini-list button:active{ transform:none; }
   }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
@@ -347,15 +382,25 @@
 
   /* 详情弹窗 */
   #detail{
-    position:fixed;inset:0;z-index:1100;display:none;
+    position:fixed;inset:0;z-index:1100;
     background:rgba(28,37,38,.45);backdrop-filter:blur(2px);
     padding:40px 20px;overflow:auto;
+    /* 用 visibility+opacity 代替 display:none，遮罩才能做淡入淡出过渡 */
+    visibility:hidden;opacity:0;pointer-events:none;
+    transition:opacity .2s ease, visibility .2s;
   }
-  #detail.show{display:block;}
+  #detail.show{visibility:visible;opacity:1;pointer-events:auto;}
+  /* 详情面板从卡片处“放大展开”：默认缩小并下移、透明，
+     展开时放大归位、淡入。transform-origin 由 JS 按点击卡片位置设定，
+     形成从卡片向外铺开到全屏的层次感（类似 Notion / Linear / ClickUp）。 */
   .detail-panel{
     max-width:760px;margin:0 auto;background:var(--paper);
     border-radius:4px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;
+    transform-origin:center top;
+    transform:scale(.92) translateY(14px);opacity:0;
+    transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .26s ease;
   }
+  #detail.show .detail-panel{ transform:scale(1) translateY(0);opacity:1; }
   .detail-top{
     background:var(--accent);color:#fff;padding:20px 26px;
     display:flex;align-items:flex-start;gap:14px;
@@ -468,6 +513,14 @@
   mark.hit{background:#c9cfe6;color:var(--ink);border-radius:2px;padding:0 1px;}
   .node.search-dim,.stage.search-dim{opacity:.28;}
   .node.search-hit{box-shadow:0 0 0 3px var(--gold);}
+  /* 搜索定位：滚动到首个命中卡片后，闪一下并放大 1.03 再回弹，一眼锁定位置 */
+  @keyframes sop-search-focus{
+    0%   { transform:scale(1);    box-shadow:0 0 0 3px var(--gold); }
+    25%  { transform:scale(1.03); box-shadow:0 0 0 4px var(--accent), 0 12px 30px rgba(0,112,194,.28); }
+    55%  { transform:scale(1.03); box-shadow:0 0 0 4px var(--accent), 0 12px 30px rgba(0,112,194,.28); }
+    100% { transform:scale(1);    box-shadow:0 0 0 3px var(--gold); }
+  }
+  .node.search-focus{ animation:sop-search-focus .6s cubic-bezier(.22,1,.36,1); }
 
   /* ===== 模块 Tab ===== */
   .module-tabs{
@@ -1330,7 +1383,38 @@
         },{ once:true });
       });
     }
+
+    // 当前阅读阶段突出：本流程内只要有展开的阶段，就给容器加 has-open，
+    // 由 CSS 把其余未展开阶段淡出，聚焦正在阅读的阶段。
+    const flow = stage.closest('.flow');
+    if(flow) flow.classList.toggle('has-open', !!flow.querySelector('.stage.open'));
   }
+
+  /* ============ 滚动跟随：点亮当前阶段序号 ============ */
+  let _spyRAF = null;
+  function updateScrollSpy(){
+    _spyRAF = null;
+    const flow = activeFlow();
+    if(!flow) return;
+    const stages = [...flow.querySelectorAll('.stage')];
+    if(!stages.length) return;
+    // 以视口上方 ~160px 为“阅读基线”：标题已越过基线的最后一个阶段即当前阶段
+    const baseline = 160;
+    let currentIdx = 0;
+    stages.forEach((st,i)=>{
+      const head = st.querySelector('.stage-head');
+      if(head && head.getBoundingClientRect().top - baseline <= 0) currentIdx = i;
+    });
+    stages.forEach((st,i)=>{
+      st.classList.toggle('is-current',  i===currentIdx);
+      st.classList.toggle('is-passed',   i<currentIdx);
+      st.classList.toggle('is-upcoming', i>currentIdx);
+    });
+  }
+  function scheduleScrollSpy(){ if(!_spyRAF) _spyRAF = requestAnimationFrame(updateScrollSpy); }
+  window.addEventListener('scroll', scheduleScrollSpy, {passive:true});
+  window.addEventListener('resize', scheduleScrollSpy);
+  window.addEventListener('load', updateScrollSpy);
 
   let editOn = false;
 
@@ -1489,6 +1573,13 @@
     // 渲染链接 / 文件
     const ll = document.getElementById('d-links'); ll.innerHTML='';
     det.links.forEach(l=>ll.appendChild(makeLinkItem(l)));
+    // 让面板从被点击卡片的方向放大展开：按卡片水平中心设置缩放原点
+    const panel = document.querySelector('.detail-panel');
+    if(panel){
+      const r = node.getBoundingClientRect();
+      const ox = Math.max(0, Math.min(100, (r.left + r.width/2) / window.innerWidth * 100));
+      panel.style.transformOrigin = ox.toFixed(1) + '% top';
+    }
     document.getElementById('detail').classList.add('show');
   }
   function closeDetail(){
@@ -1859,6 +1950,8 @@
     document.querySelectorAll('.module-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+mod));
     // 切换时清搜索
     clearSearch();
+    // 新激活的流程重新计算滚动跟随高亮
+    updateScrollSpy();
   }
 
   /* ============ 浮动格式工具条 ============ */
@@ -1924,15 +2017,15 @@
     const q = qRaw.trim().toLowerCase();
     const countEl = document.getElementById('searchCount');
     // 清除上一次高亮与状态
-    document.querySelectorAll('.search-dim,.search-hit').forEach(n=>n.classList.remove('search-dim','search-hit'));
+    document.querySelectorAll('.search-dim,.search-hit,.search-focus').forEach(n=>n.classList.remove('search-dim','search-hit','search-focus'));
     document.querySelectorAll('mark.hit').forEach(m=>{
       const t=document.createTextNode(m.textContent); m.replaceWith(t);
     });
     document.querySelectorAll('.flow').forEach(f=>f.normalize());
-    if(!q){ countEl.textContent=''; return; }
+    if(!q){ countEl.textContent=''; runSearch._last=null; return; }
 
     const flow = activeFlow();
-    let hits = 0;
+    let hits = 0, firstHit = null;
     flow.querySelectorAll('.node').forEach(node=>{
       // 收集卡片可见文字 + 详情里的文字
       const det = node._detail || {};
@@ -1944,6 +2037,7 @@
       const all = (visibleText+' '+detailText).toLowerCase();
       if(all.includes(q)){
         hits++;
+        if(!firstHit) firstHit = node;
         node.classList.add('search-hit');
         highlightIn(node, q);
       }else{
@@ -1954,6 +2048,31 @@
       if(!st.querySelector('.search-hit')) st.classList.add('search-dim');
     });
     countEl.textContent = hits ? `命中 ${hits} 张卡片` : '无匹配（详情内文字也已搜索）';
+
+    // 定位首个命中：展开其所属阶段 → 滚动到视野中央 → 闪一下 + 放大回弹
+    // 仅当首个命中变化时触发，避免逐字输入时反复抖动
+    if(firstHit && firstHit !== runSearch._last){
+      runSearch._last = firstHit;
+      ensureStageOpen(firstHit.closest('.stage'));
+      requestAnimationFrame(()=>{
+        firstHit.scrollIntoView({behavior:'smooth', block:'center'});
+        firstHit.classList.remove('search-focus');
+        void firstHit.offsetWidth;            // 重置动画，确保每次都能重新播放
+        firstHit.classList.add('search-focus');
+        firstHit.addEventListener('animationend',()=>firstHit.classList.remove('search-focus'),{once:true});
+      });
+    } else if(!firstHit){
+      runSearch._last = null;
+    }
+  }
+  // 立即展开阶段（不走折叠动画），供搜索定位时确保命中卡片可见
+  function ensureStageOpen(stage){
+    if(!stage || stage.classList.contains('open')) return;
+    stage.classList.add('open');
+    const wrap = stage.querySelector('.steps-wrap');
+    if(wrap) wrap.style.height='auto';
+    const flow = stage.closest('.flow');
+    if(flow) flow.classList.add('has-open');
   }
   function highlightIn(root, q){
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
