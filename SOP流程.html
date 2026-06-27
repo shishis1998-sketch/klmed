@@ -30,20 +30,6 @@
     padding:calc(var(--top-offset,130px) + 16px) 24px 90px;
   }
 
-  /* 常驻顶栏背后的「全宽底板」：顶栏本身只有内容宽度，两侧留白处会露出卡片向外
-     溢出的投影（卡片阴影约 28px，会渗进 24px 的侧边留白）。下滑时这些阴影从顶栏
-     两角透出来。用一条贯穿整屏宽的纸色底板盖住顶栏所在的横带，遮掉两角的阴影。
-     层级介于内容(0)与路线条(55)之间，只挡内容、不挡顶栏本身。 */
-  body::before{
-    content:'';position:fixed;top:0;left:0;right:0;
-    /* 整条顶栏的实体底：全屏宽纯白、底部平直，一道横贯整屏的投影做分隔。
-       模块栏/路线条都「浮」在它上面（透明背景），于是顶栏是一整条平底白栏，
-       卡片滑上来时被它整片盖住，不再从灰底、圆角缺口处透出卡片边缘。 */
-    height:var(--top-offset,130px);background:#fff;
-    box-shadow:0 4px 12px -6px rgba(53,71,84,.22);
-    z-index:54;pointer-events:none;
-  }
-
   header{max-width:1200px;margin:0 auto 26px;}
   .eyebrow{
     font-size:12px;letter-spacing:.32em;text-transform:uppercase;
@@ -589,7 +575,9 @@
      当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
   .flow-rail{
     display:flex;align-items:center;gap:0;
-    padding:9px 16px;background:transparent;   /* 融进整条白色顶栏（背景由 body::before 提供），不再是独立白胶囊 */
+    /* 用与页面一致的灰色：步骤条只是钉住的元素，背景仍是页面那块灰，
+       看上去就是「背景没动、只有步骤条浮在上面」。灰色不透光，挡住下方滚动的卡片。 */
+    padding:9px 16px;background:var(--paper);
     overflow-x:auto;scrollbar-width:thin;
     /* 常驻顶栏·第二层：固定吸在模块栏（--tabs-h）正下方，和模块栏拼成同一条顶栏，
        从页面顶部就一直悬浮，滚到哪都能切换 / 跳转到任意阶段。 */
@@ -637,7 +625,7 @@
     /* 常驻顶栏·第一层：fixed 从页面顶部就一直悬浮在最上方（不再是滚到它才贴住），
        和下方步骤路线条拼成同一条整栏；页面内容整体下移避免被盖住（见 body 顶部留白）。 */
     position:fixed;top:0;left:50%;transform:translateX(-50%);
-    width:min(1200px,calc(100% - 48px));z-index:60;background:transparent;
+    width:min(1200px,calc(100% - 48px));z-index:60;background:var(--paper);
     padding-top:8px;
   }
   .module-tab{
