@@ -69,6 +69,14 @@
   }
   .stage:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(0,112,194,.10);}
   .stage.open{border-color:var(--accent);box-shadow:0 6px 18px rgba(0,112,194,.12);}
+  /* 展开瞬间整张卡片轻微放大 1% 再回弹，营造“弹性展开”的手感。
+     transform-origin 设为顶部，保证吸顶标题不抖动、内容只向下舒展。 */
+  @keyframes sop-stage-pop{
+    0%  { transform:scale(1); }
+    45% { transform:scale(1.01); }
+    100%{ transform:scale(1); }
+  }
+  .stage.open{ transform-origin:top center; animation:sop-stage-pop .42s cubic-bezier(.22,1,.36,1); }
   .stage.drag-over{box-shadow:0 0 0 3px var(--accent);}
   .stage.dragging{opacity:.4;}
 
@@ -148,7 +156,8 @@
   /* 折叠容器：wrapper 控制高度，steps 只管布局 */
   .steps-wrap{
     overflow:hidden;height:0;
-    transition:height .2s ease-out;
+    /* 丝滑展开：更长的时长 + 弹性缓动，避免机械的线性收放 */
+    transition:height .42s cubic-bezier(.22,1,.36,1);
     border-radius:0 0 9px 9px;
   }
   .steps{
@@ -173,6 +182,13 @@
     to  { opacity:0; transform:translateY(10px) scale(.96); }
   }
   .node.anim-out{ animation:sop-node-out .16s ease-in both; }
+  /* 尊重系统“减弱动态效果”偏好：关闭弹入弹出与卡片悬停上浮，保留即时显示 */
+  @media (prefers-reduced-motion: reduce){
+    .steps-wrap{ transition:none; }
+    .stage.open{ animation:none; }
+    .node.anim-in,.node.anim-out{ animation:none; }
+    .node:hover{ transform:none; }
+  }
   .step-arrow{
     display:flex;justify-content:center;align-items:center;
     align-self:center;flex:0 0 auto;
@@ -189,6 +205,13 @@
     border-top:4px solid var(--gold);
     border-radius:4px;padding:14px 16px 14px;box-shadow:var(--shadow);
     transition:.15s;
+  }
+  /* 悬停反馈加强：卡片上浮 + 更深阴影 + 边框变蓝，鼠标移上去更有“可点”的层次感。
+     置于类型色（.node.system 等）规则之前，让彩色顶边在悬停时仍保留。 */
+  .node:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 28px rgba(0,112,194,.18);
+    border-color:var(--accent);
   }
   .node.dragging{opacity:.4;}
   .node.drag-over{box-shadow:0 0 0 3px var(--gold);}
