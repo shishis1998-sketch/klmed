@@ -541,6 +541,31 @@
   #searchbox input:focus{border-color:var(--accent);}
   #searchbox .scount{font-size:13px;color:#7a7363;}
 
+  /* ===== 搜索结果列表（下拉）：跨所有阶段列出命中，点条目跳转 ===== */
+  #searchbox{ position:relative; }
+  .search-results{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:120;
+    width:min(560px,92vw); max-height:60vh; overflow-y:auto;
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    box-shadow:0 14px 34px -10px rgba(53,71,84,.28); padding:6px;
+  }
+  .search-results[hidden]{ display:none; }
+  .search-results .sr-head{
+    font-size:12px; color:#7a8898; padding:6px 10px 8px;
+    border-bottom:1px solid var(--line); margin-bottom:4px;
+  }
+  .sr-item{
+    display:block; width:100%; text-align:left; cursor:pointer;
+    background:none; border:none; border-radius:8px; padding:9px 11px; font:inherit; color:var(--ink);
+    transition:background .12s;
+  }
+  .sr-item:hover,.sr-item:focus{ background:var(--accent-soft); outline:none; }
+  .sr-stage{ font-size:11.5px; color:#8a93a0; margin-bottom:2px; }
+  .sr-title{ font-size:13.5px; font-weight:700; line-height:1.3; }
+  .sr-snip{ font-size:12px; color:#5a5e6e; margin-top:3px; line-height:1.45; }
+  .sr-snip mark, .sr-title mark{ background:var(--gold); color:inherit; padding:0 1px; border-radius:2px; }
+  .sr-empty{ padding:14px 12px; color:#7a8898; font-size:13px; }
+
   /* ===== 搜索无结果：红框 + 抖动错误态（参考 transitions.dev「Error state shake」）=====
      每段抖动各自带 cubic-bezier，总时长 80+60+80+60=280ms；错误态红框盖过 :focus 蓝框。 */
   :root{
@@ -617,6 +642,8 @@
     font-size:13px;font-weight:600;line-height:1.35;
   }
   .flow-rail .rail-dot.current .rail-label{ color:var(--ink); }
+  /* 搜索时：含命中卡片的阶段，在左侧竖栏加一道金色左标记 */
+  .flow-rail .rail-dot.hit{ box-shadow:inset 3px 0 0 var(--gold); }
   .flow-rail .rail-seg{
     flex:1 1 26px;min-width:18px;height:3px;border-radius:2px;
     background:#e2e5eb;margin:0 8px;transition:background .4s ease;
@@ -787,6 +814,8 @@
     </div>
     <span class="scount" id="searchCount"></span>
     <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
+    <!-- 搜索结果列表：跨所有阶段列出命中卡片，点某条 → 跳到该阶段并定位高亮 -->
+    <div id="searchResults" class="search-results" hidden></div>
   </div>
   <div class="toolbar">
     <button class="primary" onclick="saveFile()">💾 保存（下载）</button>
@@ -2322,9 +2351,32 @@
       input.classList.remove('is-shaking');
     }
   }
+  // 从一段文字里截取命中关键词附近的片段，并把命中词用 <mark> 包起来
+  function makeSnippet(text, q){
+    const plain = (text||'').replace(/\s+/g,' ').trim();
+    const idx = plain.toLowerCase().indexOf(q);
+    if(idx<0) return escapeHtml(plain.slice(0,64));
+    const start = Math.max(0, idx-26), end = Math.min(plain.length, idx+q.length+40);
+    return (start>0?'…':'') + escapeHtml(plain.slice(start, idx))
+         + '<mark>' + escapeHtml(plain.slice(idx, idx+q.length)) + '</mark>'
+         + escapeHtml(plain.slice(idx+q.length, end)) + (end<plain.length?'…':'');
+  }
+  // 点击搜索结果：切到该阶段（右侧展开）→ 滚到该卡片 → 高亮闪一下
+  function jumpToResult(sIdx, node){
+    const flow = activeFlow(); if(!flow || !node) return;
+    activateStage(flow.closest('.module-panel'), sIdx);
+    highlightIn(node, (document.getElementById('searchInput').value||'').trim().toLowerCase());
+    requestAnimationFrame(()=>{
+      node.scrollIntoView({behavior:'smooth', block:'center'});
+      node.classList.remove('search-focus'); void node.offsetWidth;
+      node.classList.add('search-focus');
+      node.addEventListener('animationend',()=>node.classList.remove('search-focus'),{once:true});
+    });
+  }
   function runSearch(qRaw){
     const q = qRaw.trim().toLowerCase();
     const countEl = document.getElementById('searchCount');
+    const resBox  = document.getElementById('searchResults');
     // 清除上一次高亮与状态
     document.querySelectorAll('.search-dim,.search-hit,.search-focus').forEach(n=>n.classList.remove('search-dim','search-hit','search-focus'));
     document.querySelectorAll('.flow-rail .rail-dot.hit').forEach(d=>d.classList.remove('hit'));
@@ -2332,65 +2384,76 @@
       const t=document.createTextNode(m.textContent); m.replaceWith(t);
     });
     document.querySelectorAll('.flow').forEach(f=>f.normalize());
-    if(!q){ countEl.textContent=''; runSearch._last=null; runSearch._noMatch=false; setSearchError(false); return; }
+    if(!q){ countEl.textContent=''; runSearch._noMatch=false; setSearchError(false); resBox.hidden=true; resBox.innerHTML=''; return; }
 
     const flow = activeFlow();
-    let hits = 0, firstHit = null;
-    flow.querySelectorAll('.node').forEach(node=>{
-      // 收集卡片可见文字 + 详情里的文字
-      const det = node._detail || {};
-      const detailText = [
-        det.body, det.owner, det.time, det.freq,
-        ...(det.links||[]).map(l=>l.text)
-      ].join(' ').replace(/<[^>]+>/g,'');
-      const visibleText = node.innerText;
-      const all = (visibleText+' '+detailText).toLowerCase();
-      if(all.includes(q)){
-        hits++;
-        if(!firstHit) firstHit = node;
-        node.classList.add('search-hit');
-        highlightIn(node, q);
-      }else{
-        node.classList.add('search-dim');
+    const panel = flow.closest('.module-panel');
+    const stages = [...flow.querySelectorAll('.stage')];
+    const results = [];
+    stages.forEach((st, sIdx)=>{
+      let stageHit = false;
+      st.querySelectorAll('.node').forEach(node=>{
+        const det = node._detail || {};
+        const detailText = [det.body, det.owner, det.time, det.freq, ...(det.links||[]).map(l=>l.text)]
+          .join(' ').replace(/<[^>]+>/g,'');
+        // 只取干净文字（标签/标题/说明 + 详情），避开卡片上的 ⠿✎✕ 图标与「详情→」
+        const visibleText = [
+          node.querySelector('.tag')?.textContent,
+          node.querySelector('.node-title')?.textContent,
+          node.querySelector('.node-desc')?.textContent
+        ].filter(Boolean).join(' ');
+        const all = (visibleText+' '+detailText);   // textContent 路线弃用：阶段隐藏也能搜到（这些子节点始终在 DOM）
+        if(all.toLowerCase().includes(q)){
+          stageHit = true;
+          node.classList.add('search-hit');
+          results.push({
+            sIdx, node,
+            stageName:(st.querySelector('.stitle')?.textContent || ('阶段 '+(sIdx+1))).trim(),
+            title:(node.querySelector('.node-title')?.textContent || '（未命名卡片）').trim(),
+            snippet: makeSnippet(all, q)
+          });
+        }
+      });
+      if(stageHit){
+        const dot = panel && panel.querySelector(`:scope > .flow-rail .rail-dot[data-idx="${sIdx}"]`);
+        if(dot) dot.classList.add('hit');   // 左侧竖栏：含命中的阶段加金色标记
       }
     });
-    const allStages = [...flow.querySelectorAll('.stage')];
-    allStages.forEach(st=>{
-      if(!st.querySelector('.search-hit')) st.classList.add('search-dim');
-    });
-    // 顶部路线导航上：把含命中卡片的阶段圆点点亮，一眼看出命中分布在哪些阶段
-    const panel = flow.closest('.module-panel');
-    const rail = panel && panel.querySelector(':scope > .flow-rail');
-    if(rail){
-      rail.querySelectorAll('.rail-dot').forEach(d=>{
-        const st = allStages[+d.dataset.idx];
-        d.classList.toggle('hit', !!(st && st.querySelector('.search-hit')));
-      });
-    }
-    countEl.textContent = hits ? `命中 ${hits} 张卡片` : '无匹配（详情内文字也已搜索）';
 
-    // 无结果 → 红框 + 抖动；只在「刚变成无结果」时抖一次，结果恢复则取消错误态
-    const noMatch = hits === 0;
+    countEl.textContent = results.length ? `命中 ${results.length} 张卡片` : '无匹配';
+
+    // 结果列表（先展示，由用户点击跳转）
+    if(results.length){
+      resBox.innerHTML = `<div class="sr-head">命中 ${results.length} 张卡片 · 点任意一条跳转</div>` +
+        results.map((r,i)=>`<button type="button" class="sr-item" data-i="${i}">`
+          + `<div class="sr-stage">📁 ${escapeHtml(r.stageName)}</div>`
+          + `<div class="sr-title">${escapeHtml(r.title)}</div>`
+          + `<div class="sr-snip">${r.snippet}</div></button>`).join('');
+      resBox.querySelectorAll('.sr-item').forEach(btn=>{
+        const r = results[+btn.dataset.i];
+        btn.addEventListener('click', ()=>jumpToResult(r.sIdx, r.node));
+      });
+    }else{
+      resBox.innerHTML = `<div class="sr-empty">无匹配（标题、说明、清单、详情内文字都已搜索）</div>`;
+    }
+    resBox.hidden = false;
+
+    // 无结果 → 红框 + 抖动；只在「刚变成无结果」时抖一次
+    const noMatch = results.length === 0;
     if(noMatch && !runSearch._noMatch) setSearchError(true);
     else if(!noMatch) setSearchError(false);
     runSearch._noMatch = noMatch;
-
-    // 定位首个命中：展开其所属阶段 → 滚动到视野中央 → 闪一下 + 放大回弹
-    // 仅当首个命中变化时触发，避免逐字输入时反复抖动
-    if(firstHit && firstHit !== runSearch._last){
-      runSearch._last = firstHit;
-      ensureStageOpen(firstHit.closest('.stage'));
-      requestAnimationFrame(()=>{
-        firstHit.scrollIntoView({behavior:'smooth', block:'center'});
-        firstHit.classList.remove('search-focus');
-        void firstHit.offsetWidth;            // 重置动画，确保每次都能重新播放
-        firstHit.classList.add('search-focus');
-        firstHit.addEventListener('animationend',()=>firstHit.classList.remove('search-focus'),{once:true});
-      });
-    } else if(!firstHit){
-      runSearch._last = null;
-    }
   }
+  // 点搜索框外面 → 收起结果列表；重新聚焦输入框且仍有关键词 → 再展开
+  document.addEventListener('click', e=>{
+    const box=document.getElementById('searchbox'), res=document.getElementById('searchResults');
+    if(res && !res.hidden && box && !box.contains(e.target)) res.hidden=true;
+  });
+  document.getElementById('searchInput')?.addEventListener('focus', ()=>{
+    const res=document.getElementById('searchResults'), inp=document.getElementById('searchInput');
+    if(res && res.innerHTML.trim() && inp.value.trim()) res.hidden=false;
+  });
+
   // 立即展开阶段（不走折叠动画），供搜索定位时确保命中卡片可见
   function ensureStageOpen(stage){
     if(!stage || stage.classList.contains('open')) return;
