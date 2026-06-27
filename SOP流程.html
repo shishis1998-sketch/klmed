@@ -586,24 +586,24 @@
   }
   .node.search-focus{ animation:sop-search-focus .6s cubic-bezier(.22,1,.36,1); }
 
-  /* ===== 流程路线导航条（实时点亮，像地图导航）=====
-     顶部一条由所有阶段串成的路线：随阅读/展开进度，走过的连接线依次变蓝点亮，
-     当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
+  /* ===== 阶段导航：左侧竖栏（左右主从布局）=====
+     左边一列阶段名（不带圆点），点哪个，右侧就显示哪个阶段、默认展开。
+     竖栏吸顶在固定模块栏下方，长流程滚动时一直可见。 */
   .flow-rail{
-    display:flex;align-items:center;gap:0;
-    /* 用与页面一致的灰色：步骤条只是钉住的元素，背景仍是页面那块灰，
-       看上去就是「背景没动、只有步骤条浮在上面」。灰色不透光，挡住下方滚动的卡片。 */
-    padding:9px 16px;background:var(--paper);
-    overflow-x:auto;scrollbar-width:thin;
-    /* 常驻顶栏·第二层：固定吸在模块栏（--tabs-h）正下方，和模块栏拼成同一条顶栏，
-       从页面顶部就一直悬浮，滚到哪都能切换 / 跳转到任意阶段。 */
-    position:fixed;top:var(--tabs-h,52px);left:50%;transform:translateX(-50%);
-    width:min(1200px,calc(100% - 48px));z-index:55;
+    flex:0 0 232px;width:232px;align-self:flex-start;
+    display:flex;flex-direction:column;align-items:stretch;gap:2px;
+    padding:8px;background:#fff;border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 2px 8px rgba(53,71,84,.06);
+    position:sticky;top:calc(var(--tabs-h,52px) + 12px);
   }
+  /* 竖栏里不要连接线、不要圆点（按需求只留阶段名） */
+  .flow-rail .rail-seg,
+  .flow-rail .rail-node{ display:none; }
   .flow-rail .rail-dot{
-    display:flex;align-items:center;gap:11px;flex:none;
+    display:flex;align-items:center;gap:11px;flex:none;width:100%;
+    justify-content:flex-start;text-align:left;
     background:none;border:1px solid transparent;cursor:pointer;
-    padding:3px 12px 3px 9px;border-radius:18px;
+    padding:10px 12px;border-radius:8px;
     color:#7a8898;font:inherit;transition:color .25s, background .2s, border-color .2s;
   }
   .flow-rail .rail-dot:hover{ background:var(--accent-soft);border-color:var(--line); }
@@ -614,9 +614,9 @@
     transition:background .35s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
   }
   .flow-rail .rail-label{
-    font-size:12.5px;font-weight:600;white-space:nowrap;max-width:120px;
-    overflow:hidden;text-overflow:ellipsis;
+    font-size:13px;font-weight:600;line-height:1.35;
   }
+  .flow-rail .rail-dot.current .rail-label{ color:var(--ink); }
   .flow-rail .rail-seg{
     flex:1 1 26px;min-width:18px;height:3px;border-radius:2px;
     background:#e2e5eb;margin:0 8px;transition:background .4s ease;
@@ -660,7 +660,21 @@
   }
   .module-tab .module-del:hover{opacity:1;color:var(--rose);}
   .module-panel{display:none;}
-  .module-panel.active{display:block;}
+  /* 左右主从布局：左侧竖栏(.flow-rail) + 右侧内容(.flow) */
+  .module-panel.active{
+    display:flex;gap:22px;align-items:flex-start;
+    max-width:1200px;margin:22px auto 0;
+  }
+  /* 右侧内容区：纵向堆叠，只显示选中的那个阶段 */
+  .module-panel.active > .flow{
+    flex:1 1 auto;max-width:none;margin:0;display:block;min-width:0;
+  }
+  .module-panel.active > .flow > .stage{ display:none; }
+  .module-panel.active > .flow > .stage.detail-active{ display:block; }
+  /* 选中阶段恒为展开：内容区高度放开（不靠折叠动画） */
+  .module-panel.active > .flow > .stage.detail-active .steps-wrap{
+    height:auto !important;overflow:visible;
+  }
 
   /* ===== 通用小弹窗（新建模块 / 选择复制目标）===== */
   #miniModal{
@@ -711,8 +725,16 @@
 /* ===== 移动端适配 ===== */
 @media(max-width:640px){
   body{padding:calc(var(--top-offset,130px) + 12px) 12px 70px;}
-  /* 窄屏左右留白收窄到 12px，常驻顶栏宽度同步对齐，边缘与内容一致 */
-  .module-tabs,.flow-rail{width:min(1200px,calc(100% - 24px));}
+  /* 窄屏左右留白收窄到 12px，固定模块栏宽度同步对齐 */
+  .module-tabs{width:min(1200px,calc(100% - 24px));}
+  /* 窄屏：左右布局改为上下——阶段栏横排在上，内容在下 */
+  .module-panel.active{flex-direction:column;gap:14px;margin-top:14px;}
+  .module-panel.active > .flow-rail{
+    position:static;width:auto;flex:none;align-self:stretch;
+    flex-direction:row;flex-wrap:nowrap;gap:6px;
+    overflow-x:auto;scrollbar-width:thin;
+  }
+  .module-panel.active > .flow-rail .rail-dot{width:auto;flex:none;white-space:nowrap;}
   header{margin:0 auto 16px;}
   h1{font-size:21px;padding-left:10px;border-left-width:4px;}
   .hint{margin-left:14px;font-size:12px;}
@@ -1535,6 +1557,7 @@
   let _spyRAF = null;
   function updateScrollSpy(){
     _spyRAF = null;
+    return;   // 左右主从布局：阶段由左侧竖栏切换，不再随滚动跟随高亮
     const flow = activeFlow();
     if(!flow) return;
     const stages = [...flow.querySelectorAll('.stage')];
@@ -1912,11 +1935,12 @@
     ]);
 
     // 折叠/展开：点击标题栏切换（避开按钮、拖拽手柄、可编辑文字区）
+    // 左右布局下，阶段恒为展开态、由左侧竖栏切换，点标题不再折叠（避免把当前阶段收起）
     stage.querySelector('.stage-head').addEventListener('click', e => {
       if(e.target.closest('button') || e.target.closest('.grip')) return;
       const ce = e.target.closest('[contenteditable]');
       if(ce && ce.contentEditable === 'true') return;
-      toggleStage(stage);
+      /* no-op：折叠交给左侧竖栏的阶段切换 */
     });
 
     updateStageCount(stage);
@@ -2096,7 +2120,7 @@
     // 幂等：先清掉旧的，避免重排/重新打开文件后出现重复
     panel.querySelectorAll(':scope > .flow-rail').forEach(r=>r.remove());
     const stages = [...flow.querySelectorAll('.stage')];
-    if(stages.length < 2) return;   // 只有一个阶段时没有“路线”可言
+    if(stages.length < 2){ if(stages[0]) activateStage(panel, 0); return; }  // 只有一个阶段：直接显示它
     const rail = document.createElement('div');
     rail.className = 'flow-rail';
     stages.forEach((st,i)=>{
@@ -2117,14 +2141,31 @@
       label.textContent = (st.querySelector('.stitle')?.textContent || '').trim() || ('阶段 '+(i+1));
       dot.append(num, label);
       dot.addEventListener('click', ()=>{
-        ensureStageOpen(st);                       // 点圆点直接展开对应阶段
-        scrollStageIntoAnchor(st, true);           // 标题滚到吸顶栏正下方，不被盖住
-        scheduleScrollSpy();
+        activateStage(panel, i);   // 左右布局：点左侧阶段名 → 右侧切换到该阶段并展开
       });
       rail.appendChild(dot);
     });
     panel.insertBefore(rail, flow);
+    activateStage(panel, parseInt(panel.dataset.activeStage)||0);   // 默认选中（或上次选中的）阶段
     return rail;
+  }
+
+  /* ============ 左右主从布局：左侧竖栏选阶段，右侧只显示该阶段、默认展开 ============ */
+  function activateStage(panel, idx){
+    if(!panel) return;
+    const flow = panel.querySelector('.flow');
+    if(!flow) return;
+    const stages = [...flow.querySelectorAll('.stage')];
+    if(!stages.length) return;
+    idx = Math.max(0, Math.min(idx, stages.length-1));
+    stages.forEach((s,i)=>{
+      s.classList.toggle('detail-active', i===idx);
+      if(i===idx) ensureStageOpen(s);   // 选中的阶段始终展开内容
+    });
+    flow.classList.add('has-open');
+    const rail = panel.querySelector(':scope > .flow-rail');
+    if(rail) rail.querySelectorAll('.rail-dot').forEach((d,i)=>d.classList.toggle('current', i===idx));
+    panel.dataset.activeStage = idx;
   }
   // 随阅读进度点亮路线：走过的连接线变蓝、当前圆点高亮
   function updateRail(flow, currentIdx){
@@ -2157,10 +2198,10 @@
     const railH = rail ? rail.getBoundingClientRect().height : 0;
     const overlap = 1;   // 无路线条时标题改塞到模块栏下沿之内，同样不留缝
     const root = document.documentElement.style;
+    // 左右布局：顶部只剩固定的模块栏（步骤栏已移到左侧竖栏），偏移只按模块栏高度
     root.setProperty('--tabs-h', tabsH + 'px');
-    root.setProperty('--head-top', (tabsH + railH - overlap) + 'px');
-    // 常驻顶栏（模块栏+路线条）总高度：body 顶部按它留白，内容整体下移不被悬浮顶栏盖住
-    root.setProperty('--top-offset', (tabsH + railH) + 'px');
+    root.setProperty('--head-top', tabsH + 'px');
+    root.setProperty('--top-offset', tabsH + 'px');
   }
   window.addEventListener('load', updateStickyOffsets);
   window.addEventListener('resize', updateStickyOffsets);
@@ -2187,10 +2228,11 @@
     document.querySelectorAll('.module-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+mod));
     // 切换时清搜索
     clearSearch();
-    // 模块不同→路线条高度可能不同，重算各层吸顶偏移
+    // 模块不同→顶部模块栏高度可能不同，重算偏移
     updateStickyOffsets();
-    // 新激活的流程重新计算滚动跟随高亮
-    updateScrollSpy();
+    // 新激活模块：显示其（上次/首个）选中阶段
+    const ap = document.querySelector('.module-panel.active');
+    if(ap) activateStage(ap, parseInt(ap.dataset.activeStage)||0);
   }
 
   /* ============ 浮动格式工具条 ============ */
