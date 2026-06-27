@@ -142,8 +142,8 @@
   .stage.is-upcoming .stage-num{ background:#d4d8e0; }
   .stage.is-current  .stage-num{
     background:var(--accent);
-    transform:scale(1.7);
-    box-shadow:0 0 0 4px var(--accent-soft);
+    transform:scale(1.35);
+    box-shadow:0 0 0 3px var(--accent-soft);
   }
   /* 标题只占文字本身的宽度，右侧空白用 auto 外边距撑开（把负责人/步骤数/控件推到右侧）。
      这样标题右边的空白属于标题栏而非可编辑文字，点空白处只会展开/收起、不会进入编辑。 */
@@ -582,9 +582,9 @@
     position:sticky;top:var(--tabs-h,52px);z-index:55;
   }
   .flow-rail .rail-dot{
-    display:flex;align-items:center;gap:7px;flex:none;
+    display:flex;align-items:center;gap:11px;flex:none;
     background:none;border:1px solid transparent;cursor:pointer;
-    padding:3px 10px 3px 8px;border-radius:18px;
+    padding:3px 12px 3px 9px;border-radius:18px;
     color:#7a8898;font:inherit;transition:color .25s, background .2s, border-color .2s;
   }
   .flow-rail .rail-dot:hover{ background:var(--accent-soft);border-color:var(--line); }
@@ -609,7 +609,7 @@
   .flow-rail .rail-dot.current .rail-node{ background:var(--accent); }
   .flow-rail .rail-dot.current{ background:var(--accent-soft);border-color:var(--accent); }
   .flow-rail .rail-dot.current .rail-node{
-    transform:scale(1.7);box-shadow:0 0 0 4px var(--accent-soft);
+    transform:scale(1.35);box-shadow:0 0 0 3px var(--accent-soft);
   }
   .flow-rail .rail-dot.hit .rail-node{ box-shadow:0 0 0 3px var(--gold); }
   .flow-rail .rail-dot:hover .rail-label{ text-decoration:underline; }
@@ -700,7 +700,8 @@
 
   .stage-head{ padding:6px 12px 6px 6px;font-size:13px;gap:8px; }
   .stage-head .stitle{font-size:13px;}
-  .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 0 4px 28px;}
+  /* 左右内边距对称，卡片在阶段内居中（原来左 28px、右 0 会把卡片整体推向右侧） */
+  .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 12px 14px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
@@ -1427,6 +1428,15 @@
     _anchorRAF = requestAnimationFrame(step);
   }
 
+  /* 点击标题（或路线圆点）后，把该阶段标题滚到固定顶部栏（模块栏+路线条）正下方，
+     从这一段开头开始浏览，而不是停在半截卡片上。用 --head-top 作偏移，避免标题被吸顶栏盖住。 */
+  function scrollStageIntoAnchor(stage, smooth){
+    if(!stage) return;
+    const headTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--head-top')) || 0;
+    const y = Math.max(0, Math.round(window.scrollY + stage.getBoundingClientRect().top - headTop - 8));
+    window.scrollTo({ top:y, behavior: smooth ? 'smooth' : 'auto' });
+  }
+
   function toggleStage(stage){
     const steps = stage.querySelector('.steps');
     const wrap  = stage.querySelector('.steps-wrap');
@@ -1470,7 +1480,8 @@
       wrap._onEnd = ()=>{ wrap.style.height='auto'; wrap._onEnd=null; };
       wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
 
-      anchorHead(head);   // 展开过程中标题钉在原地，内容向下展开
+      // 展开即把本阶段标题滚到固定顶部栏正下方，从这一段开头开始读
+      scrollStageIntoAnchor(stage, true);
 
       nodes.forEach((n,i)=>{
         n.style.animationDelay = (i*60)+'ms';
@@ -2074,8 +2085,8 @@
       label.textContent = (st.querySelector('.stitle')?.textContent || '').trim() || ('阶段 '+(i+1));
       dot.append(num, label);
       dot.addEventListener('click', ()=>{
-        ensureStageOpen(st);                                  // 点圆点直接展开对应阶段
-        st.scrollIntoView({behavior:'smooth', block:'start'});// 并滚动定位过去
+        ensureStageOpen(st);                       // 点圆点直接展开对应阶段
+        scrollStageIntoAnchor(st, true);           // 标题滚到吸顶栏正下方，不被盖住
         scheduleScrollSpy();
       });
       rail.appendChild(dot);
