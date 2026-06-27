@@ -700,7 +700,8 @@
 
   .stage-head{ padding:6px 12px 6px 6px;font-size:13px;gap:8px; }
   .stage-head .stitle{font-size:13px;}
-  .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 0 4px 28px;}
+  /* 左右内边距对称，卡片在阶段内居中（原来左 28px、右 0 会把卡片整体推向右侧） */
+  .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 12px 14px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
