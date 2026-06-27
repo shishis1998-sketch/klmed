@@ -599,7 +599,8 @@
   @media (prefers-reduced-motion: reduce){
     #searchInput.is-shaking{ animation:none !important; transform:none !important; }
   }
-  mark.hit{background:#c9cfe6;color:var(--ink);border-radius:2px;padding:0 1px;}
+  /* 卡片内命中关键词高亮：与搜索结果列表里的片段高亮同色（金色底），保持一致 */
+  mark.hit{background:var(--gold);color:var(--ink);border-radius:2px;padding:0 1px;}
   .node.search-dim,.stage.search-dim{opacity:.28;}
   /* 不再对卡片整体做高亮（底色/描边/闪动都去掉，避免突兀）：
      搜索只高亮命中的关键词本身，见 mark.hit。 */
