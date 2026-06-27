@@ -74,17 +74,19 @@
   .stage{
     margin:0;border:1.5px solid var(--line);border-radius:10px;
     /* 不能用 overflow:hidden，否则标题胶囊无法 sticky 吸顶 */
-    background:#fff;align-self:start;
-    transition:border-color .15s, box-shadow .15s, opacity .3s ease;
+    background:#fff;align-self:start;transform-origin:center top;
+    transition:border-color .15s, box-shadow .15s, opacity .3s ease, transform .3s ease, filter .3s ease;
   }
   .stage:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(0,112,194,.10);}
-  /* 当前阅读阶段突出：有阶段展开时，未展开的阶段淡出到 75%，
-     让正在看的阶段保持 100% 不透明 + 更深阴影 + 蓝色边框，聚焦阅读。 */
-  .flow.has-open .stage:not(.open){ opacity:.75; }
+  /* 当前阅读阶段突出：有阶段展开时，未展开的阶段自动“缩小+淡出+轻微模糊”，
+     让正在看的阶段保持 100% 不透明、原始大小、清晰，整页视觉焦点一下集中过来。 */
+  .flow.has-open .stage:not(.open){ opacity:.55; transform:scale(.97); filter:blur(1px); }
+  /* 鼠标移到被缩小的阶段上时，临时恢复清晰，方便随时点开切换，不至于“看不清也点不准” */
+  .flow.has-open .stage:not(.open):hover{ opacity:.9; transform:scale(1); filter:none; }
   .stage.open{
     border-color:var(--accent);
     box-shadow:0 10px 28px rgba(0,112,194,.18);
-    opacity:1;
+    opacity:1;filter:none;
   }
   /* 展开瞬间整张卡片轻微放大 1% 再回弹，营造“弹性展开”的手感。
      transform-origin 设为顶部，保证吸顶标题不抖动、内容只向下舒展。 */
@@ -114,6 +116,11 @@
   .stage-head:hover{ background:var(--accent-soft); }
   .stage.open .stage-head{
     background:var(--accent-soft);border-bottom:1px solid var(--line);
+  }
+  /* 内容滚动到标题下方时（标题被吸顶钉住），给标题加一道投影，
+     让“固定的标题”和“正在滚动的内容”之间有清晰的层次分隔。 */
+  .stage.head-stuck .stage-head{
+    box-shadow:0 8px 16px -10px rgba(53,71,84,.45);
   }
   .grip{
     cursor:grab;font-size:14px;opacity:.35;user-select:none;
@@ -220,6 +227,8 @@
     .detail-panel{ transition:opacity .2s ease; transform:none; }
     #detail.show .detail-panel{ transform:none; }
     .stage.is-current .stage-num{ transform:none; }
+    .flow.has-open .stage:not(.open){ transform:none;filter:none; }
+    .flow-rail .rail-dot.current .rail-node{ transform:none; }
     .toolbar button:active,.icon-btn:active,.node-open:active,.node-edit:active,
     .node-del:active,.detail-back:active,.add-step:active,
     .mini-actions button:active,.mini-list button:active{ transform:none; }
@@ -521,6 +530,47 @@
     100% { transform:scale(1);    box-shadow:0 0 0 3px var(--gold); }
   }
   .node.search-focus{ animation:sop-search-focus .6s cubic-bezier(.22,1,.36,1); }
+
+  /* ===== 流程路线导航条（实时点亮，像地图导航）=====
+     顶部一条由所有阶段串成的路线：随阅读/展开进度，走过的连接线依次变蓝点亮，
+     当前阶段的圆点放大发光；点圆点可直接跳到对应阶段（并展开）。 */
+  .flow-rail{
+    max-width:1200px;margin:18px auto 0;
+    display:flex;align-items:center;gap:0;
+    padding:12px 16px;background:#fff;border:1px solid var(--line);
+    border-radius:10px;box-shadow:var(--shadow);
+    overflow-x:auto;scrollbar-width:thin;
+  }
+  .flow-rail .rail-dot{
+    display:flex;align-items:center;gap:8px;flex:none;
+    background:none;border:none;cursor:pointer;padding:2px;
+    color:#9aa4b2;font:inherit;transition:color .25s;
+  }
+  .flow-rail .rail-node{
+    width:26px;height:26px;border-radius:50%;flex:none;
+    background:#d4d8e0;color:#fff;font-size:12px;font-weight:800;
+    display:grid;place-items:center;
+    transition:background .35s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+  }
+  .flow-rail .rail-label{
+    font-size:12.5px;font-weight:600;white-space:nowrap;max-width:120px;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .flow-rail .rail-seg{
+    flex:1 1 26px;min-width:18px;height:3px;border-radius:2px;
+    background:#e2e5eb;margin:0 8px;transition:background .4s ease;
+  }
+  .flow-rail .rail-seg.lit{ background:var(--accent); }
+  .flow-rail .rail-dot.passed,
+  .flow-rail .rail-dot.current{ color:var(--ink); }
+  .flow-rail .rail-dot.passed .rail-node,
+  .flow-rail .rail-dot.current .rail-node{ background:var(--accent); }
+  .flow-rail .rail-dot.current .rail-node{
+    transform:scale(1.18);box-shadow:0 3px 10px rgba(0,112,194,.45);
+  }
+  .flow-rail .rail-dot.hit .rail-node{ box-shadow:0 0 0 3px var(--gold); }
+  .flow-rail .rail-dot:hover .rail-label{ text-decoration:underline; }
+  @media(max-width:760px){ .flow-rail .rail-label{ display:none; } }
 
   /* ===== 模块 Tab ===== */
   .module-tabs{
@@ -1409,7 +1459,22 @@
       st.classList.toggle('is-current',  i===currentIdx);
       st.classList.toggle('is-passed',   i<currentIdx);
       st.classList.toggle('is-upcoming', i>currentIdx);
+      // 标题吸顶投影：展开的阶段，当其标题被钉在视口顶部、且下方仍有内容在滚动时点亮
+      const head = st.querySelector('.stage-head');
+      const r = st.getBoundingClientRect();
+      const hr = head ? head.getBoundingClientRect() : null;
+      const stuck = st.classList.contains('open') && hr && hr.top <= 0.5 && r.bottom > hr.height + 1;
+      st.classList.toggle('head-stuck', stuck);
     });
+    // 同步顶部路线导航：点亮走过的连接线、放大当前圆点。
+    // 双列网格下，底排卡片的吸顶标题不一定会越过 160 基线，所以路线进度
+    // 改用「卡片顶部是否越过视口中部」来判定，确保走到底时整条路线都能点亮。
+    const railBase = window.innerHeight * 0.45;
+    let railIdx = 0;
+    stages.forEach((st,i)=>{
+      if(st.getBoundingClientRect().top <= railBase) railIdx = i;
+    });
+    updateRail(flow, railIdx);
   }
   function scheduleScrollSpy(){ if(!_spyRAF) _spyRAF = requestAnimationFrame(updateScrollSpy); }
   window.addEventListener('scroll', scheduleScrollSpy, {passive:true});
@@ -1926,6 +1991,63 @@
         s.after(arrow);
       }
     });
+    buildRail(flow);
+  }
+
+  /* ============ 流程路线导航条（实时点亮）============ */
+  // 依据当前流程的阶段，重建顶部那条「圆点 + 连接线」的路线导航
+  function buildRail(flow){
+    if(!flow) return;
+    const panel = flow.closest('.module-panel') || flow.parentNode;
+    if(!panel) return;
+    // 幂等：先清掉旧的，避免重排/重新打开文件后出现重复
+    panel.querySelectorAll(':scope > .flow-rail').forEach(r=>r.remove());
+    const stages = [...flow.querySelectorAll('.stage')];
+    if(stages.length < 2) return;   // 只有一个阶段时没有“路线”可言
+    const rail = document.createElement('div');
+    rail.className = 'flow-rail';
+    stages.forEach((st,i)=>{
+      if(i>0){
+        const seg = document.createElement('span');
+        seg.className = 'rail-seg';
+        seg.dataset.seg = i;        // 该连接线连到第 i 个圆点（0 起）
+        rail.appendChild(seg);
+      }
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'rail-dot';
+      dot.dataset.idx = i;
+      const num = document.createElement('span');
+      num.className = 'rail-node';
+      num.textContent = i+1;
+      const label = document.createElement('span');
+      label.className = 'rail-label';
+      label.textContent = (st.querySelector('.stitle')?.textContent || '').trim() || ('阶段 '+(i+1));
+      dot.append(num, label);
+      dot.addEventListener('click', ()=>{
+        ensureStageOpen(st);                                  // 点圆点直接展开对应阶段
+        st.scrollIntoView({behavior:'smooth', block:'start'});// 并滚动定位过去
+        scheduleScrollSpy();
+      });
+      rail.appendChild(dot);
+    });
+    panel.insertBefore(rail, flow);
+    return rail;
+  }
+  // 随阅读进度点亮路线：走过的连接线变蓝、当前圆点高亮
+  function updateRail(flow, currentIdx){
+    if(!flow) return;
+    const panel = flow.closest('.module-panel') || flow.parentNode;
+    const rail = panel && panel.querySelector(':scope > .flow-rail');
+    if(!rail) return;
+    rail.querySelectorAll('.rail-dot').forEach(d=>{
+      const i = +d.dataset.idx;
+      d.classList.toggle('passed',  i < currentIdx);
+      d.classList.toggle('current', i === currentIdx);
+    });
+    rail.querySelectorAll('.rail-seg').forEach(s=>{
+      s.classList.toggle('lit', (+s.dataset.seg) <= currentIdx);
+    });
   }
 
   /* ============ 顶部按钮 ============ */
@@ -1990,6 +2112,10 @@
     editOn=false; document.body.classList.remove('edit-all');
     inlineEditables().forEach(el=>el.setAttribute('contenteditable','false'));
     document.querySelectorAll('.drag-over,.dragging').forEach(n=>n.classList.remove('drag-over','dragging'));
+    // 移除运行时生成/临时的 UI，保证导出的 HTML 干净（重新打开会自动重建）
+    document.querySelectorAll('.flow-rail').forEach(r=>r.remove());
+    document.querySelectorAll('.head-stuck,.is-current,.is-passed,.is-upcoming')
+      .forEach(n=>n.classList.remove('head-stuck','is-current','is-passed','is-upcoming'));
     // 把每张卡片的 _detail 写进 data 属性，便于重新打开时还原
     document.querySelectorAll('.flow .node').forEach(n=>{
       n.setAttribute('data-detail', JSON.stringify(n._detail||{}));
@@ -2004,6 +2130,9 @@
     a.download = 'SOP流程.html';
     a.click();
     URL.revokeObjectURL(a.href);
+    // 导出后把当前页面的路线导航重新建回来
+    document.querySelectorAll('.flow').forEach(f=>buildRail(f));
+    updateScrollSpy();
     const t=document.getElementById('toast'); t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'),1600);
   }
@@ -2018,6 +2147,7 @@
     const countEl = document.getElementById('searchCount');
     // 清除上一次高亮与状态
     document.querySelectorAll('.search-dim,.search-hit,.search-focus').forEach(n=>n.classList.remove('search-dim','search-hit','search-focus'));
+    document.querySelectorAll('.flow-rail .rail-dot.hit').forEach(d=>d.classList.remove('hit'));
     document.querySelectorAll('mark.hit').forEach(m=>{
       const t=document.createTextNode(m.textContent); m.replaceWith(t);
     });
@@ -2044,9 +2174,19 @@
         node.classList.add('search-dim');
       }
     });
-    flow.querySelectorAll('.stage').forEach(st=>{
+    const allStages = [...flow.querySelectorAll('.stage')];
+    allStages.forEach(st=>{
       if(!st.querySelector('.search-hit')) st.classList.add('search-dim');
     });
+    // 顶部路线导航上：把含命中卡片的阶段圆点点亮，一眼看出命中分布在哪些阶段
+    const panel = flow.closest('.module-panel');
+    const rail = panel && panel.querySelector(':scope > .flow-rail');
+    if(rail){
+      rail.querySelectorAll('.rail-dot').forEach(d=>{
+        const st = allStages[+d.dataset.idx];
+        d.classList.toggle('hit', !!(st && st.querySelector('.search-hit')));
+      });
+    }
     countEl.textContent = hits ? `命中 ${hits} 张卡片` : '无匹配（详情内文字也已搜索）';
 
     // 定位首个命中：展开其所属阶段 → 滚动到视野中央 → 闪一下 + 放大回弹
