@@ -105,9 +105,9 @@
     background:transparent;color:var(--ink);border:none;
     padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
-    /* 默认不吸顶：只有「正在展开阅读」的阶段标题才固定。收起的阶段标题随内容正常滚动，
-       避免多个标题同时钉在顶部相互重叠（见 .stage.open .stage-head）。 */
-    position:relative;z-index:5;
+    /* 标题胶囊吸顶：展开后滚动时标题固定在「模块栏+步骤路线」下方，收起/展开都从固定位置触发。
+       --head-top 由 JS 按当前固定顶部栏的总高度实时计算，保证标题正好停在路线条下边。 */
+    position:sticky;top:var(--head-top,0px);z-index:5;
     border-radius:9px 9px 0 0;background-clip:padding-box;
     /* 锁定胶囊高度：无论标题字数多少，所有阶段标题统一高度，不随文字增减 */
     height:60px;
@@ -117,13 +117,12 @@
   .stage-head:hover{ background:var(--accent-soft); }
   .stage.open .stage-head{
     background:var(--accent-soft);border-bottom:1px solid var(--line);
-    /* 只有展开的阶段标题吸顶：固定在「模块栏+步骤路线」下方。--head-top 由 JS 实时计算。
-       这样同一时刻顶部只有一个阶段标题，上一个会随内容上滑、被顶栏盖住，不再叠在一起。 */
-    position:sticky;top:var(--head-top,0px);
   }
-  /* 阶段标题吸顶时不再加任何投影/挡帘：卡片改为各自吸顶层叠（见 .stage.open .steps > .node），
-     滚动时内容只藏到「下一张卡片」背后、始终在阶段标题下方层层堆叠，
-     标题与路线条之间那段间距永远是干净的页面底色，无需再用阴影遮挡。 */
+  /* 内容滚动到标题下方时（标题被吸顶钉住），给标题加一道投影，
+     让“固定的标题”和“正在滚动的内容”之间有清晰的层次分隔。 */
+  .stage.head-stuck .stage-head{
+    box-shadow:0 8px 16px -10px rgba(53,71,84,.45);
+  }
   .grip{
     cursor:grab;font-size:14px;opacity:.35;user-select:none;
     padding:2px 2px;line-height:1;flex:none;
@@ -205,19 +204,6 @@
   }
   /* 纵向排列：卡片占满列宽、尺寸一致 */
   .steps > .node{ flex:0 0 auto;width:100%;min-width:0; }
-  /* ===== 步骤卡片层叠吸顶 =====
-     展开阶段后，每张步骤卡片各自吸顶，钉在阶段标题正下方（--card-top 由 JS 实时算出
-     = 阶段标题底部）。滚动时上一张卡片的内容只藏到下一张卡片背后、在阶段标题下方层层
-     堆叠，而不会整段内容一起滑到阶段标题/模块栏背后。卡片底色不透明(#fff)，后面的卡片
-     （DOM 在后、同层级）自然盖住前面的，形成“后盖前”的叠放。z-index 低于阶段标题(5)，
-     标题始终在最上层。 */
-  .stage.open .steps > .node{
-    position:sticky;
-    top:var(--card-top, 60px);
-    z-index:1;
-  }
-  /* 层叠时方向箭头不抢镜：层级压在卡片之下，被上层卡片盖住 */
-  .stage.open .steps > .step-arrow{ position:relative;z-index:0; }
   .steps > .add-step{
     flex:0 0 auto;width:100%;min-width:0;height:auto;
     align-self:stretch;margin:8px 0 0;padding:9px 0;
@@ -1467,9 +1453,7 @@
     const nodes = [...steps.querySelectorAll('.node')];
 
     if(isOpen){
-      // 关闭：卡片先淡出收起，wrap 同步折叠。折叠期间必须 overflow:hidden 才能裁出高度动画，
-      // 清掉展开时设的 overflow:visible（移除 open 类后卡片已不再 sticky，可正常裁剪）。
-      wrap.style.overflow = 'hidden';
+      // 关闭：卡片先淡出收起，wrap 同步折叠
       nodes.forEach((n,i)=>{
         n.style.animationDelay = (i*20)+'ms';
         n.classList.add('anim-out');
@@ -1489,15 +1473,11 @@
     } else {
       // 展开：wrap 先撑开，卡片随后逐张弹入
       stage.classList.add('open');
-      // 标题高度此刻才确定，重算卡片层叠吸顶位置 --card-top
-      updateStickyOffsets();
       const fullH = wrap.scrollHeight;
       wrap.style.height = '0';
       wrap.offsetHeight;
       wrap.style.height = fullH+'px';
-      // 展开动画结束后高度设为 auto，并放开 overflow——卡片要 overflow:visible 才能相对视口
-      // sticky 层叠吸顶（overflow:hidden 会让 sticky 只相对 wrap 生效而失效）。
-      wrap._onEnd = ()=>{ wrap.style.height='auto'; wrap.style.overflow='visible'; wrap._onEnd=null; };
+      wrap._onEnd = ()=>{ wrap.style.height='auto'; wrap._onEnd=null; };
       wrap.addEventListener('transitionend', wrap._onEnd,{ once:true });
 
       // 展开即把本阶段标题滚到固定顶部栏正下方，从这一段开头开始读
@@ -2139,18 +2119,14 @@
     const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
     const panel = document.querySelector('.module-panel.active');
     const rail = panel && panel.querySelector(':scope > .flow-rail');
+    // 标题要紧贴路线条底部：用路线条 border-box 高度（吸顶后其上方 10px 外边距不占位），
+    // 再让标题向上重叠 1px 塞到路线条下沿之内，吃掉亚像素缝隙——否则两栏间会露出
+    // 一条横缝，背后滚动的卡片内容会从缝里透出来。路线条层级更高，会盖住这 1px 重叠。
     const railH = rail ? rail.getBoundingClientRect().height : 0;
-    // 路线条与阶段标题之间保留一段视觉距离，别让两栏贴死在一起。
-    const gap = 10;
-    const headTop = tabsH + railH + gap;
-    // 步骤卡片层叠吸顶的位置 = 阶段标题底部，让卡片紧贴在标题下方堆叠。
-    // 阶段标题高度锁定为 60px（见 .stage-head height），取实际渲染值更稳妥。
-    const sampleHead = panel && panel.querySelector('.stage.open .stage-head');
-    const headH = sampleHead ? sampleHead.getBoundingClientRect().height : 60;
+    const overlap = 1;   // 无路线条时标题改塞到模块栏下沿之内，同样不留缝
     const root = document.documentElement.style;
     root.setProperty('--tabs-h', tabsH + 'px');
-    root.setProperty('--head-top', headTop + 'px');
-    root.setProperty('--card-top', (headTop + headH) + 'px');
+    root.setProperty('--head-top', (tabsH + railH - overlap) + 'px');
   }
   window.addEventListener('load', updateStickyOffsets);
   window.addEventListener('resize', updateStickyOffsets);
@@ -2344,8 +2320,7 @@
     if(!stage || stage.classList.contains('open')) return;
     stage.classList.add('open');
     const wrap = stage.querySelector('.steps-wrap');
-    if(wrap){ wrap.style.height='auto'; wrap.style.overflow='visible'; }
-    updateStickyOffsets();   // 重算卡片层叠吸顶位置
+    if(wrap) wrap.style.height='auto';
     const flow = stage.closest('.flow');
     if(flow) flow.classList.add('has-open');
   }
