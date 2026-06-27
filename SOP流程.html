@@ -522,6 +522,40 @@
   }
   #searchbox input:focus{border-color:var(--accent);}
   #searchbox .scount{font-size:13px;color:#7a7363;}
+
+  /* ===== 搜索无结果：红框 + 抖动错误态（参考 transitions.dev「Error state shake」）=====
+     每段抖动各自带 cubic-bezier，总时长 80+60+80+60=280ms；错误态红框盖过 :focus 蓝框。 */
+  :root{
+    --t-error:#e5484d;
+    --shake-distance:6px;
+    --shake-overshoot:4px;
+    --shake-dur-a:80ms;
+    --shake-dur-b:60ms;
+    --shake-ease:cubic-bezier(0.22,1,0.36,1);
+    --revert-dur:280ms;
+  }
+  .t-input-wrap{ position:relative; display:inline-block; }
+  #searchInput.t-input{ transition:border-color 150ms ease-out; will-change:transform; }
+  #searchInput.is-error,
+  #searchInput.is-error:focus{
+    border-color:var(--t-error);
+    transition:border-color var(--revert-dur) ease-out;
+  }
+  /* 无结果时把右侧「无匹配」计数文字一并染红（放在吸顶模块栏上方，不与之重叠） */
+  #searchWrap.is-error ~ #searchCount{ color:var(--t-error);font-weight:600; }
+  #searchInput.is-shaking{
+    animation:t-input-shake calc(var(--shake-dur-a)*2 + var(--shake-dur-b)*2) linear;
+  }
+  @keyframes t-input-shake{
+    0%     { transform:translateX(0);                                animation-timing-function:var(--shake-ease); }
+    28.57% { transform:translateX(var(--shake-distance));            animation-timing-function:var(--shake-ease); }
+    57.14% { transform:translateX(calc(var(--shake-distance) * -1)); animation-timing-function:var(--shake-ease); }
+    78.57% { transform:translateX(var(--shake-overshoot));           animation-timing-function:var(--shake-ease); }
+    100%   { transform:translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #searchInput.is-shaking{ animation:none !important; transform:none !important; }
+  }
   mark.hit{background:#c9cfe6;color:var(--ink);border-radius:2px;padding:0 1px;}
   .node.search-dim,.stage.search-dim{opacity:.28;}
   .node.search-hit{box-shadow:0 0 0 3px var(--gold);}
@@ -710,7 +744,9 @@
 </div>
 
 <div id="searchbox">
-  <input type="text" id="searchInput" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+  <div class="t-input-wrap" id="searchWrap">
+    <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+  </div>
   <span class="scount" id="searchCount"></span>
   <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
 </div>
@@ -2176,6 +2212,26 @@
     document.getElementById('searchInput').value='';
     runSearch('');
   }
+  /* 搜索无结果时：输入框变红 + 抖动一下，并显示红色提示；有结果/清空则平滑恢复。
+     抖动只在「刚进入无结果状态」时播放一次，避免逐字输入时连抖。 */
+  function setSearchError(on){
+    const wrap = document.getElementById('searchWrap');
+    const input = document.getElementById('searchInput');
+    if(!wrap || !input) return;
+    if(on){
+      wrap.classList.add('is-error');
+      input.classList.add('is-error');
+      // 重启动画：移除→强制重排→再加，确保每次都能重新播放
+      input.classList.remove('is-shaking');
+      void input.offsetWidth;
+      input.classList.add('is-shaking');
+      input.addEventListener('animationend',()=>input.classList.remove('is-shaking'),{once:true});
+    }else{
+      wrap.classList.remove('is-error');
+      input.classList.remove('is-error');
+      input.classList.remove('is-shaking');
+    }
+  }
   function runSearch(qRaw){
     const q = qRaw.trim().toLowerCase();
     const countEl = document.getElementById('searchCount');
@@ -2186,7 +2242,7 @@
       const t=document.createTextNode(m.textContent); m.replaceWith(t);
     });
     document.querySelectorAll('.flow').forEach(f=>f.normalize());
-    if(!q){ countEl.textContent=''; runSearch._last=null; return; }
+    if(!q){ countEl.textContent=''; runSearch._last=null; runSearch._noMatch=false; setSearchError(false); return; }
 
     const flow = activeFlow();
     let hits = 0, firstHit = null;
@@ -2222,6 +2278,12 @@
       });
     }
     countEl.textContent = hits ? `命中 ${hits} 张卡片` : '无匹配（详情内文字也已搜索）';
+
+    // 无结果 → 红框 + 抖动；只在「刚变成无结果」时抖一次，结果恢复则取消错误态
+    const noMatch = hits === 0;
+    if(noMatch && !runSearch._noMatch) setSearchError(true);
+    else if(!noMatch) setSearchError(false);
+    runSearch._noMatch = noMatch;
 
     // 定位首个命中：展开其所属阶段 → 滚动到视野中央 → 闪一下 + 放大回弹
     // 仅当首个命中变化时触发，避免逐字输入时反复抖动
