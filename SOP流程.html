@@ -45,6 +45,22 @@
     max-width:1200px;margin:18px auto 0;display:flex;gap:10px;flex-wrap:wrap;
     justify-content:flex-end;
   }
+  /* 顶部操作区（布局C）：搜索靠左、保存/导出靠右，同一行 */
+  .top-bar-actions{
+    max-width:1200px;margin:14px auto 0;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;flex-wrap:wrap;
+  }
+  .top-bar-actions #searchbox,
+  .top-bar-actions .toolbar{ margin:0; }
+  /* 页面底部 footer（布局C）：编辑类操作 + 使用提示语 */
+  .page-footer{
+    max-width:1200px;margin:44px auto 0;padding-top:20px;
+    border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .page-footer .toolbar{ margin:0;justify-content:flex-start; }
+  .page-footer .hint{ margin:0; }
   .toolbar button{
     border:1px solid var(--line);background:#fff;color:var(--ink);
     padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;transition:.15s;
@@ -738,25 +754,22 @@
     <h1 contenteditable="false" id="docTitle">流程_SOP</h1>
     <button class="title-edit icon-btn edit" title="编辑标题">✎</button>
   </div>
-  <p class="hint">
-    默认只读，防止误触 · 点标题或卡片上的 <b>✎</b> 才进入编辑，编辑完再点一次或按 Esc 退出<br>
-    拖动 ⠿ 调整顺序 · ＋ 插入 · ✕ 删除 · 打开卡片详情可改标签/图片/链接 · 顶部🔍全局搜索 · 「💾 保存」下载 HTML
-  </p>
 </header>
 
-<div class="toolbar">
-  <button class="primary" onclick="saveFile()">💾 保存（下载）</button>
-  <button onclick="window.print()">🖨 导出 PDF</button>
-  <button onclick="addStage()">＋ 末尾加阶段</button>
-  <button onclick="toggleEdit()">✎ 全部编辑开/关</button>
-</div>
-
-<div id="searchbox">
-  <div class="t-input-wrap" id="searchWrap">
-    <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+<!-- 顶部操作区（布局C）：只留常用的「搜索 + 保存/导出」；
+     次要的「末尾加阶段 / 全部编辑开关 + 使用提示语」下移到页面底部 footer -->
+<div class="top-bar-actions">
+  <div id="searchbox">
+    <div class="t-input-wrap" id="searchWrap">
+      <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+    </div>
+    <span class="scount" id="searchCount"></span>
+    <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
   </div>
-  <span class="scount" id="searchCount"></span>
-  <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
+  <div class="toolbar">
+    <button class="primary" onclick="saveFile()">💾 保存（下载）</button>
+    <button onclick="window.print()">🖨 导出 PDF</button>
+  </div>
 </div>
 
 <div class="module-tabs" id="moduleTabs" data-active-module="mmqqfumch0">
@@ -1260,6 +1273,18 @@
   <span><i class="dot d-check"></i>核对 / 对账</span>
   <span><i class="dot d-decision"></i>决策 / 风险点</span>
 </div>
+
+<!-- 页面底部 footer（布局C）：次要的编辑类操作 + 使用提示语放在最底部 -->
+<footer class="page-footer">
+  <div class="toolbar">
+    <button onclick="addStage()">＋ 末尾加阶段</button>
+    <button onclick="toggleEdit()">✎ 全部编辑开/关</button>
+  </div>
+  <p class="hint">
+    默认只读，防止误触 · 点标题或卡片上的 <b>✎</b> 才进入编辑，编辑完再点一次或按 Esc 退出<br>
+    拖动 ⠿ 调整顺序 · ＋ 插入 · ✕ 删除 · 打开卡片详情可改标签/图片/链接 · 顶部🔍全局搜索 · 「💾 保存」下载 HTML
+  </p>
+</footer>
 
 <!-- 浮动格式工具条 -->
 <div id="fmtbar" style="display: none; left: 390.311px; top: 346.099px;">
