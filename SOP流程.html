@@ -844,7 +844,13 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   align-items:center; gap:8px; margin:0 !important; }
 #appTopbar #searchbox .t-input-wrap{ flex:1; position:relative; }
 #appTopbar #searchbox .search-ic{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
-  color:#9aa3ae; font-size:15px; pointer-events:none; }
+  color:var(--muted); font-size:16px; pointer-events:none; z-index:2; }
+/* 让输入框背景透明，避免遮住图标；背景与边框移到外层 wrap */
+#appTopbar #searchbox .t-input-wrap{ background:var(--paper); border:1px solid var(--line);
+  border-radius:var(--r); }
+#appTopbar #searchbox .t-input-wrap:focus-within{ border-color:var(--accent); background:#fff; }
+#appTopbar #searchbox .t-input{ background:transparent; border:none; }
+#appTopbar #searchbox .t-input:focus{ background:transparent; border:none; }
 #appTopbar #searchbox .t-input{
   width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
   border-radius:var(--r); padding:0 12px 0 32px; font-size:13px; color:var(--ink); outline:none;
@@ -873,7 +879,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 .ic svg{ width:1em; height:1em; display:block; fill:none; stroke:currentColor;
   stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #appTopbar .tb-actions .ic{ font-size:15px; }
-#appTopbar #searchbox .ic{ font-size:15px; color:#9aa3ae; }
+#appTopbar #searchbox .ic{ font-size:16px; color:var(--muted); }
 
 /* ---- 左侧栏（固定贴左缘，占满高度）---- */
 #appSidebar{
