@@ -868,11 +868,12 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   height:var(--ctl-h) !important; padding:0 14px !important; border-radius:var(--r) !important;
   border:1px solid var(--line) !important; background:#fff !important; font-size:13px !important;
   font-weight:600 !important; color:var(--ink) !important; cursor:pointer; flex:none;
+  order:1; /* 紧贴输入框右侧，排在计数前 */
 }
 #appTopbar #searchbox > button:hover{ background:var(--paper) !important; }
-/* 命中计数固定宽度，防止文字变化时输入框忽长忽短 */
+/* 命中计数固定宽度，防止文字变化时输入框忽长忽短；排在清除按钮之后 */
 #appTopbar #searchbox #searchCount{
-  flex:none; width:90px;
+  flex:none; width:90px; order:2;
   text-align:right; white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis;
 }
