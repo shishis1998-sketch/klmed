@@ -832,25 +832,34 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   background:#fff; border-bottom:1px solid var(--line);
   box-shadow:0 1px 3px rgba(53,71,84,.06);
 }
-#appTopbar .tb-brand{ font-weight:800; font-size:16px; color:var(--ink); flex:none; }
-#appTopbar .tb-crumb{ font-size:13px; color:var(--muted); flex:1; min-width:0;
+/* 顶栏标题：比正文更大、更醒目 */
+#appTopbar .tb-brand{ font-weight:800; font-size:19px; letter-spacing:.01em; color:var(--ink); flex:none; }
+#appTopbar .tb-crumb{ font-size:14px; color:var(--muted); flex:1; min-width:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#appTopbar .tb-crumb b{ color:var(--accent); font-weight:600; }
-/* 顶栏里承载的搜索框（由旧 #searchbox 移入）*/
+#appTopbar .tb-crumb b{ color:var(--accent); font-weight:700; }
+/* 顶栏右侧控件统一高度，整齐对齐 */
+:root{ --ctl-h:34px; }
 #appTopbar #searchbox{ position:relative; flex:0 1 320px; min-width:160px; display:flex;
   align-items:center; gap:8px; }
 #appTopbar #searchbox .t-input-wrap{ flex:1; }
 #appTopbar #searchbox .t-input{
-  width:100%; border:1px solid var(--line); background:var(--paper);
-  border-radius:var(--r); padding:7px 12px; font-size:13px; color:var(--ink); outline:none;
+  width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
+  border-radius:var(--r); padding:0 12px; font-size:13px; color:var(--ink); outline:none;
 }
 #appTopbar #searchbox .t-input:focus{ border-color:var(--accent); background:#fff; }
-#appTopbar #searchbox .search-results{ top:42px; }
+#appTopbar #searchbox .search-results{ top:calc(var(--ctl-h) + 6px); }
+/* 搜索框自带的「清除」按钮（旧内联样式）统一高度/圆角 */
+#appTopbar #searchbox > button{
+  height:var(--ctl-h) !important; padding:0 14px !important; border-radius:var(--r) !important;
+  border:1px solid var(--line) !important; background:#fff !important; font-size:13px !important;
+  font-weight:600 !important; color:var(--ink) !important; cursor:pointer; flex:none;
+}
+#appTopbar #searchbox > button:hover{ background:var(--paper) !important; }
 #appTopbar .tb-actions{ flex:none; display:flex; align-items:center; gap:8px; }
 #appTopbar .tb-actions button{
-  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
-  border:1px solid var(--line); background:#fff; color:var(--ink);
-  border-radius:var(--r); padding:7px 13px; font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
+  height:var(--ctl-h); border:1px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:var(--r); padding:0 13px; font-size:13px; font-weight:600;
   transition:background .15s,color .15s,border-color .15s;
 }
 #appTopbar .tb-actions button:hover{ background:var(--paper); }
@@ -882,8 +891,16 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appSidebar .mod-head .m-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #appSidebar .mod-head .badge{ flex:none; font-size:11px; font-weight:700; color:var(--accent);
   background:var(--accent-soft); border-radius:999px; padding:1px 9px; }
-#appSidebar .mod-head .m-del{ flex:none; color:#c2c8d2; font-weight:400; padding:0 2px; }
-#appSidebar .mod-head .m-del:hover{ color:var(--rose); }
+/* 模块的 编辑(重命名)/删除：所有模块一致，仅在编辑模式显示 */
+#appSidebar .mod-head .m-edit, #appSidebar .mod-head .m-del{
+  display:none; flex:none; width:22px; height:22px; border-radius:6px;
+  align-items:center; justify-content:center; color:#9aa3ae; }
+#appSidebar .mod-head .m-edit .ic, #appSidebar .mod-head .m-del .ic{ font-size:14px; color:inherit; }
+body.edit-all #appSidebar .mod-head .m-edit,
+body.edit-all #appSidebar .mod-head .m-del{ display:inline-flex; }
+body.edit-all #appSidebar .mod-head .badge{ display:none; }
+#appSidebar .mod-head .m-edit:hover{ background:var(--accent-soft); color:var(--accent); }
+#appSidebar .mod-head .m-del:hover{ background:#fde8e8; color:var(--rose); }
 /* 二级：阶段 */
 #appSidebar .mod-stages{ display:none; flex-direction:column; gap:1px; padding:2px 0 8px; }
 #appSidebar .mod.open .mod-stages{ display:flex; }
@@ -942,12 +959,12 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 .stage-head .stage-ctrl{ margin-left:auto; }
 .stage.detail-active .steps-wrap{ height:auto !important; overflow:visible; border-radius:0; }
 
-/* 步骤卡片网格：两栏、统一灰底、无彩色顶条、无标签、整张可点 */
+/* 步骤卡片网格：两栏铺满内容区宽度（不再设最大宽度，右侧不留白） */
 .module-panel.active .stage.detail-active .steps{
   display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp);
-  align-items:start; padding:0 !important; max-width:1040px;
+  align-items:start; padding:0 !important; max-width:none !important;
 }
-@media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr); } }
+@media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr) !important; } }
 .module-panel.active .node{
   flex:none !important; min-width:0 !important; width:auto !important;
   background:var(--card-bg) !important; border:1px solid var(--card-bd) !important;
@@ -3046,15 +3063,18 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     const salesFlow   = document.getElementById('flow-sales');
     const financeFlow = document.getElementById('flow-finance');
 
-    // 判断是否是保存后重开的文件（flow 里已有 .stage）
-    const salesHasContent   = !!salesFlow.querySelector('.stage');
-    const financeHasContent = !!financeFlow.querySelector('.stage');
+    // 判断是否是保存后重开的文件（flow 里已有 .stage）；模块可能已被删除，做空值保护
+    const salesHasContent   = !!salesFlow && !!salesFlow.querySelector('.stage');
+    const financeHasContent = !!financeFlow && !!financeFlow.querySelector('.stage');
 
-    if(salesHasContent)   rebind(salesFlow);
-    else initial.forEach(s=>salesFlow.appendChild(makeStage(s)));
-
-    if(financeHasContent) rebind(financeFlow);
-    else initialFinance.forEach(s=>financeFlow.appendChild(makeStage(s)));
+    if(salesFlow){
+      if(salesHasContent)   rebind(salesFlow);
+      else initial.forEach(s=>salesFlow.appendChild(makeStage(s)));
+    }
+    if(financeFlow){
+      if(financeHasContent) rebind(financeFlow);
+      else initialFinance.forEach(s=>financeFlow.appendChild(makeStage(s)));
+    }
 
     // 其它（自定义）模块的流程，统一重新挂载事件
     document.querySelectorAll('.flow').forEach(f=>{
@@ -3205,7 +3225,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       const flow = document.getElementById('flow-' + id);
       const stages = flow ? [...flow.querySelectorAll('.stage')] : [];
       const stepTotal = flow ? flow.querySelectorAll('.node').length : 0;
-      const canDel = !!tab.querySelector('.module-del');
 
       const mod = document.createElement('div');
       mod.className = 'mod' + (id === actMod ? ' open' : '');
@@ -3217,8 +3236,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
         `<span class="m-name">${escapeHtml(name)}</span>` +
         (stepTotal ? `<span class="badge">${stepTotal}</span>` : '') +
-        (canDel ? `<span class="m-del" title="删除模块">✕</span>` : '');
+        `<span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"/></svg></span></span>` +
+        `<span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"/></svg></span></span>`;
       head.addEventListener('click', e=>{
+        if(e.target.closest('.m-edit')){ e.stopPropagation(); renameModule(id); return; }
         if(e.target.closest('.m-del')){ e.stopPropagation(); deleteModule(id); return; }
         if(id !== activeModuleId()){ closeStep(); switchModule(id); }
         else { mod.classList.toggle('open'); }
@@ -3271,6 +3292,21 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     closeStep();
     if(id !== activeModuleId()) switchModule(id);
     activateStage(document.getElementById('panel-' + id), idx);
+  }
+  /* 重命名模块（所有模块通用）：更新对应隐藏 tab 的名称，再重建侧栏/面包屑 */
+  function renameModule(id){
+    const tab = document.querySelector(`.module-tab[data-module="${id}"]`);
+    if(!tab) return;
+    const cur = moduleName(tab);
+    const name = prompt('模块名称：', cur);
+    if(name == null) return;
+    const t = name.trim();
+    if(!t) return;
+    const del = tab.querySelector('.module-del');
+    tab.textContent = t;            // 清空旧内容（含 emoji / 删除按钮）
+    if(del) tab.appendChild(del);   // 还原内置的删除按钮（若有）
+    buildSidebar();
+    updateBreadcrumb();
   }
 
   /* ---- 面包屑 ---- */
