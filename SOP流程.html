@@ -347,6 +347,11 @@
   }
   .node-edit:hover{color:var(--accent);}
   .node-edit.on{color:#fff;background:var(--accent);border-radius:4px;}
+  .node-copy{
+    background:none;border:none;color:#bbb;cursor:pointer;font-size:14px;
+    line-height:1;padding:0 2px;transition:.12s;
+  }
+  .node-copy:hover{color:var(--gold);}
   .stage.editing{box-shadow:0 0 0 2px var(--accent)!important;}
   .node.editing{box-shadow:0 0 0 2px var(--accent);}
 
@@ -737,7 +742,7 @@
   .mini-actions button:not(.primary):hover{background:#f3f1ec;}
 
   @media print{
-    .toolbar,#fmtbar,.add-step,.icon-btn,.node-del,.node-edit,.title-edit,.node-grip,.grip,.insert-here,.node-open,#detail,#miniModal,.module-tabs,.stage-toggle{display:none!important;}
+    .toolbar,#fmtbar,.add-step,.icon-btn,.node-del,.node-edit,.node-copy,.title-edit,.node-grip,.grip,.insert-here,.node-open,#detail,#miniModal,.module-tabs,.stage-toggle{display:none!important;}
     body{background:#fff;padding:0;}
     .steps-wrap{height:auto!important;overflow:visible!important;}
     .steps{break-inside:avoid;}
@@ -2056,6 +2061,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         <span class="node-grip" title="拖动排序">⠿</span>
         <span class="node-bar-right">
           <button class="node-edit" title="编辑"><span class="ic"><svg><use href="#i-edit"/></svg></span></button>
+          <button class="node-copy" title="复制此卡片"><span class="ic"><svg><use href="#i-copy"/></svg></span></button>
           <button class="node-del" title="删除卡片"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
         </span>
       </div>
@@ -2078,6 +2084,23 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       else if(next && next.classList.contains('step-arrow')) next.remove();
       node.remove();
       updateStageCount(st);
+    };
+    node.querySelector('.node-copy').onclick=()=>{
+      // 若详情弹窗正在编辑本卡片，先把改动同步回卡片再复制
+      if(currentNode === node) saveDetail();
+      const clone = makeNode(scrapeNodeLive(node));
+      const st = node.closest('.stage');
+      // 在本卡片后插入「箭头 + 副本」，保持卡片之间的连接箭头
+      const sa = document.createElement('div');
+      sa.className='step-arrow'; sa.textContent='➜';
+      node.after(sa);
+      sa.after(clone);
+      updateStageCount(st);
+      const t = document.getElementById('toast');
+      const oldText = t.textContent;
+      t.textContent = '已复制卡片 ✓';
+      t.classList.add('show');
+      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>{ t.textContent = oldText; }, 300); }, 1600);
     };
     node.querySelector('.node-open').onclick=()=>openDetail(node);
     registerEditHost(node, node.querySelector('.node-edit'), [
@@ -2334,24 +2357,26 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
   /* ============ 复制模块到指定模块（弹窗选择目标）============ */
   // 抓取阶段当前数据（优先用内存中的 _detail，没有再回退读 data-detail 属性）
+  // 抓取单张卡片当前数据（含详情），用于复制卡片 / 复制阶段
+  function scrapeNodeLive(n){
+    let det = n._detail;
+    if(!det){
+      try{ det = JSON.parse(n.getAttribute('data-detail')||'null'); }catch(e){ det = null; }
+    }
+    return {
+      cls: ['system','decision','check'].find(c=>n.classList.contains(c))||'',
+      tag: n.querySelector('.tag')?.innerHTML||'',
+      title: n.querySelector('.node-title')?.innerHTML||'',
+      desc: n.querySelector('.node-desc')?.innerHTML||'',
+      detail: det ? JSON.parse(JSON.stringify(det)) : null,
+      btnLabel: n.querySelector('.node-open')?.textContent || '详情 →'
+    };
+  }
   function scrapeStageLive(stage){
     return {
       title: stage.querySelector('.stitle')?.innerHTML || '阶段',
       meta: stage.querySelector('.meta')?.innerHTML || '',
-      nodes: [...stage.querySelectorAll('.node')].map(n=>{
-        let det = n._detail;
-        if(!det){
-          try{ det = JSON.parse(n.getAttribute('data-detail')||'null'); }catch(e){ det = null; }
-        }
-        return {
-          cls: ['system','decision','check'].find(c=>n.classList.contains(c))||'',
-          tag: n.querySelector('.tag')?.innerHTML||'',
-          title: n.querySelector('.node-title')?.innerHTML||'',
-          desc: n.querySelector('.node-desc')?.innerHTML||'',
-          detail: det ? JSON.parse(JSON.stringify(det)) : null,
-          btnLabel: n.querySelector('.node-open')?.textContent || '详情 →'
-        };
-      })
+      nodes: [...stage.querySelectorAll('.node')].map(scrapeNodeLive)
     };
   }
   // 取得所有模块（不含「＋新建模块」按钮本身）
