@@ -1029,14 +1029,13 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   #stepView .step-main{ border-right:none; padding:16px 0 0; }
   #stepView .step-aside{ padding:16px 0 0; }
 }
-/* 负责人/预计/频率 一行 + 下方水平分割线 */
+/* 负责人/预计/频率 各占一行 + 下方水平分割线 */
 #stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-bottom:12px;
   border-bottom:1px solid var(--line); }
+#stepView .meta-line .meta-item{ margin-bottom:6px; }
+#stepView .meta-line .meta-item:last-child{ margin-bottom:0; }
 #stepView .meta-line b{ color:var(--ink); font-weight:600; }
 #stepView .meta-line [contenteditable="true"]{ outline:none; border-bottom:1px dashed var(--accent); }
-/* 行内竖向分隔线（负责人 | 预计 | 频率 之间） */
-#stepView .meta-line .meta-sep{ display:inline-block; width:1px; height:11px; background:var(--line);
-  margin:0 12px; vertical-align:-1px; }
 #stepView .step-note{ font-size:14px; color:#5a5e6e; line-height:1.6; margin:0; }
 #stepView .step-note[contenteditable="true"]{ outline:none; background:#fff; border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px; }
@@ -3467,7 +3466,11 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         `</div>` +
         `<aside class="step-aside">` +
           `<div class="info-card">` +
-            `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}<i class="meta-sep"></i><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span><i class="meta-sep"></i><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
+            `<div class="meta-line">` +
+              `<div class="meta-item"><b>负责人：</b>${escapeHtml(owner)}</div>` +
+              `<div class="meta-item"><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span></div>` +
+              `<div class="meta-item"><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
+            `</div>` +
             `<div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div>` +
             (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
           `</div>` +
