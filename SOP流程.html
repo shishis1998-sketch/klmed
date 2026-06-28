@@ -3259,7 +3259,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       head.innerHTML =
         `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
         `<span class="m-name">${escapeHtml(name)}</span>` +
-        (stepTotal ? `<span class="badge">${stepTotal}</span>` : '') +
         `<span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"/></svg></span></span>` +
         `<span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"/></svg></span></span>`;
       head.addEventListener('click', e=>{
@@ -3278,8 +3277,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         it.className = 'stage-item';
         it.dataset.module = id; it.dataset.idx = i;
         it.innerHTML =
-          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>` +
-          `<span class="cnt">${cnt}</span>`;
+          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>`;
         it.addEventListener('click', ()=> selectStage(id, i));
         sw.appendChild(it);
       });
