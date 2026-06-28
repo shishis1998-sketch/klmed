@@ -959,12 +959,12 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 .stage-head .stage-ctrl{ margin-left:auto; }
 .stage.detail-active .steps-wrap{ height:auto !important; overflow:visible; border-radius:0; }
 
-/* 步骤卡片网格：两栏、统一灰底、无彩色顶条、无标签、整张可点 */
+/* 步骤卡片网格：两栏铺满内容区宽度（不再设最大宽度，右侧不留白） */
 .module-panel.active .stage.detail-active .steps{
   display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp);
-  align-items:start; padding:0 !important; max-width:1040px;
+  align-items:start; padding:0 !important; max-width:none !important;
 }
-@media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr); } }
+@media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr) !important; } }
 .module-panel.active .node{
   flex:none !important; min-width:0 !important; width:auto !important;
   background:var(--card-bg) !important; border:1px solid var(--card-bd) !important;
