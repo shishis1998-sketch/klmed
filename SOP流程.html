@@ -794,9 +794,325 @@
 @media(max-width:380px){
   .attr-grid{grid-template-columns:1fr;}
 }
+
+/* ============================================================
+   ===============  APP 外壳改版（覆盖层）  ===================
+   全屏软件外壳：顶栏贴上缘、左侧栏贴左缘各自固定；右侧内容滚动。
+   统一圆角(--r) 与间距(--sp) 比例。本块整体覆盖旧外壳样式。
+   ============================================================ */
+:root{
+  --r:10px;            /* 统一圆角：卡片 / 面板 / 输入框 / 侧栏项 / 图片 / 按钮 */
+  --sp:16px;           /* 基础间距单位 */
+  --topbar-h:56px;     /* 顶栏高度 */
+  --side-w:256px;      /* 左侧栏宽度 */
+  --card-bg:#f3f4f6;   /* 统一卡片底色（灰） */
+  --card-bd:#e4e6ea;   /* 统一卡片描边 */
+  --content-bg:#ffffff;/* 右侧内容区底色（白） */
+  --muted:#7a8898;     /* 次要文字 */
+}
+
+/* ---- 隐藏旧外壳：旧标题区 / 顶部操作区 / 顶部模块栏 / 底部 footer / 旧左侧路线条 / 阶段间箭头 / 步骤箭头 ---- */
+body > header,
+.top-bar-actions,
+#moduleTabs,
+.page-footer,
+.flow > .arrow,
+.steps > .step-arrow,
+.stage-head .grip,
+.stage-head .stage-num,
+.stage-head .stage-toggle{ display:none !important; }
+
+/* ---- body：去掉旧的顶部留白，铺满 ---- */
+body{ padding:0 !important; margin:0; background:var(--paper); }
+
+/* ---- 顶栏（固定贴上缘，横贯整宽）---- */
+#appTopbar{
+  position:fixed; top:0; left:0; right:0; height:var(--topbar-h); z-index:120;
+  display:flex; align-items:center; gap:16px; padding:0 18px;
+  background:#fff; border-bottom:1px solid var(--line);
+  box-shadow:0 1px 3px rgba(53,71,84,.06);
+}
+#appTopbar .tb-brand{ font-weight:800; font-size:16px; color:var(--ink); flex:none; }
+#appTopbar .tb-crumb{ font-size:13px; color:var(--muted); flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#appTopbar .tb-crumb b{ color:var(--accent); font-weight:600; }
+/* 顶栏里承载的搜索框（由旧 #searchbox 移入）*/
+#appTopbar #searchbox{ position:relative; flex:0 1 320px; min-width:160px; display:flex;
+  align-items:center; gap:8px; }
+#appTopbar #searchbox .t-input-wrap{ flex:1; }
+#appTopbar #searchbox .t-input{
+  width:100%; border:1px solid var(--line); background:var(--paper);
+  border-radius:var(--r); padding:7px 12px; font-size:13px; color:var(--ink); outline:none;
+}
+#appTopbar #searchbox .t-input:focus{ border-color:var(--accent); background:#fff; }
+#appTopbar #searchbox .search-results{ top:42px; }
+#appTopbar .tb-actions{ flex:none; display:flex; align-items:center; gap:8px; }
+#appTopbar .tb-actions button{
+  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+  border:1px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:var(--r); padding:7px 13px; font-size:13px; font-weight:600;
+  transition:background .15s,color .15s,border-color .15s;
+}
+#appTopbar .tb-actions button:hover{ background:var(--paper); }
+#appTopbar .tb-actions button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+#appTopbar .tb-actions button.primary:hover{ background:#003f7a; }
+#appTopbar .tb-actions button.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.ic{ display:inline-flex; align-items:center; justify-content:center; }
+.ic svg{ width:1em; height:1em; display:block; fill:none; stroke:currentColor;
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#appTopbar .tb-actions .ic{ font-size:15px; }
+#appTopbar #searchbox .ic{ font-size:15px; color:#9aa3ae; }
+
+/* ---- 左侧栏（固定贴左缘，占满高度）---- */
+#appSidebar{
+  position:fixed; top:var(--topbar-h); left:0; bottom:0; width:var(--side-w); z-index:110;
+  background:#fff; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+#appSidebar .side-label{ font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:#aab2bd; padding:16px 18px 8px; }
+#appSidebar .side-scroll{ flex:1; overflow-y:auto; padding:0 10px 10px; }
+/* 一级：模块 */
+#appSidebar .mod-head{
+  display:flex; align-items:center; gap:9px; padding:10px 10px; border-radius:var(--r);
+  cursor:pointer; font-size:14px; font-weight:700; color:var(--ink); user-select:none;
+}
+#appSidebar .mod-head:hover{ background:var(--paper); }
+#appSidebar .mod-head .ic{ font-size:17px; color:var(--accent); flex:none; }
+#appSidebar .mod-head .m-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#appSidebar .mod-head .badge{ flex:none; font-size:11px; font-weight:700; color:var(--accent);
+  background:var(--accent-soft); border-radius:999px; padding:1px 9px; }
+#appSidebar .mod-head .m-del{ flex:none; color:#c2c8d2; font-weight:400; padding:0 2px; }
+#appSidebar .mod-head .m-del:hover{ color:var(--rose); }
+/* 二级：阶段 */
+#appSidebar .mod-stages{ display:none; flex-direction:column; gap:1px; padding:2px 0 8px; }
+#appSidebar .mod.open .mod-stages{ display:flex; }
+#appSidebar .stage-item{
+  position:relative; display:flex; align-items:center; gap:9px;
+  padding:8px 12px 8px 34px; border-radius:var(--r); cursor:pointer;
+  font-size:13px; font-weight:500; color:var(--muted);
+}
+#appSidebar .stage-item:hover{ background:var(--paper); color:var(--ink); }
+#appSidebar .stage-item .s-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#appSidebar .stage-item .cnt{ flex:none; font-size:11px; color:#aab2bd; }
+#appSidebar .stage-item.active{ background:var(--accent-soft); color:var(--accent); font-weight:700; }
+#appSidebar .stage-item.active::before{ content:""; position:absolute; left:18px; top:50%;
+  transform:translateY(-50%); width:3px; height:15px; border-radius:2px; background:var(--accent); }
+#appSidebar .stage-item.active .cnt{ color:var(--accent); }
+#appSidebar .stage-item.hit{ box-shadow:inset 3px 0 0 var(--gold); }
+#appSidebar .add-stage{ margin:2px 0 0 24px; padding:7px 10px; border-radius:var(--r);
+  font-size:12.5px; color:#aab2bd; cursor:pointer; display:flex; align-items:center; gap:6px; }
+#appSidebar .add-stage:hover{ background:var(--paper); color:var(--accent); }
+#appSidebar .add-stage .ic{ font-size:14px; }
+#appSidebar .side-add{ margin:8px; padding:9px 10px; border:1.5px dashed var(--line);
+  border-radius:var(--r); background:transparent; color:var(--accent); font-size:13px;
+  font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+#appSidebar .side-add:hover{ background:var(--accent-soft); border-color:var(--accent); }
+#appSidebar .side-add .ic{ font-size:15px; }
+#appSidebar .side-foot{ border-top:1px solid var(--line); padding:12px 18px; font-size:12px;
+  color:#aab2bd; line-height:1.9; flex:none; }
+#appSidebar .side-foot b{ color:var(--muted); font-weight:600; }
+
+/* ---- 右侧内容区：把激活的模块面板当作内容容器 ---- */
+.module-panel.active{
+  display:block !important; margin:0 0 0 var(--side-w) !important; max-width:none !important;
+  padding:calc(var(--topbar-h) + 20px) 28px 64px !important; min-height:100vh; background:var(--content-bg);
+}
+.module-panel.active > .flow-rail{ display:none !important; }
+.module-panel.active > .flow{ display:block !important; max-width:none !important; margin:0 !important; min-width:0; }
+.module-panel.active > .flow > .stage{ border:none !important; background:transparent !important;
+  box-shadow:none !important; border-radius:0 !important; }
+.module-panel.active > .flow > .stage:not(.detail-active){ display:none !important; }
+.flow.has-open .stage:not(.open){ opacity:1 !important; transform:none !important; filter:none !important; }
+
+/* 阶段标题：吸顶在顶栏正下方（白底）；作为内容区标题栏 */
+.module-panel.active > .flow > .stage.detail-active .stage-head{
+  position:sticky; top:var(--topbar-h); z-index:40; background:var(--content-bg) !important;
+  border:none !important; border-bottom:1px solid transparent !important;
+  margin:0 -28px 16px; padding:6px 28px 14px; min-height:0; border-radius:0 !important;
+  display:flex; align-items:center; gap:12px; cursor:default;
+}
+.stage.detail-active.head-stuck .stage-head{ border-bottom-color:var(--line) !important;
+  box-shadow:0 6px 12px -10px rgba(53,71,84,.4); }
+.stage-head .stitle{ font-size:20px !important; font-weight:800 !important; flex:0 1 auto;
+  -webkit-line-clamp:1 !important; }
+.stage.detail-active .stage-head .meta{ display:inline !important; font-size:12.5px; color:var(--muted); }
+.stage-head .step-count{ border:1px solid var(--accent) !important; background:#fff !important;
+  color:var(--accent) !important; border-radius:999px !important; }
+.stage-head .stage-ctrl{ margin-left:auto; }
+.stage.detail-active .steps-wrap{ height:auto !important; overflow:visible; border-radius:0; }
+
+/* 步骤卡片网格：两栏、统一灰底、无彩色顶条、无标签、整张可点 */
+.module-panel.active .stage.detail-active .steps{
+  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp);
+  align-items:start; padding:0 !important; max-width:1040px;
+}
+@media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr); } }
+.module-panel.active .node{
+  flex:none !important; min-width:0 !important; width:auto !important;
+  background:var(--card-bg) !important; border:1px solid var(--card-bd) !important;
+  border-top:1px solid var(--card-bd) !important; border-radius:var(--r) !important;
+  box-shadow:none !important; cursor:pointer; padding:15px 16px !important;
+  transition:border-color .15s, background .15s;
+}
+.module-panel.active .node:hover{ transform:none !important; border-color:#c3d6ec !important; background:#eef2f7 !important; }
+.module-panel.active .node .tag{ display:none !important; }
+.module-panel.active .node .node-open{ display:none !important; }
+.module-panel.active .node .node-title{ font-size:15px; }
+/* 卡片右上角的 编辑/删除 小按钮：仅在编辑模式 / 单卡编辑中显示，读模式干净 */
+.module-panel.active .node .node-bar{ position:absolute; top:8px; right:8px; margin:0; gap:4px;
+  display:none; }
+body.edit-all .module-panel.active .node .node-bar,
+.module-panel.active .node.editing .node-bar{ display:flex; opacity:1; }
+.module-panel.active .node .node-grip{ display:none; }
+/* 读模式精简：阶段控件、末尾加卡片仅在编辑模式显示 */
+.stage .stage-ctrl{ display:none !important; }
+body.edit-all .stage.detail-active .stage-ctrl{ display:flex !important; opacity:1 !important;
+  max-width:none !important; pointer-events:auto !important; }
+.module-panel.active .stage.detail-active .steps > .add-step{ display:none !important; }
+body.edit-all .module-panel.active .stage.detail-active .steps > .add-step{ display:grid !important; }
+/* 读模式下也隐藏 新建阶段（结构改动归入编辑模式）*/
+#appSidebar .add-stage{ display:none; }
+body.edit-all #appSidebar .add-stage{ display:flex; }
+/* 末尾「加卡片」按钮铺满当前网格位 */
+.module-panel.active .stage.detail-active .steps > .add-step{
+  width:auto !important; min-width:0 !important; height:auto !important; align-self:stretch;
+  margin:0 !important; padding:14px !important; border:1.5px dashed var(--line) !important;
+  border-radius:var(--r) !important; color:var(--accent); font-size:14px;
+}
+
+/* ============================================================
+   下钻：步骤详情页（覆盖右侧内容区）
+   ============================================================ */
+#stepView{
+  position:fixed; top:var(--topbar-h); left:var(--side-w); right:0; bottom:0; z-index:90;
+  background:var(--content-bg); overflow-y:auto; display:none;
+  padding:20px 28px 64px;
+}
+#stepView.show{ display:block; }
+#stepView .back-btn{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line);
+  background:#fff; color:var(--muted); border-radius:var(--r); padding:6px 12px; font-size:13px;
+  font-weight:600; cursor:pointer; margin-bottom:16px; }
+#stepView .back-btn:hover{ background:var(--paper); color:var(--ink); }
+#stepView .back-btn .ic{ font-size:15px; }
+#stepView .step-head{ max-width:920px; margin-bottom:6px; }
+#stepView .step-head h2{ margin:0 0 6px; font-size:22px; font-weight:800; color:var(--ink); }
+#stepView .meta-line{ font-size:13px; color:var(--muted); margin-bottom:8px; }
+#stepView .meta-line b{ color:var(--ink); font-weight:600; }
+#stepView .meta-line [contenteditable="true"]{ outline:none; border-bottom:1px dashed var(--accent); }
+#stepView .step-note{ font-size:14px; color:#5a5e6e; line-height:1.6; margin:0; }
+#stepView .step-note[contenteditable="true"]{ outline:none; background:#fff; border:1px solid var(--line);
+  border-radius:var(--r); padding:10px 12px; }
+#stepView .step-links{ margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+#stepView .link-item{ display:inline-flex; align-items:center; gap:8px; background:var(--paper);
+  border:1px solid var(--line); border-radius:var(--r); padding:8px 12px; font-size:13px; }
+#stepView .link-item .ic{ font-size:14px; color:var(--accent); }
+#stepView .section-title{ font-size:15px; font-weight:800; margin:26px 0 14px; max-width:920px;
+  display:flex; align-items:center; gap:10px; }
+#stepView .section-title .cnt{ font-size:11px; font-weight:700; color:var(--accent);
+  background:#fff; border:1px solid var(--accent); padding:2px 10px; border-radius:999px; }
+/* 子步骤：单列大卡片 */
+#stepView .substeps{ display:flex; flex-direction:column; gap:var(--sp); max-width:920px; }
+#stepView .substep{ position:relative; background:var(--card-bg); border:1px solid var(--card-bd);
+  border-radius:var(--r); padding:18px 20px; }
+#stepView .substep .ss-title{ font-weight:700; font-size:16px; margin:0 0 6px; display:flex;
+  align-items:center; gap:9px; }
+#stepView .substep .seq{ flex:none; width:24px; height:24px; border-radius:var(--r); background:#e3e9f1;
+  color:var(--accent); font-size:13px; font-weight:700; display:grid; place-items:center; }
+#stepView .substep .ss-name{ flex:1; min-width:0; }
+#stepView .substep .ss-desc{ font-size:14px; color:#5a5e6e; line-height:1.6; margin:0; }
+#stepView .substep [contenteditable="true"]{ outline:none; }
+#stepView .substep.editing .ss-name,
+#stepView .substep.editing .ss-desc{ background:#fff; border:1px solid var(--line);
+  border-radius:8px; padding:4px 8px; }
+#stepView .ss-imgs{ margin-top:14px; display:flex; flex-direction:column; gap:12px; align-items:flex-start; }
+#stepView .ss-imgs figure{ margin:0; position:relative; max-width:100%; }
+#stepView .ss-imgs img{ display:block; max-width:100%; height:auto; border:1px solid var(--line);
+  border-radius:var(--r); background:#fff; }
+#stepView .ss-imgs .img-del{ position:absolute; top:8px; right:8px; width:26px; height:26px;
+  border:none; border-radius:999px; background:rgba(28,37,38,.55); color:#fff; cursor:pointer;
+  display:none; place-items:center; font-size:14px; }
+#stepView .substep.editing .ss-imgs .img-del{ display:grid; }
+#stepView .ss-actions{ margin-top:14px; display:none; gap:8px; }
+#stepView .substep.editing .ss-actions{ display:flex; }
+#stepView .ss-actions button, #stepView .add-substep{
+  border:1.5px dashed var(--line); border-radius:var(--r); background:#fff; color:var(--accent);
+  font-size:13px; font-weight:600; cursor:pointer; padding:9px 14px; display:inline-flex;
+  align-items:center; gap:6px; }
+#stepView .ss-actions .ic, #stepView .add-substep .ic{ font-size:15px; }
+#stepView .ss-del{ color:var(--rose); border-color:#e8d2d2; }
+#stepView .add-substep{ display:flex; justify-content:center; }
+/* 子步骤右上角编辑/删除（读模式淡出）*/
+#stepView .substep .ss-bar{ position:absolute; top:12px; right:14px; display:flex; gap:4px;
+  opacity:0; transition:opacity .15s; }
+#stepView .substep:hover .ss-bar, #stepView .substep.editing .ss-bar{ opacity:1; }
+#stepView .substep .ss-bar button{ background:rgba(53,71,84,.07); border:none; color:var(--ink);
+  width:26px; height:26px; border-radius:999px; cursor:pointer; display:grid; place-items:center; font-size:13px; }
+#stepView .substep .ss-bar button:hover{ background:var(--accent); color:#fff; }
+#stepView .substep .ss-bar .ss-del-one:hover{ background:var(--rose); }
+
+/* ---- 导出 PDF / 打印：隐藏固定外壳，内容铺满 ---- */
+@media print{
+  #appTopbar, #appSidebar, #stepView, #searchbox, .tb-actions{ display:none !important; }
+  .module-panel.active{ margin-left:0 !important; padding:0 !important; }
+  .module-panel.active .stage.detail-active .stage-head{ position:static !important; margin:0 0 12px !important; padding:0 !important; }
+}
+
+/* ---- 移动端：侧栏转抽屉留待后续；此处保证不横向溢出 ---- */
+@media(max-width:760px){
+  :root{ --side-w:0px; }
+  #appSidebar{ transform:translateX(-100%); transition:transform .2s; }
+  #appSidebar.open{ transform:translateX(0); width:256px; box-shadow:0 0 0 100vmax rgba(0,0,0,.3); }
+  #stepView{ left:0; }
+  .module-panel.active{ padding-left:14px !important; padding-right:14px !important; }
+}
 </style>
 </head>
 <body>
+
+<!-- ===== 统一线性图标 sprite ===== -->
+<svg style="display:none" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</defs></svg>
+
+<!-- ===== 固定顶栏（JS 会把搜索框移入）===== -->
+<div id="appTopbar">
+  <span class="tb-brand">SOP流程</span>
+  <span class="tb-crumb" id="appCrumb"></span>
+  <!-- #searchbox 由 JS 从原位置移动到这里 -->
+  <div class="tb-actions">
+    <button id="btnEdit" class="toggle" onclick="toggleEdit()"><span class="ic"><svg><use href="#i-edit"/></svg></span>编辑</button>
+    <button class="primary" onclick="saveFile()"><span class="ic"><svg><use href="#i-save"/></svg></span>保存</button>
+    <button onclick="window.print()"><span class="ic"><svg><use href="#i-export"/></svg></span>导出 PDF</button>
+  </div>
+</div>
+
+<!-- ===== 固定左侧栏（JS 填充 模块→阶段 两级）===== -->
+<aside id="appSidebar">
+  <div class="side-label">流程模块</div>
+  <div class="side-scroll" id="sideScroll"></div>
+  <button class="side-add" onclick="openAddModuleModal()"><span class="ic"><svg><use href="#i-plus"/></svg></span>新建模块</button>
+  <div class="side-foot">
+    <b>负责人：</b>销售团队<br>
+    <b>更新时间：</b><span id="sideUpdated">2026/06/28</span>
+  </div>
+</aside>
+
+<!-- ===== 步骤下钻详情页（JS 填充）===== -->
+<div id="stepView"></div>
 
 <header>
   <div class="eyebrow">Standard Operating Procedure</div>
@@ -2835,6 +3151,292 @@
       })
     };
   }
+
+  /* ============================================================
+     ===============  APP 外壳改版（行为层）  ==================
+     固定顶栏/左侧栏、模块→阶段两级导航、面包屑、点卡片下钻到
+     「步骤详情页」（属性/说明/附件 + 子步骤大卡片，可贴整图）。
+     复用已有的 switchModule / activateStage / renumber / saveFile 等逻辑。
+     ============================================================ */
+  const TOPBAR_H = 56;   // 与 CSS --topbar-h 保持一致
+  let currentStep = null;  // 当前下钻的步骤卡片（null=未下钻）
+
+  /* 顶栏偏移：本布局下顶部只有固定顶栏，统一用其高度 */
+  updateStickyOffsets = function(){
+    const r = document.documentElement.style;
+    r.setProperty('--tabs-h', TOPBAR_H + 'px');
+    r.setProperty('--head-top', TOPBAR_H + 'px');
+    r.setProperty('--top-offset', TOPBAR_H + 'px');
+  };
+
+  function activeModuleId(){ return document.querySelector('.module-tab.active')?.dataset.module; }
+  function activeFlowEl(){ return document.querySelector('.module-panel.active .flow'); }
+  function activeStageEl(){ const f = activeFlowEl(); return f ? f.querySelector('.stage.detail-active') : null; }
+  function stageOwner(stage){
+    const m = (stage?.querySelector('.meta')?.textContent || '').split(/[:：]/);
+    return (m.length > 1 ? m.slice(1).join('：') : '').trim();
+  }
+
+  /* ---- 模块名 / 图标 ---- */
+  function moduleName(tab){
+    const c = tab.cloneNode(true);
+    c.querySelector('.module-del')?.remove();
+    let t = (c.textContent || '').trim();
+    t = t.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '').trim();
+    return t || '模块';
+  }
+  function moduleIcon(name){
+    if(/销|sale|订单|venta/i.test(name)) return 'i-bag';
+    if(/财|账|款|finance|pay|cobr|pago/i.test(name)) return 'i-wallet';
+    if(/设置|配置|setting|config/i.test(name)) return 'i-gear';
+    return 'i-folder';
+  }
+
+  /* ---- 左侧栏：模块→阶段 两级 ---- */
+  function buildSidebar(){
+    const host = document.getElementById('sideScroll');
+    if(!host) return;
+    const tabs = [...document.querySelectorAll('.module-tab:not(.add-module)')];
+    const actMod = activeModuleId();
+    host.innerHTML = '';
+    tabs.forEach(tab=>{
+      const id = tab.dataset.module;
+      const name = moduleName(tab);
+      const flow = document.getElementById('flow-' + id);
+      const stages = flow ? [...flow.querySelectorAll('.stage')] : [];
+      const stepTotal = flow ? flow.querySelectorAll('.node').length : 0;
+      const canDel = !!tab.querySelector('.module-del');
+
+      const mod = document.createElement('div');
+      mod.className = 'mod' + (id === actMod ? ' open' : '');
+      mod.dataset.module = id;
+
+      const head = document.createElement('div');
+      head.className = 'mod-head';
+      head.innerHTML =
+        `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
+        `<span class="m-name">${escapeHtml(name)}</span>` +
+        (stepTotal ? `<span class="badge">${stepTotal}</span>` : '') +
+        (canDel ? `<span class="m-del" title="删除模块">✕</span>` : '');
+      head.addEventListener('click', e=>{
+        if(e.target.closest('.m-del')){ e.stopPropagation(); deleteModule(id); return; }
+        if(id !== activeModuleId()){ closeStep(); switchModule(id); }
+        else { mod.classList.toggle('open'); }
+      });
+      mod.appendChild(head);
+
+      const sw = document.createElement('div');
+      sw.className = 'mod-stages';
+      stages.forEach((st,i)=>{
+        const cnt = st.querySelectorAll('.node').length;
+        const it = document.createElement('div');
+        it.className = 'stage-item';
+        it.dataset.module = id; it.dataset.idx = i;
+        it.innerHTML =
+          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>` +
+          `<span class="cnt">${cnt}</span>`;
+        it.addEventListener('click', ()=> selectStage(id, i));
+        sw.appendChild(it);
+      });
+      const addS = document.createElement('div');
+      addS.className = 'add-stage';
+      addS.innerHTML = `<span class="ic"><svg><use href="#i-plus"/></svg></span>新建阶段`;
+      addS.addEventListener('click', ()=>{
+        const f = document.getElementById('flow-' + id);
+        if(!f) return;
+        f.appendChild(makeStage({title:'新阶段', meta:'负责人：', nodes:[null]}));
+        renumber(f);
+        if(id !== activeModuleId()) switchModule(id);
+        const n = document.getElementById('flow-' + id).querySelectorAll('.stage').length;
+        activateStage(document.getElementById('panel-' + id), n - 1);
+      });
+      sw.appendChild(addS);
+      mod.appendChild(sw);
+      host.appendChild(mod);
+    });
+    refreshSidebarActive();
+  }
+  function refreshSidebarActive(){
+    const host = document.getElementById('sideScroll');
+    if(!host) return;
+    const modId = activeModuleId();
+    host.querySelectorAll('.mod').forEach(m=>{ if(m.dataset.module === modId) m.classList.add('open'); });
+    const panel = document.getElementById('panel-' + modId);
+    const idx = panel ? (+(panel.dataset.activeStage || 0)) : 0;
+    host.querySelectorAll('.stage-item').forEach(si=>{
+      si.classList.toggle('active', si.dataset.module === modId && (+si.dataset.idx) === idx);
+    });
+  }
+  function selectStage(id, idx){
+    closeStep();
+    if(id !== activeModuleId()) switchModule(id);
+    activateStage(document.getElementById('panel-' + id), idx);
+  }
+
+  /* ---- 面包屑 ---- */
+  function updateBreadcrumb(){
+    const crumb = document.getElementById('appCrumb');
+    if(!crumb) return;
+    const tab = document.querySelector('.module-tab.active');
+    const parts = [];
+    if(tab) parts.push(moduleName(tab));
+    const stage = activeStageEl();
+    const stageT = stage ? (stage.querySelector('.stitle')?.textContent || '').trim() : '';
+    if(stageT) parts.push(stageT);
+    if(currentStep) parts.push((currentStep.querySelector('.node-title')?.textContent || '').trim());
+    crumb.innerHTML = parts.length
+      ? ('/ ' + parts.map((p,i)=> i === parts.length-1 ? `<b>${escapeHtml(p)}</b>` : escapeHtml(p)).join(' / '))
+      : '';
+  }
+
+  /* ---- 包装已有导航函数：联动新外壳 ---- */
+  const _switchModule = switchModule;
+  switchModule = function(m){ _switchModule(m); buildSidebar(); updateBreadcrumb(); };
+  const _activateStage = activateStage;
+  activateStage = function(p, i){ _activateStage(p, i); refreshSidebarActive(); updateBreadcrumb(); };
+  const _renumber = renumber;
+  renumber = function(f){ _renumber(f); buildSidebar(); };
+  const _toggleEdit = toggleEdit;
+  toggleEdit = function(){
+    _toggleEdit();
+    const on = document.body.classList.contains('edit-all');
+    document.getElementById('btnEdit')?.classList.toggle('on', on);
+    if(currentStep) renderStepView();
+  };
+  const _saveFile = saveFile;
+  saveFile = function(){ closeStep(); _saveFile(); };
+
+  /* ---- 点卡片下钻（只读态）；编辑态下点卡片改文字、不下钻 ---- */
+  document.addEventListener('click', e=>{
+    const node = e.target.closest('.module-panel.active .node');
+    if(!node) return;
+    if(document.body.classList.contains('edit-all')) return;   // 全局编辑模式：不下钻
+    if(node.classList.contains('editing')) return;             // 单卡编辑中：不下钻
+    if(e.target.closest('button, a, input, textarea, select, [contenteditable="true"], .node-bar')) return;
+    openStep(node);
+  });
+
+  /* ---- 步骤下钻：详情页 ---- */
+  function openStep(node){
+    currentStep = node;
+    node._detail = node._detail || {owner:'—',time:'—',freq:'—',body:'',images:[],links:[]};
+    node._detail.substeps = node._detail.substeps || [];
+    renderStepView();
+    const sv = document.getElementById('stepView');
+    sv.classList.add('show');
+    sv.scrollTop = 0;
+    updateBreadcrumb();
+  }
+  function closeStep(){
+    currentStep = null;
+    const sv = document.getElementById('stepView');
+    if(sv){ sv.classList.remove('show'); sv.innerHTML = ''; }
+    updateBreadcrumb();
+  }
+  function pickImage(cb){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = ()=>{
+      const f = inp.files && inp.files[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = ()=> cb(r.result);
+      r.readAsDataURL(f);
+    };
+    inp.click();
+  }
+  function buildSubstepEl(ss, i, editing){
+    const ce = editing ? 'true' : 'false';
+    const d = document.createElement('div');
+    d.className = 'substep' + (editing ? ' editing' : '');
+    d.innerHTML =
+      `<p class="ss-title"><span class="seq">${i+1}</span>` +
+      `<span class="ss-name" contenteditable="${ce}">${escapeHtml(ss.name || '')}</span></p>` +
+      `<p class="ss-desc" contenteditable="${ce}">${ss.desc || ''}</p>` +
+      `<div class="ss-imgs"></div>`;
+    const imgs = d.querySelector('.ss-imgs');
+    (ss.images || []).forEach((src, gi)=>{
+      const fig = document.createElement('figure');
+      const img = document.createElement('img'); img.src = src; img.alt = '';
+      fig.appendChild(img);
+      if(editing){
+        const del = document.createElement('button');
+        del.className = 'img-del'; del.type = 'button'; del.textContent = '✕';
+        del.onclick = ()=>{ ss.images.splice(gi,1); renderStepView(); };
+        fig.appendChild(del);
+      }
+      imgs.appendChild(fig);
+    });
+    if(editing){
+      const bar = document.createElement('div');
+      bar.className = 'ss-bar';
+      bar.innerHTML = `<button class="ss-del-one" type="button" title="删除子步骤"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>`;
+      bar.querySelector('.ss-del-one').onclick = ()=>{
+        if(confirm('删除这个子步骤？')){ currentStep._detail.substeps.splice(i,1); renderStepView(); }
+      };
+      d.appendChild(bar);
+      const actions = document.createElement('div');
+      actions.className = 'ss-actions';
+      actions.innerHTML = `<button class="add-img" type="button"><span class="ic"><svg><use href="#i-image"/></svg></span>插入图片</button>`;
+      actions.querySelector('.add-img').onclick = ()=> pickImage(src=>{ ss.images = ss.images || []; ss.images.push(src); renderStepView(); });
+      d.appendChild(actions);
+    }
+    d.querySelector('.ss-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
+    d.querySelector('.ss-desc').addEventListener('input', e=>{ ss.desc = e.target.innerHTML; });
+    return d;
+  }
+  function renderStepView(){
+    const node = currentStep;
+    const sv = document.getElementById('stepView');
+    if(!node || !sv) return;
+    const det = node._detail || (node._detail = {});
+    det.substeps = det.substeps || [];
+    const editing = document.body.classList.contains('edit-all');
+    const ce = editing ? 'true' : 'false';
+    const stage = node.closest('.stage');
+    const stageTitle = stage ? (stage.querySelector('.stitle')?.textContent || '').trim() : '';
+    const owner = stageOwner(stage) || det.owner || '—';
+    const title = node.querySelector('.node-title')?.innerHTML || '步骤';
+    const links = det.links || [];
+
+    sv.innerHTML =
+      `<button class="back-btn" type="button" id="svBack"><span class="ic"><svg><use href="#i-back"/></svg></span>返回${stageTitle ? (' ' + escapeHtml(stageTitle)) : '流程'}</button>` +
+      `<div class="step-head">` +
+        `<h2>${title}</h2>` +
+        `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}　·　<b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span>　·　<b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
+        `<p class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</p>` +
+        (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
+      `</div>` +
+      `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
+      `<div class="substeps" id="svSubsteps"></div>`;
+
+    const wrap = sv.querySelector('#svSubsteps');
+    det.substeps.forEach((ss,i)=> wrap.appendChild(buildSubstepEl(ss, i, editing)));
+    if(editing){
+      const add = document.createElement('button');
+      add.className = 'add-substep'; add.type = 'button';
+      add.innerHTML = `<span class="ic"><svg><use href="#i-plus"/></svg></span>添加子步骤`;
+      add.onclick = ()=>{ det.substeps.push({name:'新子步骤', desc:'', images:[]}); renderStepView(); };
+      wrap.appendChild(add);
+    }
+    sv.querySelector('#svBack').onclick = closeStep;
+    sv.querySelectorAll('.step-head [data-f]').forEach(el=>{
+      el.addEventListener('input', ()=>{ det[el.dataset.f] = (el.dataset.f === 'body') ? el.innerHTML : el.textContent; });
+    });
+  }
+
+  /* ESC 关闭下钻页 */
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && currentStep) closeStep(); });
+
+  /* ---- 初始化外壳：移入搜索框、建左侧栏、面包屑 ---- */
+  (function initShell(){
+    const sb = document.getElementById('searchbox');
+    const tb = document.getElementById('appTopbar');
+    if(sb && tb){ tb.insertBefore(sb, tb.querySelector('.tb-actions')); }
+    updateStickyOffsets();
+    buildSidebar();
+    updateBreadcrumb();
+  })();
 </script>
 
 
