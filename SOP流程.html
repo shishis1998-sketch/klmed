@@ -842,10 +842,12 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 :root{ --ctl-h:34px; }
 #appTopbar #searchbox{ position:relative; flex:0 1 320px; min-width:160px; display:flex;
   align-items:center; gap:8px; margin:0 !important; }
-#appTopbar #searchbox .t-input-wrap{ flex:1; }
+#appTopbar #searchbox .t-input-wrap{ flex:1; position:relative; }
+#appTopbar #searchbox .search-ic{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  color:#9aa3ae; font-size:15px; pointer-events:none; }
 #appTopbar #searchbox .t-input{
   width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
-  border-radius:var(--r); padding:0 12px; font-size:13px; color:var(--ink); outline:none;
+  border-radius:var(--r); padding:0 12px 0 32px; font-size:13px; color:var(--ink); outline:none;
 }
 #appTopbar #searchbox .t-input:focus{ border-color:var(--accent); background:#fff; }
 #appTopbar #searchbox .search-results{ top:calc(var(--ctl-h) + 6px); }
@@ -1013,23 +1015,28 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-weight:600; cursor:pointer; margin-bottom:16px; }
 #stepView .back-btn:hover{ background:var(--paper); color:var(--ink); }
 #stepView .back-btn .ic{ font-size:15px; }
-#stepView .step-head{ max-width:1180px; margin-bottom:6px; }
-#stepView .step-head h2{ margin:0 0 6px; font-size:22px; font-weight:800; color:var(--ink); }
+/* 标题下方横向分割线（与中间竖线连成 T 字） */
+#stepView .step-title{ margin:0; padding-bottom:16px; border-bottom:1px solid var(--line);
+  font-size:22px; font-weight:800; color:var(--ink); max-width:1240px; }
+/* 两块区域：左=子步骤(宽)，右=负责人/预计/频率+正文，比例约 7:3，中间竖向分割线 */
+#stepView .step-layout{ display:grid; grid-template-columns:7fr 3fr; gap:0;
+  align-items:stretch; max-width:1240px; }
+#stepView .step-main{ min-width:0; border-right:1px solid var(--line); padding:20px 32px 0 0; }
+#stepView .step-aside{ min-width:0; padding:20px 0 0 32px; }
+#stepView .info-card{ min-width:0; }
+@media (max-width:760px){
+  #stepView .step-layout{ grid-template-columns:1fr; }
+  #stepView .step-main{ border-right:none; padding:16px 0 0; }
+  #stepView .step-aside{ padding:16px 0 0; }
+}
 /* 负责人/预计/频率 一行 + 下方水平分割线 */
-#stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 16px; padding-bottom:10px;
+#stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-bottom:12px;
   border-bottom:1px solid var(--line); }
 #stepView .meta-line b{ color:var(--ink); font-weight:600; }
 #stepView .meta-line [contenteditable="true"]{ outline:none; border-bottom:1px dashed var(--accent); }
 /* 行内竖向分隔线（负责人 | 预计 | 频率 之间） */
 #stepView .meta-line .meta-sep{ display:inline-block; width:1px; height:11px; background:var(--line);
-  margin:0 14px; vertical-align:-1px; }
-/* 正文说明：靠右边独立的一列（宽屏） */
-#stepView .head-body{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,420px); gap:28px; }
-#stepView .head-body .step-note{ grid-column:2; }
-@media (max-width:900px){
-  #stepView .head-body{ grid-template-columns:1fr; }
-  #stepView .head-body .step-note{ grid-column:1; }
-}
+  margin:0 12px; vertical-align:-1px; }
 #stepView .step-note{ font-size:14px; color:#5a5e6e; line-height:1.6; margin:0; }
 #stepView .step-note[contenteditable="true"]{ outline:none; background:#fff; border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px; }
@@ -1039,6 +1046,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 #stepView .link-item .ic{ font-size:14px; color:var(--accent); }
 #stepView .section-title{ font-size:15px; font-weight:800; margin:26px 0 14px; max-width:920px;
   display:flex; align-items:center; gap:10px; }
+/* 两栏布局时，左栏子步骤标题与右栏顶部对齐 */
+#stepView .step-main .section-title{ margin-top:0; }
 #stepView .section-title .cnt{ font-size:11px; font-weight:700; color:var(--accent);
   background:#fff; border:1px solid var(--accent); padding:2px 10px; border-radius:999px; }
 /* 子步骤：单列大卡片 */
@@ -1158,7 +1167,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 <div class="top-bar-actions">
   <div id="searchbox">
     <div class="t-input-wrap" id="searchWrap">
-      <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+      <span class="ic search-ic"><svg><use href="#i-search"/></svg></span>
+      <input type="text" id="searchInput" class="t-input" placeholder="搜索" oninput="runSearch(this.value)">
     </div>
     <span class="scount" id="searchCount"></span>
     <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:var(--panel-radius,10px);padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
@@ -3249,7 +3259,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       head.innerHTML =
         `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
         `<span class="m-name">${escapeHtml(name)}</span>` +
-        (stepTotal ? `<span class="badge">${stepTotal}</span>` : '') +
         `<span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"/></svg></span></span>` +
         `<span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"/></svg></span></span>`;
       head.addEventListener('click', e=>{
@@ -3268,8 +3277,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         it.className = 'stage-item';
         it.dataset.module = id; it.dataset.idx = i;
         it.innerHTML =
-          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>` +
-          `<span class="cnt">${cnt}</span>`;
+          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>`;
         it.addEventListener('click', ()=> selectStage(id, i));
         sw.appendChild(it);
       });
@@ -3451,14 +3459,20 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     sv.innerHTML =
       `<button class="back-btn" type="button" id="svBack"><span class="ic"><svg><use href="#i-back"/></svg></span>返回${stageTitle ? (' ' + escapeHtml(stageTitle)) : '流程'}</button>` +
-      `<div class="step-head">` +
-        `<h2>${title}</h2>` +
-        `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}<i class="meta-sep"></i><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span><i class="meta-sep"></i><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
-        `<div class="head-body"><div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div></div>` +
-        (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
-      `</div>` +
-      `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
-      `<div class="substeps" id="svSubsteps"></div>`;
+      `<h2 class="step-title">${title}</h2>` +
+      `<div class="step-layout">` +
+        `<div class="step-main">` +
+          `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
+          `<div class="substeps" id="svSubsteps"></div>` +
+        `</div>` +
+        `<aside class="step-aside">` +
+          `<div class="info-card">` +
+            `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}<i class="meta-sep"></i><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span><i class="meta-sep"></i><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
+            `<div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div>` +
+            (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
+          `</div>` +
+        `</aside>` +
+      `</div>`;
 
     const wrap = sv.querySelector('#svSubsteps');
     det.substeps.forEach((ss,i)=> wrap.appendChild(buildSubstepEl(ss, i, editing)));
@@ -3470,7 +3484,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       wrap.appendChild(add);
     }
     sv.querySelector('#svBack').onclick = closeStep;
-    sv.querySelectorAll('.step-head [data-f]').forEach(el=>{
+    sv.querySelectorAll('.info-card [data-f]').forEach(el=>{
       el.addEventListener('input', ()=>{ det[el.dataset.f] = (el.dataset.f === 'body') ? el.innerHTML : el.textContent; });
     });
   }
