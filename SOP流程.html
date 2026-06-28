@@ -18,6 +18,8 @@
     --lilac:#f0f0f0;       /* 浅灰白 */
     --shadow:0 2px 8px rgba(53,71,84,.10);
     --radius:4px;
+    --nav-item-h:46px;     /* 左侧栏目项 / 右侧阶段标题统一高度 */
+    --panel-radius:10px;   /* 左侧栏目、搜索框、结果列表统一圆角 */
   }
   *{box-sizing:border-box;}
   body{
@@ -125,16 +127,16 @@
     background:transparent;color:var(--ink);border:none;
     padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;
     transition:background .15s;
-    /* 阶段标题不再吸顶：只有「模块栏 + 步骤路线条」常驻固定，标题随内容正常滚动。 */
     border-radius:9px 9px 0 0;background-clip:padding-box;
-    /* 锁定胶囊高度：无论标题字数多少，所有阶段标题统一高度，不随文字增减 */
-    height:60px;
+    /* 高度与左侧栏目项保持一致（--nav-item-h），单行时两边等高 */
+    min-height:var(--nav-item-h,46px);
   }
   /* 收起状态：标题即卡片全部，四角都圆 */
   .stage:not(.open) .stage-head{ border-radius:9px; }
-  .stage-head:hover{ background:var(--accent-soft); }
+  /* 右侧阶段标题：白底（和卡片内容一样）、不带圆点；展开态不再用蓝底 */
+  .stage-head .stage-num{ display:none; }
   .stage.open .stage-head{
-    background:var(--accent-soft);border-bottom:1px solid var(--line);
+    background:#fff;border-bottom:1px solid var(--line);
   }
   /* 内容滚动到标题下方时（标题被吸顶钉住），给标题加一道投影，
      让“固定的标题”和“正在滚动的内容”之间有清晰的层次分隔。 */
@@ -535,7 +537,7 @@
     justify-content:flex-end;
   }
   #searchbox input{
-    border:1px solid var(--line);border-radius:4px;padding:8px 16px;font-size:14px;
+    border:1px solid var(--line);border-radius:var(--panel-radius,10px);padding:8px 16px;font-size:14px;
     width:280px;outline:none;background:#fff;
   }
   #searchbox input:focus{border-color:var(--accent);}
@@ -546,7 +548,7 @@
   .search-results{
     position:absolute; top:calc(100% + 6px); left:0; z-index:120;
     width:min(560px,92vw); max-height:60vh; overflow-y:auto;
-    background:#fff; border:1px solid var(--line); border-radius:10px;
+    background:#fff; border:1px solid var(--line); border-radius:var(--panel-radius,10px);
     box-shadow:0 14px 34px -10px rgba(53,71,84,.28); padding:6px;
   }
   .search-results[hidden]{ display:none; }
@@ -611,7 +613,7 @@
   .flow-rail{
     flex:0 0 232px;width:232px;align-self:flex-start;
     display:flex;flex-direction:column;align-items:stretch;gap:2px;
-    padding:8px;background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:8px;background:#fff;border:1px solid var(--line);border-radius:var(--panel-radius,10px);
     box-shadow:0 2px 8px rgba(53,71,84,.06);
     position:sticky;top:calc(var(--tabs-h,52px) + 12px);
   }
@@ -622,7 +624,7 @@
     display:flex;align-items:center;gap:11px;flex:none;width:100%;
     justify-content:flex-start;text-align:left;
     background:none;border:1px solid transparent;cursor:pointer;
-    padding:10px 12px;border-radius:8px;
+    padding:10px 12px;border-radius:8px;min-height:var(--nav-item-h,46px);
     color:#7a8898;font:inherit;transition:color .25s, background .2s, border-color .2s;
   }
   .flow-rail .rail-dot:hover{ background:var(--accent-soft);border-color:var(--line); }
@@ -695,6 +697,11 @@
   /* 选中阶段恒为展开：内容区高度放开（不靠折叠动画） */
   .module-panel.active > .flow > .stage.detail-active .steps-wrap{
     height:auto !important;overflow:visible;
+  }
+  /* 右侧阶段标题吸顶：向下看内容时标题固定在模块栏下方（与左侧栏目同一条顶线对齐），白底不透光 */
+  .module-panel.active > .flow > .stage.detail-active .stage-head{
+    position:sticky;top:calc(var(--tabs-h,52px) + 12px);z-index:30;
+    background:#fff;
   }
 
   /* ===== 通用小弹窗（新建模块 / 选择复制目标）===== */
@@ -807,7 +814,7 @@
       <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
     </div>
     <span class="scount" id="searchCount"></span>
-    <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
+    <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:var(--panel-radius,10px);padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
     <!-- 搜索结果列表：跨所有阶段列出命中卡片，点某条 → 跳到该阶段并定位高亮 -->
     <div id="searchResults" class="search-results" hidden></div>
   </div>
