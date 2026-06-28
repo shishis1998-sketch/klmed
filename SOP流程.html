@@ -2218,7 +2218,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     if(type==='node'){
       refreshStepArrows(el.closest('.steps'));
       // 卡片可能跨阶段移动，刷新所在 flow 内全部阶段的步骤数
-      (el.closest('.flow')||document).querySelectorAll('.stage').forEach(updateStageCount);
+      (el.closest('.flow')||document).querySelectorAll('.stage').forEach(st=>{
+        updateStageCount(st);
+        renumberStageNodes(st);
+      });
     }
   }
   // 重建某个 .steps 容器内的 step-arrow（保证只在 .node 之间有箭头）
@@ -2273,6 +2276,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       else if(next && next.classList.contains('step-arrow')) next.remove();
       node.remove();
       updateStageCount(st);
+      renumberStageNodes(st);
     };
     node.querySelector('.node-copy').onclick=()=>openCardCopyModal(node);
     node.querySelector('.node-open').onclick=()=>openDetail(node);
@@ -2452,6 +2456,16 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     const n = stage.querySelectorAll('.node').length;
     el.textContent = n + ' 步骤';
     el.style.display = n ? '' : 'none';
+  }
+
+  function renumberStageNodes(stage){
+    if(!stage) return;
+    stage.querySelectorAll('.node').forEach((node, i)=>{
+      const titleEl = node.querySelector('.node-title');
+      if(!titleEl) return;
+      const text = titleEl.textContent.replace(/^\d+\.\s*/, '');
+      titleEl.textContent = (i + 1) + '. ' + text;
+    });
   }
 
   function makeStage(data){
