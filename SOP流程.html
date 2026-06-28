@@ -1115,13 +1115,33 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   .module-panel.active .stage.detail-active .stage-head{ position:static !important; margin:0 0 12px !important; padding:0 !important; }
 }
 
-/* ---- 移动端：侧栏转抽屉留待后续；此处保证不横向溢出 ---- */
+/* 汉堡菜单按钮：桌面隐藏，移动端显示 */
+#btnMenuMob{
+  display:none; align-items:center; justify-content:center; flex:none;
+  height:var(--ctl-h); width:var(--ctl-h); border-radius:var(--r);
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+}
+#btnMenuMob .ic{ font-size:18px; color:var(--ink); }
+
+/* ---- 移动端：侧栏转抽屉 ---- */
 @media(max-width:760px){
   :root{ --side-w:0px; }
-  #appSidebar{ transform:translateX(-100%); transition:transform .2s; }
-  #appSidebar.open{ transform:translateX(0); width:256px; box-shadow:0 0 0 100vmax rgba(0,0,0,.3); }
+  #appSidebar{ transform:translateX(-100%); transition:transform .25s cubic-bezier(.22,1,.36,1); }
+  #appSidebar.open{ transform:translateX(0); width:272px; box-shadow:0 0 0 100vmax rgba(0,0,0,.3); z-index:200; }
   #stepView{ left:0; }
   .module-panel.active{ padding-left:14px !important; padding-right:14px !important; }
+  /* 顶栏移动端布局：汉堡+标题+搜索+图标按钮，全部塞进一行 */
+  #btnMenuMob{ display:inline-flex; }
+  #appTopbar{ gap:10px; padding:0 12px; }
+  #appTopbar .tb-brand{ font-size:16px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #appTopbar .tb-crumb{ display:none; }
+  #appTopbar #searchbox{ flex:none; width:120px; min-width:0; }
+  #appTopbar #searchbox #searchCount{ display:none; }
+  #appTopbar #searchbox > button{ display:none; } /* 清除按钮移动端收起 */
+  /* 操作按钮只显示图标，隐藏文字，导出PDF整个隐藏 */
+  #appTopbar .tb-actions button{ font-size:0 !important; padding:0 10px !important; gap:0 !important; }
+  #appTopbar .tb-actions button .ic{ font-size:17px !important; }
+  #appTopbar .tb-actions button:last-child{ display:none !important; }
 }
 </style>
 <input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script></head><body class=""><input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script><input type="hidden" id="_o_dbjbempljhcmhlfpfacalomonjpalpko" data-inspect-config="3"><script type="text/javascript" src="chrome-extension://dbjbempljhcmhlfpfacalomonjpalpko/scripts/inspector.js"></script>
@@ -1144,10 +1164,12 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
 </defs></svg>
 
 <!-- ===== 固定顶栏（JS 会把搜索框移入）===== -->
 <div id="appTopbar">
+  <button id="btnMenuMob" onclick="toggleMobSidebar()" aria-label="菜单"><span class="ic"><svg><use href="#i-menu"></use></svg></span></button>
   <span class="tb-brand">SOP流程</span>
   <span class="tb-crumb" id="appCrumb">/ 财务流程 / <b>收款登记SAP</b></span>
   <!-- #searchbox 由 JS 从原位置移动到这里 -->
@@ -3794,6 +3816,26 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     buildSidebar();
     updateBreadcrumb();
   })();
+
+  /* ---- 移动端侧栏抽屉 ---- */
+  function toggleMobSidebar(){
+    document.getElementById('appSidebar')?.classList.toggle('open');
+  }
+  // 点侧栏外部自动关闭
+  document.addEventListener('click', e=>{
+    const sb = document.getElementById('appSidebar');
+    const btn = document.getElementById('btnMenuMob');
+    if(sb?.classList.contains('open') && !sb.contains(e.target) && !btn?.contains(e.target)){
+      if(window.innerWidth <= 760) sb.classList.remove('open');
+    }
+  });
+  // 选完模块/阶段后自动关闭侧栏
+  document.getElementById('appSidebar')?.addEventListener('click', e=>{
+    if(window.innerWidth > 760) return;
+    if(e.target.closest('.stage-item') || e.target.closest('.mod-head')){
+      setTimeout(()=> document.getElementById('appSidebar')?.classList.remove('open'), 200);
+    }
+  });
 </script>
 
 
