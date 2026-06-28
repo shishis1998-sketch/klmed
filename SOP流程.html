@@ -1013,15 +1013,19 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-weight:600; cursor:pointer; margin-bottom:16px; }
 #stepView .back-btn:hover{ background:var(--paper); color:var(--ink); }
 #stepView .back-btn .ic{ font-size:15px; }
-#stepView .step-title{ margin:0 0 18px; font-size:22px; font-weight:800; color:var(--ink); max-width:1240px; }
-/* 整页两块等宽区域：左=子步骤列表，右=负责人/预计/频率 + 正文说明 */
-#stepView .step-layout{ display:grid; grid-template-columns:1fr 1fr; gap:40px;
-  align-items:start; max-width:1240px; }
-#stepView .step-main{ min-width:0; }
-#stepView .step-aside{ min-width:0; }
+/* 标题下方横向分割线（与中间竖线连成 T 字） */
+#stepView .step-title{ margin:0; padding-bottom:16px; border-bottom:1px solid var(--line);
+  font-size:22px; font-weight:800; color:var(--ink); max-width:1240px; }
+/* 两块区域：左=子步骤(宽)，右=负责人/预计/频率+正文，比例约 7:3，中间竖向分割线 */
+#stepView .step-layout{ display:grid; grid-template-columns:7fr 3fr; gap:0;
+  align-items:stretch; max-width:1240px; }
+#stepView .step-main{ min-width:0; border-right:1px solid var(--line); padding:20px 32px 0 0; }
+#stepView .step-aside{ min-width:0; padding:20px 0 0 32px; }
 #stepView .info-card{ min-width:0; }
 @media (max-width:760px){
-  #stepView .step-layout{ grid-template-columns:1fr; gap:20px; }
+  #stepView .step-layout{ grid-template-columns:1fr; }
+  #stepView .step-main{ border-right:none; padding:16px 0 0; }
+  #stepView .step-aside{ padding:16px 0 0; }
 }
 /* 负责人/预计/频率 一行 + 下方水平分割线 */
 #stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-bottom:12px;
