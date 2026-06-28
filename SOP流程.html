@@ -2085,23 +2085,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       node.remove();
       updateStageCount(st);
     };
-    node.querySelector('.node-copy').onclick=()=>{
-      // 若详情弹窗正在编辑本卡片，先把改动同步回卡片再复制
-      if(currentNode === node) saveDetail();
-      const clone = makeNode(scrapeNodeLive(node));
-      const st = node.closest('.stage');
-      // 在本卡片后插入「箭头 + 副本」，保持卡片之间的连接箭头
-      const sa = document.createElement('div');
-      sa.className='step-arrow'; sa.textContent='➜';
-      node.after(sa);
-      sa.after(clone);
-      updateStageCount(st);
-      const t = document.getElementById('toast');
-      const oldText = t.textContent;
-      t.textContent = '已复制卡片 ✓';
-      t.classList.add('show');
-      setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>{ t.textContent = oldText; }, 300); }, 1600);
-    };
+    node.querySelector('.node-copy').onclick=()=>openCardCopyModal(node);
     node.querySelector('.node-open').onclick=()=>openDetail(node);
     registerEditHost(node, node.querySelector('.node-edit'), [
       node.querySelector('.tag'),
@@ -2427,6 +2411,80 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       t.classList.remove('show');
       setTimeout(()=>{ t.textContent = oldText; }, 300);
     }, 1600);
+  }
+  let pendingCopyNode = null;
+  function openCardCopyModal(node){
+    if(currentNode === node) saveDetail();
+    pendingCopyNode = node;
+    const mods = getModules();
+    const box = document.getElementById('miniModalBox');
+    if(mods.length === 0){
+      box.innerHTML = `<h3>复制卡片</h3>
+        <p style="color:#7a7363;font-size:14px;margin:0 0 16px;">暂时没有模块，请先新建一个模块。</p>
+        <div class="mini-actions"><button onclick="closeMiniModal()">关闭</button></div>`;
+    } else {
+      box.innerHTML = `<h3>复制卡片到哪个模块？</h3>
+        <div class="mini-list">${mods.map(m=>`<button onclick="selectStageForCard('${m.id}')">${escapeHtml(m.name)}</button>`).join('')}</div>
+        <div class="mini-actions"><button onclick="closeMiniModal()">取消</button></div>`;
+    }
+    document.getElementById('miniModal').classList.add('show');
+  }
+  function selectStageForCard(moduleId){
+    const flow = document.getElementById('flow-'+moduleId);
+    if(!flow) return;
+    const stages = [...flow.querySelectorAll('.stage')];
+    const modName = getModules().find(m=>m.id===moduleId)?.name || moduleId;
+    const box = document.getElementById('miniModalBox');
+    if(stages.length === 0){
+      box.innerHTML = `<h3>选择阶段</h3>
+        <p style="color:#7a7363;font-size:14px;margin:0 0 16px;">「${escapeHtml(modName)}」暂无阶段可选。</p>
+        <div class="mini-actions">
+          <button onclick="openCardCopyModal(pendingCopyNode)">← 返回</button>
+          <button onclick="closeMiniModal()">取消</button>
+        </div>`;
+    } else {
+      box.innerHTML = `<h3>复制到「${escapeHtml(modName)}」<br>的哪个阶段？</h3>
+        <div class="mini-list">${stages.map((s,i)=>{
+          const title = s.querySelector('.stitle')?.textContent || ('阶段'+(i+1));
+          const cnt = s.querySelectorAll('.node').length;
+          return `<button onclick="confirmCardCopy('${moduleId}',${i})">${escapeHtml(title)}<span style="opacity:.5;font-size:12px;margin-left:6px;">(${cnt} 步)</span></button>`;
+        }).join('')}</div>
+        <div class="mini-actions">
+          <button onclick="openCardCopyModal(pendingCopyNode)">← 返回</button>
+          <button onclick="closeMiniModal()">取消</button>
+        </div>`;
+    }
+  }
+  function confirmCardCopy(moduleId, stageIdx){
+    const node = pendingCopyNode;
+    pendingCopyNode = null;
+    closeMiniModal();
+    if(!node) return;
+    const flow = document.getElementById('flow-'+moduleId);
+    if(!flow) return;
+    const stages = [...flow.querySelectorAll('.stage')];
+    const targetStage = stages[stageIdx];
+    if(!targetStage) return;
+    const clone = makeNode(scrapeNodeLive(node));
+    const steps = targetStage.querySelector('.steps');
+    const addBtn = steps.querySelector('.add-step');
+    const existingNodes = steps.querySelectorAll('.node');
+    if(existingNodes.length > 0){
+      const sa = document.createElement('div');
+      sa.className='step-arrow'; sa.textContent='➜';
+      steps.insertBefore(sa, addBtn);
+      steps.insertBefore(clone, addBtn);
+    } else {
+      steps.insertBefore(clone, addBtn);
+    }
+    updateStageCount(targetStage);
+    const modName = getModules().find(m=>m.id===moduleId)?.name || moduleId;
+    const stageName = targetStage.querySelector('.stitle')?.textContent || ('阶段'+(stageIdx+1));
+    const t = document.getElementById('toast');
+    const oldText = t.textContent;
+    t.textContent = '已复制到「'+modName+' › '+stageName+'」✓';
+    t.classList.add('show');
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>{ t.textContent = oldText; }, 300); }, 1600);
   }
   function closeMiniModal(){
     document.getElementById('miniModal').classList.remove('show');
