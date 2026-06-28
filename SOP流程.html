@@ -842,10 +842,12 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 :root{ --ctl-h:34px; }
 #appTopbar #searchbox{ position:relative; flex:0 1 320px; min-width:160px; display:flex;
   align-items:center; gap:8px; margin:0 !important; }
-#appTopbar #searchbox .t-input-wrap{ flex:1; }
+#appTopbar #searchbox .t-input-wrap{ flex:1; position:relative; }
+#appTopbar #searchbox .search-ic{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  color:#9aa3ae; font-size:15px; pointer-events:none; }
 #appTopbar #searchbox .t-input{
   width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
-  border-radius:var(--r); padding:0 12px; font-size:13px; color:var(--ink); outline:none;
+  border-radius:var(--r); padding:0 12px 0 32px; font-size:13px; color:var(--ink); outline:none;
 }
 #appTopbar #searchbox .t-input:focus{ border-color:var(--accent); background:#fff; }
 #appTopbar #searchbox .search-results{ top:calc(var(--ctl-h) + 6px); }
@@ -1165,7 +1167,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 <div class="top-bar-actions">
   <div id="searchbox">
     <div class="t-input-wrap" id="searchWrap">
-      <input type="text" id="searchInput" class="t-input" placeholder="🔍 全局搜索：标题、说明、清单、链接…" oninput="runSearch(this.value)">
+      <span class="ic search-ic"><svg><use href="#i-search"/></svg></span>
+      <input type="text" id="searchInput" class="t-input" placeholder="搜索" oninput="runSearch(this.value)">
     </div>
     <span class="scount" id="searchCount"></span>
     <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:var(--panel-radius,10px);padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
