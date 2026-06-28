@@ -1013,23 +1013,26 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-weight:600; cursor:pointer; margin-bottom:16px; }
 #stepView .back-btn:hover{ background:var(--paper); color:var(--ink); }
 #stepView .back-btn .ic{ font-size:15px; }
-#stepView .step-head{ max-width:1180px; margin-bottom:6px; }
-#stepView .step-head h2{ margin:0 0 6px; font-size:22px; font-weight:800; color:var(--ink); }
+#stepView .step-title{ margin:0 0 18px; font-size:22px; font-weight:800; color:var(--ink); max-width:1240px; }
+/* 整页两栏：左=子步骤卡片列表，右=独立信息卡（负责人/预计/频率 + 正文） */
+#stepView .step-layout{ display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:28px;
+  align-items:start; max-width:1240px; }
+#stepView .step-main{ min-width:0; }
+#stepView .step-aside{ min-width:0; }
+#stepView .info-card{ background:var(--card-bg); border:1px solid var(--card-bd); border-radius:var(--r);
+  padding:18px 20px; position:sticky; top:20px; }
+@media (max-width:900px){
+  #stepView .step-layout{ grid-template-columns:1fr; }
+  #stepView .info-card{ position:static; }
+}
 /* 负责人/预计/频率 一行 + 下方水平分割线 */
-#stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 16px; padding-bottom:10px;
+#stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-bottom:12px;
   border-bottom:1px solid var(--line); }
 #stepView .meta-line b{ color:var(--ink); font-weight:600; }
 #stepView .meta-line [contenteditable="true"]{ outline:none; border-bottom:1px dashed var(--accent); }
 /* 行内竖向分隔线（负责人 | 预计 | 频率 之间） */
 #stepView .meta-line .meta-sep{ display:inline-block; width:1px; height:11px; background:var(--line);
-  margin:0 14px; vertical-align:-1px; }
-/* 正文说明：靠右边独立的一列（宽屏） */
-#stepView .head-body{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,420px); gap:28px; }
-#stepView .head-body .step-note{ grid-column:2; }
-@media (max-width:900px){
-  #stepView .head-body{ grid-template-columns:1fr; }
-  #stepView .head-body .step-note{ grid-column:1; }
-}
+  margin:0 12px; vertical-align:-1px; }
 #stepView .step-note{ font-size:14px; color:#5a5e6e; line-height:1.6; margin:0; }
 #stepView .step-note[contenteditable="true"]{ outline:none; background:#fff; border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px; }
@@ -3451,14 +3454,20 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     sv.innerHTML =
       `<button class="back-btn" type="button" id="svBack"><span class="ic"><svg><use href="#i-back"/></svg></span>返回${stageTitle ? (' ' + escapeHtml(stageTitle)) : '流程'}</button>` +
-      `<div class="step-head">` +
-        `<h2>${title}</h2>` +
-        `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}<i class="meta-sep"></i><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span><i class="meta-sep"></i><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
-        `<div class="head-body"><div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div></div>` +
-        (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
-      `</div>` +
-      `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
-      `<div class="substeps" id="svSubsteps"></div>`;
+      `<h2 class="step-title">${title}</h2>` +
+      `<div class="step-layout">` +
+        `<div class="step-main">` +
+          `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
+          `<div class="substeps" id="svSubsteps"></div>` +
+        `</div>` +
+        `<aside class="step-aside">` +
+          `<div class="info-card">` +
+            `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}<i class="meta-sep"></i><b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span><i class="meta-sep"></i><b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
+            `<div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div>` +
+            (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
+          `</div>` +
+        `</aside>` +
+      `</div>`;
 
     const wrap = sv.querySelector('#svSubsteps');
     det.substeps.forEach((ss,i)=> wrap.appendChild(buildSubstepEl(ss, i, editing)));
@@ -3470,7 +3479,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       wrap.appendChild(add);
     }
     sv.querySelector('#svBack').onclick = closeStep;
-    sv.querySelectorAll('.step-head [data-f]').forEach(el=>{
+    sv.querySelectorAll('.info-card [data-f]').forEach(el=>{
       el.addEventListener('input', ()=>{ det[el.dataset.f] = (el.dataset.f === 'body') ? el.innerHTML : el.textContent; });
     });
   }
