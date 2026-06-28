@@ -1014,16 +1014,14 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 #stepView .back-btn:hover{ background:var(--paper); color:var(--ink); }
 #stepView .back-btn .ic{ font-size:15px; }
 #stepView .step-title{ margin:0 0 18px; font-size:22px; font-weight:800; color:var(--ink); max-width:1240px; }
-/* 整页两栏：左=子步骤卡片列表，右=独立信息卡（负责人/预计/频率 + 正文） */
-#stepView .step-layout{ display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:28px;
+/* 整页两块等宽区域：左=子步骤列表，右=负责人/预计/频率 + 正文说明 */
+#stepView .step-layout{ display:grid; grid-template-columns:1fr 1fr; gap:40px;
   align-items:start; max-width:1240px; }
 #stepView .step-main{ min-width:0; }
 #stepView .step-aside{ min-width:0; }
-#stepView .info-card{ background:var(--card-bg); border:1px solid var(--card-bd); border-radius:var(--r);
-  padding:18px 20px; position:sticky; top:20px; }
-@media (max-width:900px){
-  #stepView .step-layout{ grid-template-columns:1fr; }
-  #stepView .info-card{ position:static; }
+#stepView .info-card{ min-width:0; }
+@media (max-width:760px){
+  #stepView .step-layout{ grid-template-columns:1fr; gap:20px; }
 }
 /* 负责人/预计/频率 一行 + 下方水平分割线 */
 #stepView .meta-line{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-bottom:12px;
@@ -1042,6 +1040,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 #stepView .link-item .ic{ font-size:14px; color:var(--accent); }
 #stepView .section-title{ font-size:15px; font-weight:800; margin:26px 0 14px; max-width:920px;
   display:flex; align-items:center; gap:10px; }
+/* 两栏布局时，左栏子步骤标题与右栏顶部对齐 */
+#stepView .step-main .section-title{ margin-top:0; }
 #stepView .section-title .cnt{ font-size:11px; font-weight:700; color:var(--accent);
   background:#fff; border:1px solid var(--accent); padding:2px 10px; border-radius:999px; }
 /* 子步骤：单列大卡片 */
