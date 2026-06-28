@@ -809,6 +809,7 @@
   --card-bd:#e4e6ea;   /* 统一卡片描边 */
   --content-bg:#ffffff;/* 右侧内容区底色（白） */
   --muted:#7a8898;     /* 次要文字 */
+  --gutter:24px;       /* 内容区左右边距 = 卡片列间距（三处留白相等）*/
 }
 
 /* ---- 隐藏旧外壳：旧标题区 / 顶部操作区 / 顶部模块栏 / 底部 footer / 旧左侧路线条 / 阶段间箭头 / 步骤箭头 ---- */
@@ -933,7 +934,7 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 /* ---- 右侧内容区：把激活的模块面板当作内容容器 ---- */
 .module-panel.active{
   display:block !important; margin:0 0 0 var(--side-w) !important; max-width:none !important;
-  padding:calc(var(--topbar-h) + 20px) 28px 64px !important; min-height:100vh; background:var(--content-bg);
+  padding:calc(var(--topbar-h) + 20px) var(--gutter) 64px !important; min-height:100vh; background:var(--content-bg);
 }
 .module-panel.active > .flow-rail{ display:none !important; }
 .module-panel.active > .flow{ display:block !important; max-width:none !important; margin:0 !important; min-width:0; }
@@ -946,7 +947,7 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 .module-panel.active > .flow > .stage.detail-active .stage-head{
   position:sticky; top:var(--topbar-h); z-index:40; background:var(--content-bg) !important;
   border:none !important; border-bottom:1px solid transparent !important;
-  margin:0 -28px 16px; padding:6px 28px 14px; min-height:0; border-radius:0 !important;
+  margin:0 calc(-1 * var(--gutter)) 16px; padding:6px var(--gutter) 14px; min-height:0; border-radius:0 !important;
   display:flex; align-items:center; gap:12px; cursor:default;
 }
 .stage.detail-active.head-stuck .stage-head{ border-bottom-color:var(--line) !important;
@@ -961,7 +962,7 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 
 /* 步骤卡片网格：两栏铺满内容区宽度（不再设最大宽度，右侧不留白） */
 .module-panel.active .stage.detail-active .steps{
-  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp);
+  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gutter);
   align-items:start; padding:0 !important; max-width:none !important;
 }
 @media(max-width:1000px){ .module-panel.active .stage.detail-active .steps{ grid-template-columns:minmax(0,1fr) !important; } }
@@ -1004,7 +1005,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 #stepView{
   position:fixed; top:var(--topbar-h); left:var(--side-w); right:0; bottom:0; z-index:90;
   background:var(--content-bg); overflow-y:auto; display:none;
-  padding:20px 28px 64px;
+  padding:20px var(--gutter) 64px;
 }
 #stepView.show{ display:block; }
 #stepView .back-btn{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line);
@@ -1103,6 +1104,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
 </defs></svg>
 
 <!-- ===== 固定顶栏（JS 会把搜索框移入）===== -->
@@ -2033,8 +2035,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       <div class="node-bar">
         <span class="node-grip" title="拖动排序">⠿</span>
         <span class="node-bar-right">
-          <button class="node-edit" title="编辑">✎</button>
-          <button class="node-del" title="删除卡片">✕</button>
+          <button class="node-edit" title="编辑"><span class="ic"><svg><use href="#i-edit"/></svg></span></button>
+          <button class="node-del" title="删除卡片"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
         </span>
       </div>
       <span class="tag" contenteditable="false">${d.tag}</span>
@@ -2248,10 +2250,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         <span class="meta" contenteditable="false">${d.meta}</span>
         <span class="step-count"></span>
         <span class="stage-ctrl">
-          <button class="icon-btn edit" title="编辑标题">✎</button>
-          <button class="icon-btn copy" title="复制此模块到指定模块">⧉</button>
-          <button class="icon-btn ins" title="在此阶段后插入新阶段">＋</button>
-          <button class="icon-btn del" title="删除整个阶段">✕</button>
+          <button class="icon-btn edit" title="编辑标题"><span class="ic"><svg><use href="#i-edit"/></svg></span></button>
+          <button class="icon-btn copy" title="复制此模块到指定模块"><span class="ic"><svg><use href="#i-copy"/></svg></span></button>
+          <button class="icon-btn ins" title="在此阶段后插入新阶段"><span class="ic"><svg><use href="#i-plus"/></svg></span></button>
+          <button class="icon-btn del" title="删除整个阶段"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
         </span>
         <span class="stage-toggle">▶</span>
       </div>
@@ -3388,7 +3390,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     d.innerHTML =
       `<p class="ss-title"><span class="seq">${i+1}</span>` +
       `<span class="ss-name" contenteditable="${ce}">${escapeHtml(ss.name || '')}</span></p>` +
-      `<p class="ss-desc" contenteditable="${ce}">${ss.desc || ''}</p>` +
+      `<div class="ss-desc" contenteditable="${ce}">${ss.desc || ''}</div>` +
       `<div class="ss-imgs"></div>`;
     const imgs = d.querySelector('.ss-imgs');
     (ss.images || []).forEach((src, gi)=>{
@@ -3440,7 +3442,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       `<div class="step-head">` +
         `<h2>${title}</h2>` +
         `<div class="meta-line"><b>负责人：</b>${escapeHtml(owner)}　·　<b>预计：</b><span data-f="time" contenteditable="${ce}">${escapeHtml(det.time || '—')}</span>　·　<b>频率：</b><span data-f="freq" contenteditable="${ce}">${escapeHtml(det.freq || '—')}</span></div>` +
-        `<p class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</p>` +
+        `<div class="step-note" data-f="body" contenteditable="${ce}">${det.body || ''}</div>` +
         (links.length ? `<div class="step-links">${links.map(l=>`<span class="link-item"><span class="ic"><svg><use href="#i-link"/></svg></span>${escapeHtml(l.text || l.url || '链接')}</span>`).join('')}</div>` : '') +
       `</div>` +
       `<p class="section-title">子步骤 <span class="cnt">${det.substeps.length} 步</span></p>` +
