@@ -854,13 +854,14 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar #searchbox .t-input-wrap{ background:var(--paper); border:1px solid var(--line);
   border-radius:var(--r); }
 #appTopbar #searchbox .t-input-wrap:focus-within{ border-color:var(--accent); background:#fff; }
-#appTopbar #searchbox .t-input{ background:transparent; border:none; }
-#appTopbar #searchbox .t-input:focus{ background:transparent; border:none; }
 #appTopbar #searchbox .t-input{
-  width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
-  border-radius:var(--r); padding:0 12px 0 32px; font-size:13px; color:var(--ink); outline:none;
+  background:transparent; border:none; outline:none;
+  width:100%; height:var(--ctl-h);
+  padding:0 12px 0 32px; font-size:13px; color:var(--ink);
 }
-#appTopbar #searchbox .t-input:focus{ border-color:var(--accent); background:#fff; }
+#appTopbar #searchbox .t-input:focus{ background:transparent; }
+/* error 态：让外层 wrap 变红边框，与 focus-within 的 accent 逻辑一致 */
+#searchWrap.is-error{ border-color:var(--t-error) !important; }
 #appTopbar #searchbox .search-results{ top:calc(var(--ctl-h) + 6px); }
 /* 搜索框自带的「清除」按钮（旧内联样式）统一高度/圆角 */
 #appTopbar #searchbox > button{
@@ -869,6 +870,12 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   font-weight:600 !important; color:var(--ink) !important; cursor:pointer; flex:none;
 }
 #appTopbar #searchbox > button:hover{ background:var(--paper) !important; }
+/* 命中计数固定宽度，防止文字变化时输入框忽长忽短 */
+#appTopbar #searchbox #searchCount{
+  flex:none; width:90px;
+  text-align:right; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
 #appTopbar .tb-actions{ flex:none; display:flex; align-items:center; gap:8px; }
 #appTopbar .tb-actions button{
   display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
