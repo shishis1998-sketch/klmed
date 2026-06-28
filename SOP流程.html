@@ -840,7 +840,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 /* 顶栏右侧控件统一高度，整齐对齐 */
 :root{ --ctl-h:34px; }
 #appTopbar #searchbox{ position:relative; flex:0 1 320px; min-width:160px; display:flex;
-  align-items:center; gap:8px; }
+  align-items:center; gap:8px; margin:0 !important; }
 #appTopbar #searchbox .t-input-wrap{ flex:1; }
 #appTopbar #searchbox .t-input{
   width:100%; height:var(--ctl-h); border:1px solid var(--line); background:var(--paper);
@@ -3463,6 +3463,15 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
   /* ESC 关闭下钻页 */
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && currentStep) closeStep(); });
+
+  /* 编辑阶段标题时，左侧栏名称 / 面包屑实时同步 */
+  let _syncRAF = null;
+  document.addEventListener('input', e=>{
+    if(e.target.closest('.stage-head .stitle')){
+      cancelAnimationFrame(_syncRAF);
+      _syncRAF = requestAnimationFrame(()=>{ buildSidebar(); updateBreadcrumb(); });
+    }
+  });
 
   /* ---- 初始化外壳：移入搜索框、建左侧栏、面包屑 ---- */
   (function initShell(){
