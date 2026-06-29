@@ -61,11 +61,11 @@ klmed/
   <svg defs>                   ← 线性图标 sprite(#i-search / #i-edit / …)
   #appTopbar                   ← 固定顶栏(品牌 + 面包屑 + 搜索 + 编辑/保存/导出)
   #appSidebar                  ← 固定左侧栏(模块 → 阶段 两级导航)
-  #stepView                    ← 步骤下钻详情页(JS 填充)
   .module-tabs / .module-panel ← 旧模块切换(被 APP 外壳隐藏,但仍是数据载体)
     .flow > .stage > .steps > .node
+      └ .node-inline-substeps  ← 点卡片后原位内联展开的子步骤区(JS 动态插入)
   #detail / #miniModal / #imgview / #fmtbar / .saved-toast  ← 各类浮层
-  <script> … </script>         ← 全部 JS(约 1700 行):折叠 / 拖拽 / 搜索 / 详情 / 保存 / 侧栏
+  <script> … </script>         ← 全部 JS(约 1700 行):折叠 / 拖拽 / 搜索 / 内联展开 / 保存 / 侧栏
 ```
 
 没有 CSS/JS 子目录——**整页完全内联**,这是刻意约束(见 Development Philosophy)。
@@ -127,7 +127,7 @@ klmed/
   `.dragging`、`.drag-over`、`.is-current`、`.is-passed`、`.is-upcoming`、`.head-stuck`、
   `.search-dim`、`.hit`、`.show`、`.on`、`.anim-in`、`.anim-out`。页面级模式挂在
   `<body>`(`body.edit-all`)。
-- **ID** 仅留给单例:`#appTopbar`、`#appSidebar`、`#stepView`、`#detail`、`#miniModal`、
+- **ID** 仅留给单例:`#appTopbar`、`#appSidebar`、`#detail`、`#miniModal`、
   `#imgview`、`#searchbox`、`#fmtbar`、`.saved-toast(#toast)`。
 - **SVG 图标 symbol** 前缀 `i-`:`#i-search`、`#i-edit`、`#i-save`、`#i-export`、
   `#i-trash`、`#i-plus`、`#i-back`、`#i-link`、`#i-image`、`#i-copy`、`#i-x` …
@@ -135,7 +135,7 @@ klmed/
   布局度量(`--topbar-h`、`--side-w`、`--gutter`、`--nav-item-h`、`--top-offset`)、
   比例尺(`--r` 圆角、`--sp` 间距)。
 - **JS:** `camelCase`,以动作命名(`toggleStage`、`openDetail`、`runSearch`、
-  `switchModule`、`buildSidebar`、`openStep`、`saveFile`)。模块/阶段/卡片 ID 是短随机串
+  `switchModule`、`buildSidebar`、`expandNodeInline`、`saveFile`)。模块/阶段/卡片 ID 是短随机串
   (如 `mmqqfumch0`)。
 - **注释一律用中文**,解释*为什么*(意图、边界情况),与现有密集注释保持一致。延续这种风格。
 
@@ -148,8 +148,7 @@ klmed/
 在 `SOP流程.html` 内扩展时:
 
 - **复用 `:root` 令牌块**,不要重新定义颜色/圆角/间距。新值一律走变量。
-- **复用 APP 外壳**(`#appTopbar`、`#appSidebar`、`.module-panel.active` 内容区、
-  `#stepView`)。
+- **复用 APP 外壳**(`#appTopbar`、`#appSidebar`、`.module-panel.active` 内容区)。
 - **复用现有组件**:卡片 = `.node`、标签 = `.tag`、徽章 = `.step-count`、弹窗 =
   `#detail`/`#miniModal`、提示 = `.saved-toast`、搜索 = `#searchbox`。仅当确无现成组件
   可用时才新增,并同步登记到 `COMPONENTS.md`。

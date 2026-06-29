@@ -35,8 +35,9 @@
 | `.35s` | rail-node 圆点状态 |
 | `.38s` | 节点弹入 `sop-node-in` |
 | `.4s` | rail-seg 连接段底色 |
-| `.42s` | **阶段折叠/展开高度过渡** + 阶段展开弹性 `sop-stage-pop`(主力时长) |
-| `.16s` | 节点弹出 `sop-node-out`(退出比进入快) |
+| `.42s` | **阶段折叠/展开高度过渡** + 阶段展开弹性 `sop-stage-pop`(主力时长);内联子步骤逐个淡入 `ni-item-in` |
+| `.5s` | 内联子步骤容器 `max-height` 展开(`cubic-bezier(.22,1,.36,1)`) |
+| `.16s` | 节点弹出 `sop-node-out`、**内联子步骤收起**(返回比展开快) |
 | `150ms` / `280ms` | 搜索输入边框 `ease-out` / 错误态红框回退 |
 | `~280ms` | 搜索错误抖动总时长(80+60+80+60) |
 | `~320ms` | 吸顶锚定 `anchorHead` 的 RAF 跟随窗口 |
@@ -60,7 +61,7 @@
 
 ---
 
-## 4. Keyframes 关键帧动画(全部 4 个)
+## 4. Keyframes 关键帧动画(全部 5 个)
 
 ```css
 /* 1. 阶段展开:轻微放大再回弹,营造弹性展开 */
@@ -75,7 +76,12 @@
 @keyframes sop-node-out{ from{opacity:1; scale(1)} to{opacity:0; translateY(10px) scale(.96)} }
   /* .16s ease-in both */
 
-/* 4. 搜索无结果:左右抖动错误态 */
+/* 4. 内联子步骤逐个淡入(卡片原位展开时) */
+@keyframes ni-item-in{ to{opacity:1; translateY(0)} }
+  /* 起始态由 .node-inline-substeps>* 给(opacity:0; translateY(14px));
+     .42s cubic-bezier(.34,1.4,.64,1) forwards,按 --i 递增 .09s 延迟逐个出现 */
+
+/* 5. 搜索无结果:左右抖动错误态 */
 @keyframes t-input-shake{ 0→28.57%→57.14%→78.57%→100% 在 ±6px/±4px 间衰减 }
   /* 总时长 calc(80ms*2 + 60ms*2)=280ms linear,各段 timing-function: cubic-bezier(.22,1,.36,1) */
 ```
@@ -160,7 +166,19 @@
 **Page / view 切换**
 - 模块切换 `switchModule()`、阶段切换 `.detail-active` 为即时显示(无整页转场),靠卡片弹入与
   阶段 pop 提供"变化感"。
-- 下钻 `#stepView` 用 `display` + `.show` 切换。
+
+**卡片内联展开子步骤(`expandNodeInline` / `.node-inline-substeps`)**
+- 点卡片 → `.steps` 网格临时切单列 flow(`has-expanded`),被点卡片置顶并锁定 `--card-w`、
+  统一靠左,其余卡片 `display:none`。
+- **展开:** 子步骤容器 `max-height:0→4000px` + `opacity` 过渡
+  `.5s cubic-bezier(.22,1,.36,1)` / `.4s ease`(下一帧加 `.show` 触发);内部每个元素
+  `ni-item-in`(`.42s cubic-bezier(.34,1.4,.64,1)`,上移淡入),按 `--i` 递增 `.09s` 延迟
+  **逐个出现**。
+- **滚动补偿:** 布局切换前后量被点卡片视口 `top`,差值用 `window.scrollBy` 补回,卡片"留在
+  原地"、不整页跳动。
+- **收起(← 返回 / ESC):** 用更短的 `max-height .16s ease` 快速收拢(约 76ms),收完再恢复
+  其余卡片;比展开明显更快,返回干脆。
+- reduced-motion:过渡/逐个淡入全部关闭,直接即时显示。
 
 **Scrolling 滚动行为**
 - **scroll-spy:** `window scroll`(passive)→ `requestAnimationFrame(updateScrollSpy)`,按阅读

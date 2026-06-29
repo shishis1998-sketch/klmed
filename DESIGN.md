@@ -23,7 +23,7 @@
 | **Dashboard-oriented** | 固定顶栏 + 固定左侧栏 + 可滚动内容区的应用外壳 |
 | **Clean / Minimal** | 白色卡片、1px 细边、大量留白、单一强调色 |
 | **Soft** | 低扩散柔和阴影、10px 圆角、弹性缓动的细腻动效 |
-| **Modern** | 线性 SVG 图标、scroll-spy、下钻详情页、reduced-motion 适配 |
+| **Modern** | 线性 SVG 图标、scroll-spy、卡片原位内联展开子步骤、reduced-motion 适配 |
 
 一句话:**干净、柔和的企业级仪表盘软件**,蓝为骨、橙为点。
 
@@ -56,10 +56,11 @@
 | **Surface 内容区底(白)** | `--content-bg` | `#ffffff` | 右侧内容区、顶栏、侧栏、详情面板 |
 | **Card 卡片底(灰)** | `--card-bg` | `#f3f4f6` | APP 外壳下的步骤卡片 `.node` 底色(**Dominant**) |
 | **Card border 卡片描边** | `--card-bd` | `#e4e6ea` | APP 外壳下卡片边框 |
+| **内联子步骤卡底(淡蓝)** | (字面量) | `#eef5fc` / 边 `#d3e3f4` | `.ni-card`,与灰底阶段卡片区分;序号徽标底 `#d8e7f7` |
 | **Border 通用描边线** | `--line` | `#d5d9dc` | 分割线、输入框/按钮边框、虚线占位 |
 | **Text 主文字(墨色)** | `--ink` | `#354754` | 标题、正文主色 |
 | **Text muted 次要文字** | `--muted` | `#7a8898` | 元信息、面包屑、占位、未激活侧栏项 |
-| **Text desc 描述灰** | (字面量) | `#5a5e6e` | 卡片描述 `.node-desc`、子步骤描述 |
+| **Text desc 描述灰** | (字面量) | `#5a5e6e` | 卡片描述 `.node-desc`(内联子步骤描述 `.ni-desc` 用 `--muted`) |
 | **Text faint 更浅** | (字面量) | `#aab2bd` / `#aab2bd` | 侧栏分组标题、计数、脚注 |
 | **Hint 提示棕灰** | (字面量) | `#7a7363` | `.hint` 使用提示语 |
 
@@ -91,10 +92,10 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 | **H1 文档标题** | `30px`(移动端 `21px`) | `800` | `letter-spacing:-.01em`,左侧 5px 蓝色竖条 |
 | **顶栏品牌 tb-brand** | `19px` | `800` | |
 | **详情弹窗 H2** | `22px` | `800` | 蓝底白字 |
-| **下钻页步骤标题 step-title** | `22px` | `800` | |
 | **阶段标题 stitle(展开)** | `20px` | `800` | APP 外壳下放大;收起时 `14px`/`700` |
-| **子步骤标题 ss-title** | `16px` | `700` | |
 | **卡片标题 node-title** | `15px` | `700` | |
+| **内联子步骤区标题 ni-ss-title** | `15px` | `800` | 「子步骤」小标题,= section-title |
+| **内联子步骤 标题/描述 ni-name / ni-desc** | `14px`(`!important`) | `700` / `400` | 同字号,仅粗细+颜色区分;描述富文本内联字号被强制压到 14 |
 | **模块 tab / 顶栏控件** | `15px`/`13px` | `700`/`600` | |
 | **Body 正文 / 输入框** | `14px` | `400–500` | 基准字号 |
 | **卡片描述 node-desc** | `13.5px` | `400` | 颜色 `#5a5e6e`,`line-height:1.55` |
@@ -122,7 +123,7 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 
 | 令牌 / 场景 | 值 | 用途 |
 |-------------|-----|------|
-| `--sp` 基础间距单位 | `16px` | 子步骤间距、详情区块间距 |
+| `--sp` 基础间距单位 | `16px` | 详情区块间距(内联子步骤卡间距用 `10px`) |
 | `--gutter` 内容区边距 | `24px` | 内容区左右内边距 **=** 卡片网格列间距(三处留白相等) |
 | 卡片内边距 `.node` | `14–16px`(APP 外壳 `15px 16px`) | |
 | 阶段标题内边距 | `10px 12px` | |
@@ -198,15 +199,16 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 | `--ctl-h` | `34px` | 顶栏控件(搜索框/按钮)统一高度 |
 | `--nav-item-h` | `46px` | 侧栏项 / 阶段标题统一最小高度 |
 | 内容主区最大宽度 | `1200px` | `header`/`.flow`/`.toolbar` 等旧区块的 `max-width`;APP 外壳内容区铺满去除上限 |
-| 详情/下钻最大宽度 | `760px` / `1240px` | 详情弹窗 760;下钻页布局 1240 |
+| 详情弹窗最大宽度 | `760px` | `.detail-panel` |
+| 内联展开卡宽 | `--card-w`(运行时测量) | 展开卡片与子步骤锁定为点击前的网格格宽,统一靠左,不拉伸 |
 
 ### 7.2 Grid 网格
 
 - **步骤卡片网格:** `display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gutter)`
   —— 两栏铺满内容区;`≤1000px` 退化为单栏。用 `minmax(0,1fr)` 防止内容把列撑出横向溢出。
 - **属性网格 attr-grid:** 三栏 `repeat(3,1fr)`;`≤640px` 两栏;`≤380px` 单栏。
-- **下钻页 step-layout:** `grid-template-columns:7fr 3fr`(左子步骤宽、右元信息窄),中间竖分割线;
-  `≤760px` 单栏。
+- **内联展开 `.node-inline-substeps`:** 点卡片时把 `.steps` 网格临时切为单列 flow
+  (`has-expanded`),被点卡片 `order:-1` 置顶并锁定 `--card-w`、统一靠左;子步骤为同宽单列堆叠。
 
 ### 7.3 Header / Sidebar / Content
 
@@ -220,21 +222,23 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 - **Content(内容区 `.module-panel.active`):** `margin-left:var(--side-w)`,顶部留
   `--topbar-h + 20px`,左右 `--gutter`,底部 64px,`background:var(--content-bg)`,`min-height:100vh`。
   阶段标题在内容区内 `position:sticky; top:var(--topbar-h)` 吸顶。
-- **Step drill-down(`#stepView`):** `position:fixed; top:56px; left:256px; right/bottom:0`,覆盖
-  内容区,可滚动;`.show` 显示。返回按钮 + 标题 + 7:3 两栏布局。
+- **内联展开(`.node-inline-substeps`):** 点卡片时由 JS 动态插到被点卡片正下方,
+  `max-height` 过渡展开;含「← 返回」、负责人/预计/频率元信息行、子步骤淡蓝卡片列;
+  其余同阶段卡片 `display:none` 隐藏。点「← 返回」/ ESC 收起(快速过渡)。
 
 ### 7.4 Content spacing / Card spacing
 
 - 内容区到边、卡片列间距、卡片到内容边的留白**三者相等**,均为 `--gutter (24px)`,这是排版的
   对齐基准。
-- 卡片之间纵横间距统一 `--gutter`;子步骤之间 `--sp (16px)`;详情区块之间 `≈24px`。
+- 卡片之间纵横间距统一 `--gutter`;内联子步骤卡之间 `10px`(`.ni-card` margin-bottom);
+  详情区块之间 `≈24px`。
 
 ### 7.5 Responsive behavior(断点)
 
 | 断点 | 行为 |
 |------|------|
 | `≤1000px` | 步骤卡片网格 → 单栏 |
-| `≤760px` | 侧栏 → 抽屉(`--side-w:0`);下钻页 `left:0`;`#stepView` 7:3 → 单栏;`.flow` 单栏 |
+| `≤760px` | 侧栏 → 抽屉(`--side-w:0`);`.flow` 单栏 |
 | `≤680px` | `.node` 最大宽度放开 |
 | `≤640px` | 整体收紧:body 内边距 12px、模块栏对齐、左右导航改横排滚动、字号下调、attr-grid 两栏 |
 | `≤380px` | attr-grid 单栏 |
@@ -269,7 +273,7 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
    决策深蓝灰 / 核对深海蓝 / 默认橙)。
 3. **10px 统一圆角(`--r`)**;胶囊徽章 `999px`;圆点 `50%`;标签 `3px`。
 4. **三段式应用外壳:** 固定顶栏(56px)+ 固定侧栏(256px)+ 可滚动内容区,辅以"模块→阶段→
-   步骤→子步骤"四级信息架构与下钻详情页。
+   步骤→子步骤"四级信息架构;子步骤通过点卡片**原位内联展开**呈现(非跳转下钻页)。
 5. **吸顶 + scroll-spy:** 阶段标题吸顶在顶栏下方;滚动时点亮"当前阶段"圆点(蓝色放大 + 浅蓝光晕)。
 6. **默认只读、按需编辑:** 编辑控件(删除/拖拽/加卡)在 `body.edit-all` 或聚焦卡片前隐藏;
    `contenteditable` 聚焦时显示蓝色虚线轮廓 `outline:2px dashed var(--accent)`。
