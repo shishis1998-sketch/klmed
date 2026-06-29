@@ -1078,6 +1078,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
 /* 子步骤卡片：淡蓝底 + 蓝色描边，与灰底阶段卡片区分；无前后关系，不用箭头，纯堆叠 */
 .ni-card{
+  position:relative;
   background:#eef5fc; border:1.5px solid #d3e3f4; border-radius:var(--r);
   padding:14px 16px; width:100%; box-sizing:border-box;
   margin-bottom:10px;
@@ -1106,6 +1107,44 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-size:15px; font-weight:800; color:var(--ink);
   margin-bottom:10px;
 }
+.ni-empty{ font-size:13px; color:#9ba3b8; padding:4px 0; }
+
+/* ===== 编辑态：增删改子步骤 ===== */
+/* 编辑模式下隐藏漏出的“加卡片”按钮（特异性需高于 body.edit-all 的显示规则）*/
+body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .add-step{
+  display:none !important;
+}
+/* 可编辑字段：编辑态给个浅框，提示可输入 */
+.ni-card.editing .ni-name,
+.ni-card.editing .ni-desc{
+  outline:none; background:#fff; border:1px solid var(--line);
+  border-radius:6px; padding:5px 8px; margin-bottom:6px;
+}
+.ni-card.editing .ni-desc{ margin-bottom:0; }
+.ni-card.editing .ni-desc:empty{ display:block; }   /* 编辑态空描述也要能点进去 */
+.ni-card .ni-desc:empty::before{ content:''; }
+.ni-card.editing .ni-name:empty::before,
+.ni-card.editing .ni-desc:empty::before{
+  content:attr(data-ph); color:#b3bccb;
+}
+.ni-card.editing .ni-name:empty::before{ content:'子步骤标题'; }
+/* 删除按钮：卡片右上角 */
+.ni-card .ni-del{
+  position:absolute; top:10px; right:10px; display:none;
+  width:24px; height:24px; border:none; border-radius:6px; cursor:pointer;
+  background:rgba(53,71,84,.08); color:var(--ink); font-size:13px; line-height:1;
+}
+.ni-card.editing .ni-del{ display:grid; place-items:center; }
+.ni-card .ni-del:hover{ background:var(--rose); color:#fff; }
+/* 添加子步骤按钮：与子步骤卡片同宽，虚线框居中 */
+.ni-addsub{
+  width:100%; box-sizing:border-box; margin-top:2px;
+  border:1.5px dashed #b9cfe6; background:#f6fafe; color:var(--accent);
+  border-radius:var(--r); padding:10px; font-size:14px; font-weight:600;
+  cursor:pointer; transition:.12s;
+}
+.ni-addsub:hover{ background:var(--accent-soft); border-color:var(--accent); }
+
 /* 尊重“减弱动态效果” */
 @media (prefers-reduced-motion: reduce){
   .node-inline-substeps{ transition:none; }
@@ -3770,17 +3809,19 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     const on = document.body.classList.contains('edit-all');
     document.getElementById('btnEdit')?.classList.toggle('on', on);
     if(currentStep) renderStepView();
+    refreshInlineEditState();   // 展开的卡片同步显示/隐藏子步骤编辑控件
   };
   const _saveFile = saveFile;
   saveFile = function(){ closeStep(); _saveFile(); };
 
-  /* ---- 点卡片内联展开子步骤（只读态）；编辑态不展开 ---- */
+  /* ---- 点卡片内联展开子步骤；编辑态也可展开（用于增删改子步骤），
+         但点在卡片文字 / 按钮上不展开，避免与卡片标题编辑冲突 ---- */
   document.addEventListener('click', e=>{
     const node = e.target.closest('.module-panel.active .node');
     if(!node) return;
-    if(document.body.classList.contains('edit-all')) return;
-    if(node.classList.contains('editing')) return;
-    if(e.target.closest('button, a, input, textarea, select, [contenteditable="true"], .node-bar')) return;
+    if(node.classList.contains('node-expanded')) return;   // 已展开的卡片本身不重复触发
+    if(node.classList.contains('editing')) return;         // 单卡编辑中：不展开
+    if(e.target.closest('button, a, input, textarea, select, [contenteditable="true"], .node-bar, .ni-card, .node-inline-substeps')) return;
     expandNodeInline(node);
   });
 
@@ -3833,30 +3874,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       .join('');
     wrap.appendChild(metaRow);
 
-    // 子步骤标题（仅有子步骤时显示）
-    if(substeps.length > 0){
-      const ssTitle = document.createElement('p');
-      ssTitle.className = 'ni-ss-title';
-      ssTitle.textContent = '子步骤';
-      wrap.appendChild(ssTitle);
-    }
-
-    if(substeps.length === 0){
-      const empty = document.createElement('p');
-      empty.style.cssText = 'font-size:13px;color:#9ba3b8;padding:4px 0;';
-      empty.textContent = '暂无子步骤';
-      wrap.appendChild(empty);
-    } else {
-      substeps.forEach((ss, i)=>{
-        const card = document.createElement('div');
-        card.className = 'ni-card';
-        card.innerHTML =
-          `<div class="ni-num">${i+1}</div>` +
-          `<p class="ni-name">${ss.name ? escapeHtml(ss.name) : ''}</p>` +
-          `<p class="ni-desc">${ss.desc || ''}</p>`;
-        wrap.appendChild(card);
-      });
-    }
+    // 子步骤区（含编辑态的增删改）
+    fillInlineSubsteps(wrap, node, document.body.classList.contains('edit-all'));
 
     // 插到被点卡片正下方（同一 flex 列内），子步骤紧贴它向下展开
     node.insertAdjacentElement('afterend', wrap);
@@ -3873,6 +3892,67 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     requestAnimationFrame(()=> requestAnimationFrame(()=> wrap.classList.add('show')));
 
     _expandedNode = node;
+  }
+
+  /* 构建/重建子步骤区：只读态只显示卡片；编辑态可改字、删除、添加 */
+  function fillInlineSubsteps(wrap, node, editing){
+    // 清掉旧的子步骤区元素（保留 返回 / 元信息）
+    wrap.querySelectorAll('.ni-ss-title, .ni-card, .ni-empty, .ni-addsub').forEach(e=> e.remove());
+    const det = node._detail;
+    const substeps = det.substeps = det.substeps || [];
+
+    if(substeps.length > 0){
+      const ssTitle = document.createElement('p');
+      ssTitle.className = 'ni-ss-title';
+      ssTitle.textContent = '子步骤';
+      wrap.appendChild(ssTitle);
+    } else if(!editing){
+      const empty = document.createElement('p');
+      empty.className = 'ni-empty';
+      empty.textContent = '暂无子步骤';
+      wrap.appendChild(empty);
+    }
+
+    const ce = editing ? 'true' : 'false';
+    substeps.forEach((ss, i)=>{
+      const card = document.createElement('div');
+      card.className = 'ni-card' + (editing ? ' editing' : '');
+      card.innerHTML =
+        `<div class="ni-num">${i+1}</div>` +
+        (editing ? `<button class="ni-del" type="button" title="删除子步骤">✕</button>` : '') +
+        `<p class="ni-name" contenteditable="${ce}">${ss.name ? escapeHtml(ss.name) : ''}</p>` +
+        `<p class="ni-desc" contenteditable="${ce}" data-ph="补充说明（可选）">${ss.desc || ''}</p>`;
+      if(editing){
+        card.querySelector('.ni-del').onclick = ()=>{ substeps.splice(i,1); fillInlineSubsteps(wrap, node, editing); };
+        card.querySelector('.ni-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
+        card.querySelector('.ni-desc').addEventListener('input', e=>{ ss.desc = e.target.innerHTML; });
+      }
+      wrap.appendChild(card);
+    });
+
+    if(editing){
+      const add = document.createElement('button');
+      add.className = 'ni-addsub'; add.type = 'button';
+      add.textContent = '＋ 添加子步骤';
+      add.onclick = ()=>{
+        substeps.push({ name:'', desc:'', images:[] });
+        fillInlineSubsteps(wrap, node, editing);
+        const names = wrap.querySelectorAll('.ni-card .ni-name');
+        const last = names[names.length-1]; if(last) last.focus();
+      };
+      wrap.appendChild(add);
+    }
+  }
+
+  /* 编辑模式切换时，若有展开的卡片，刷新其子步骤区以显示/隐藏编辑控件 */
+  function refreshInlineEditState(){
+    if(!_expandedNode) return;
+    const stepsEl = _expandedNode.closest('.steps');
+    const wrap = stepsEl ? stepsEl.querySelector('.node-inline-substeps') : null;
+    if(wrap){
+      fillInlineSubsteps(wrap, _expandedNode, document.body.classList.contains('edit-all'));
+      wrap.classList.add('show');   // 跳过入场动画，保持展开
+    }
   }
 
   function collapseNodeInline(immediate){
