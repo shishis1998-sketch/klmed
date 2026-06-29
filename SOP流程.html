@@ -1091,9 +1091,14 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   width:24px; height:24px; border-radius:5px; background:#d8e7f7;
   color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
 }
-/* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一 */
-.ni-card .ni-name{ font-size:14px; font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
-.ni-card .ni-desc{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; margin:0; }
+/* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一。
+   描述是富文本，内部可能带编辑时遗留的内联字号 —— 用 !important 强制覆盖到 14px，
+   只锁字号，保留加粗/斜体等格式，确保标题与内容大小一致。 */
+.ni-card .ni-name, .ni-card .ni-name *{ font-size:14px !important; }
+.ni-card .ni-name{ font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
+.ni-card .ni-desc, .ni-card .ni-desc *{ font-size:14px !important; }
+.ni-card .ni-desc{ font-weight:400; color:var(--muted); line-height:1.5; margin:0; }
+.ni-card .ni-desc *{ line-height:1.5; }
 .ni-card .ni-desc:empty{ display:none; }
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
