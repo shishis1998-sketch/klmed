@@ -1079,28 +1079,22 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
+/* 子步骤卡片：淡蓝底 + 蓝色描边，与灰底阶段卡片区分；无前后关系，不用箭头，纯堆叠 */
 .ni-card{
-  background:var(--card-bg); border:1.5px solid var(--card-bd); border-radius:var(--r);
+  background:#eef5fc; border:1.5px solid #d3e3f4; border-radius:var(--r);
   padding:14px 16px; width:100%; box-sizing:border-box;
+  margin-bottom:10px;
 }
+.ni-card:last-child{ margin-bottom:0; }
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
-  width:24px; height:24px; border-radius:5px; background:#e3e9f1;
-  color:var(--accent); font-size:12px; font-weight:700; margin-bottom:6px;
+  width:24px; height:24px; border-radius:5px; background:#d8e7f7;
+  color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
 }
-.ni-card .ni-name{ font-size:15px; font-weight:700; margin:0 0 4px; line-height:1.4; }
-.ni-card .ni-desc{ font-size:13.5px; color:#5a5e6e; line-height:1.55; margin:0; }
-/* 子步骤之间的连接器：竖线 + CSS 人字形箭头，居中、连贯、自然 */
-.node-inline-arrow{
-  display:flex; flex-direction:column; align-items:center;
-  width:100%; padding:0; margin:2px 0;
-}
-.node-inline-arrow .ni-line{ width:2px; height:20px; background:#c6d0e6; }
-.node-inline-arrow .ni-chev{
-  width:9px; height:9px; margin-top:-6px;
-  border-right:2px solid #c6d0e6; border-bottom:2px solid #c6d0e6;
-  transform:rotate(45deg);
-}
+/* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一 */
+.ni-card .ni-name{ font-size:14px; font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
+.ni-card .ni-desc{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; margin:0; }
+.ni-card .ni-desc:empty{ display:none; }
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
   font-size:13px; color:var(--muted); margin-bottom:12px;
@@ -3866,12 +3860,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       wrap.appendChild(empty);
     } else {
       substeps.forEach((ss, i)=>{
-        if(i > 0){
-          const arr = document.createElement('div');
-          arr.className = 'node-inline-arrow';
-          arr.innerHTML = '<span class="ni-line"></span><span class="ni-chev"></span>';
-          wrap.appendChild(arr);
-        }
         const card = document.createElement('div');
         card.className = 'ni-card';
         card.innerHTML =
