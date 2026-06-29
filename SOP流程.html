@@ -1090,8 +1090,11 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
 }
 /* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一。
-   描述是富文本，内部可能带编辑时遗留的内联字号 —— 用 !important 强制覆盖到 14px，
-   只锁字号，保留加粗/斜体等格式，确保标题与内容大小一致。 */
+   容器用 <div>（不是 <p>）：编辑换行时浏览器会生成 <div> 包裹新行，
+   <div> 不能内嵌在 <p> 里会被浏览器踢出容器 —— 那样新行既会跳出输入框，
+   又会因落在 .ni-desc 之外而用回默认字号(~16px)，造成同一/不同子步骤字号不一。
+   改用 <div> 容器后换行内容仍留在 .ni-desc 内，配合下面 * 的 !important 锁死 14px，
+   只锁字号，保留加粗/斜体等格式，确保标题与内容大小一致，且支持多行。 */
 .ni-card .ni-name, .ni-card .ni-name *{ font-size:14px !important; }
 .ni-card .ni-name{ font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
 .ni-card .ni-desc, .ni-card .ni-desc *{ font-size:14px !important; }
@@ -3975,8 +3978,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       card.innerHTML =
         `<div class="ni-num">${i+1}</div>` +
         (editing ? `<button class="ni-del" type="button" title="删除子步骤">✕</button>` : '') +
-        `<p class="ni-name" contenteditable="${ce}">${ss.name ? escapeHtml(ss.name) : ''}</p>` +
-        `<p class="ni-desc" contenteditable="${ce}" data-ph="补充说明（可选）">${ss.desc || ''}</p>`;
+        `<div class="ni-name" contenteditable="${ce}">${ss.name ? escapeHtml(ss.name) : ''}</div>` +
+        `<div class="ni-desc" contenteditable="${ce}" data-ph="补充说明（可选）">${ss.desc || ''}</div>`;
       if(editing){
         card.querySelector('.ni-del').onclick = ()=>{ substeps.splice(i,1); fillInlineSubsteps(wrap, node, editing); };
         card.querySelector('.ni-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
