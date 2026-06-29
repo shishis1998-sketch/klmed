@@ -1034,16 +1034,13 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   max-width:100%;
   margin-left:0;
 }
+/* 其余卡片 / 箭头 / 加卡片按钮：直接隐藏。
+   注意不能用动画把 padding/height 归零 —— .node 的 padding 带 !important，
+   会压过动画关键帧，导致塌不掉、残留 ~32px 空盒堆叠成大空白。直接 display:none 最稳。 */
 .steps.has-expanded > .node:not(.node-expanded),
 .steps.has-expanded > .step-arrow,
 .steps.has-expanded > .add-step{
-  /* 用动画淡出折叠，避免“整页跳变”的生硬感 */
-  animation:ni-card-out .22s ease forwards;
-  pointer-events:none;
-}
-@keyframes ni-card-out{
-  from{ opacity:1; }
-  to  { opacity:0; height:0; margin:0; padding:0; border-width:0; overflow:hidden; }
+  display:none !important;
 }
 .node.node-expanded{
   order:-1;                                  /* 始终排到本阶段最前，减少纵向跳动 */
@@ -1091,9 +1088,14 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   width:24px; height:24px; border-radius:5px; background:#d8e7f7;
   color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
 }
-/* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一 */
-.ni-card .ni-name{ font-size:14px; font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
-.ni-card .ni-desc{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; margin:0; }
+/* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一。
+   描述是富文本，内部可能带编辑时遗留的内联字号 —— 用 !important 强制覆盖到 14px，
+   只锁字号，保留加粗/斜体等格式，确保标题与内容大小一致。 */
+.ni-card .ni-name, .ni-card .ni-name *{ font-size:14px !important; }
+.ni-card .ni-name{ font-weight:700; color:var(--ink); margin:0 0 4px; line-height:1.5; }
+.ni-card .ni-desc, .ni-card .ni-desc *{ font-size:14px !important; }
+.ni-card .ni-desc{ font-weight:400; color:var(--muted); line-height:1.5; margin:0; }
+.ni-card .ni-desc *{ line-height:1.5; }
 .ni-card .ni-desc:empty{ display:none; }
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
