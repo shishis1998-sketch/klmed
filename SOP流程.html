@@ -1231,6 +1231,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   </div><div class="tb-actions">
     <button id="btnEdit" class="toggle" onclick="toggleEdit()"><span class="ic"><svg><use href="#i-edit"></use></svg></span>编辑</button>
     <button class="primary" onclick="saveFile()"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存</button>
+    <button onclick="exportZip()" title="打包成 ZIP（HTML + assets 文件夹），适合发给别人，视频不膨胀"><span class="ic"><svg><use href="#i-folder"></use></svg></span>导出 ZIP</button>
     <button onclick="window.print()"><span class="ic"><svg><use href="#i-export"></use></svg></span>导出 PDF</button>
   </div>
 </div>
@@ -1260,6 +1261,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   
   <div class="toolbar">
     <button class="primary" onclick="saveFile()">💾 保存（下载）</button>
+    <button onclick="exportZip()">🗜 导出 ZIP</button>
     <button onclick="window.print()">🖨 导出 PDF</button>
   </div>
 </div>
@@ -2992,7 +2994,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   });
 
   /* ============ 保存：把当前 DOM 写回并下载完整 HTML ============ */
-  function saveFile(){
+  /* 导出前的统一准备：退出编辑态、清理临时 UI、把 _detail 写回 data 属性。
+     saveFile（单文件 HTML）和 exportZip（HTML+assets 压缩包）共用这一步。 */
+  function _prepareExport(){
     fmtbar.style.display='none';
     if(currentNode) saveDetail();
     // 退出所有编辑态，确保保存/重开后文件默认只读
@@ -3011,6 +3015,20 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 记录当前激活的模块
     const activeTab = document.querySelector('.module-tab.active');
     if(activeTab) document.getElementById('moduleTabs').dataset.activeModule = activeTab.dataset.module;
+  }
+  // 导出后把当前页面的路线导航重新建回来
+  function _restoreAfterExport(){
+    document.querySelectorAll('.flow').forEach(f=>buildRail(f));
+    updateStickyOffsets();
+    updateScrollSpy();
+  }
+  function _exportToast(){
+    const t=document.getElementById('toast'); if(!t) return;
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);
+  }
+
+  function saveFile(){
+    _prepareExport();
     const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
     const blob = new Blob([html],{type:'text/html;charset=utf-8'});
     const a = document.createElement('a');
@@ -3018,12 +3036,156 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     a.download = 'SOP流程.html';
     a.click();
     URL.revokeObjectURL(a.href);
-    // 导出后把当前页面的路线导航重新建回来
-    document.querySelectorAll('.flow').forEach(f=>buildRail(f));
-    updateStickyOffsets();
-    updateScrollSpy();
-    const t=document.getElementById('toast'); t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),1600);
+    _restoreAfterExport();
+    _exportToast();
+  }
+
+  /* ============ 导出 ZIP（HTML + assets/ 文件夹）============
+     把内嵌的 base64 媒体（图片 / 附件 / 视频）拆成 assets/ 里的真实文件，
+     HTML 里改成相对路径 → 得到「瘦身版 HTML」，再连同 assets/ 一起打包成 zip。
+     适合「视频又大又多」的分发：媒体保持原始体积，不被 base64 撑大 ~33%。
+     注意：浏览器无法读取磁盘上「已经是相对路径」的外部文件（file:// 限制），
+     这类引用会原样保留，并在 打包说明.txt 里提示需手动确认 assets/ 中存在。 */
+  function _dataURIToBytes(uri){
+    const comma = uri.indexOf(',');
+    const meta = uri.slice(5, comma);                 // 去掉开头的 "data:"
+    const isB64 = /;base64/i.test(meta);
+    const mime = (meta.split(';')[0] || 'application/octet-stream').toLowerCase();
+    const body = uri.slice(comma + 1);
+    let bytes;
+    if(isB64){
+      const bin = atob(body);
+      bytes = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    }else{
+      bytes = new TextEncoder().encode(decodeURIComponent(body));
+    }
+    return {bytes, mime};
+  }
+  function _extFromMime(m){
+    const map = {'image/png':'png','image/jpeg':'jpg','image/jpg':'jpg','image/gif':'gif',
+      'image/webp':'webp','image/svg+xml':'svg','image/bmp':'bmp','video/mp4':'mp4',
+      'video/webm':'webm','video/quicktime':'mov','video/x-msvideo':'avi',
+      'application/pdf':'pdf','application/zip':'zip'};
+    return map[m] || (m.split('/')[1] || 'bin').replace(/[^a-z0-9]/gi,'');
+  }
+  // 纯 JS ZIP 写入器（store 存储，不压缩——媒体本身已压缩；文件名用 UTF-8）
+  const _crcTable = (()=>{ const t=new Uint32Array(256);
+    for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); t[n]=c>>>0; }
+    return t; })();
+  function _crc32(bytes){ let c=0xFFFFFFFF;
+    for(let i=0;i<bytes.length;i++) c = _crcTable[(c ^ bytes[i]) & 0xFF] ^ (c>>>8);
+    return (c ^ 0xFFFFFFFF) >>> 0; }
+  function _u16(v){ const b=new Uint8Array(2); new DataView(b.buffer).setUint16(0,v&0xFFFF,true); return b; }
+  function _u32(v){ const b=new Uint8Array(4); new DataView(b.buffer).setUint32(0,v>>>0,true); return b; }
+  function _concat(arrs){ let len=0; arrs.forEach(a=>len+=a.length);
+    const out=new Uint8Array(len); let p=0; arrs.forEach(a=>{ out.set(a,p); p+=a.length; }); return out; }
+  function _buildZip(files){
+    const enc = new TextEncoder();
+    const parts = [];     // 本地文件头 + 数据
+    const central = [];   // 中央目录
+    let offset = 0;
+    files.forEach(f=>{
+      const name = enc.encode(f.name);
+      const crc = _crc32(f.bytes), size = f.bytes.length;
+      const lh = _concat([ _u32(0x04034b50), _u16(20), _u16(0x0800), _u16(0), _u16(0), _u16(0),
+        _u32(crc), _u32(size), _u32(size), _u16(name.length), _u16(0), name ]);
+      parts.push(lh, f.bytes);
+      central.push(_concat([ _u32(0x02014b50), _u16(20), _u16(20), _u16(0x0800), _u16(0),
+        _u16(0), _u16(0), _u32(crc), _u32(size), _u32(size),
+        _u16(name.length), _u16(0), _u16(0), _u16(0), _u16(0), _u32(0), _u32(offset), name ]));
+      offset += lh.length + size;
+    });
+    let cdSize = 0; central.forEach(c=>cdSize+=c.length);
+    const eocd = _concat([ _u32(0x06054b50), _u16(0), _u16(0),
+      _u16(files.length), _u16(files.length), _u32(cdSize), _u32(offset), _u16(0) ]);
+    return new Blob([...parts, ...central, eocd], {type:'application/zip'});
+  }
+  function exportZip(){
+    closeStep();
+    _prepareExport();
+    const files = [];                 // {name, bytes}
+    const used = new Set();
+    const seen = new Map();            // dataURI -> assets 路径（同一文件去重）
+    const externalRefs = [];          // 无法读取的外部相对路径
+    let counter = 0;
+    const sanitize = s => (s||'').replace(/[\\/:*?"<>|\s]+/g,'_');
+    function ensureUnique(path){
+      if(!used.has(path)){ used.add(path); return path; }
+      const dot = path.lastIndexOf('.'), base = dot>=0?path.slice(0,dot):path, ext = dot>=0?path.slice(dot):'';
+      let i=1, p; do{ p = base+'_'+(i++)+ext; }while(used.has(p));
+      used.add(p); return p;
+    }
+    function externalize(ref, preferName){
+      if(typeof ref!=='string' || !ref) return ref;
+      if(ref.startsWith('data:')){
+        if(seen.has(ref)) return seen.get(ref);
+        const {bytes, mime} = _dataURIToBytes(ref);
+        let name = (preferName && /\.[a-z0-9]+$/i.test(preferName))
+          ? sanitize(preferName) : ('媒体'+(++counter)+'.'+_extFromMime(mime));
+        const path = ensureUnique('assets/'+name);
+        files.push({name:path, bytes});
+        seen.set(ref, path);
+        return path;
+      }
+      // 外部相对路径（非 data:/http/协议）→ 浏览器读不到字节，原样保留并记录
+      if(!/^(https?:|mailto:|tel:|\/\/|data:)/i.test(ref) && externalRefs.indexOf(ref)<0) externalRefs.push(ref);
+      return ref;
+    }
+    // 改写富文本里内嵌的 data: 图片（粘贴进正文/说明的截图等）
+    const externalizeHtml = s => (typeof s==='string')
+      ? s.replace(/data:[a-z0-9.+-]+\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi, m=>externalize(m))
+      : s;
+    // 在副本上改写 data-detail，避免污染当前内存里的 _detail（保证可反复导出）
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('.flow .node').forEach(n=>{
+      let det; try{ det = JSON.parse(n.getAttribute('data-detail')||'null'); }catch(e){ det=null; }
+      if(!det) return;
+      if(Array.isArray(det.images)) det.images = det.images.map(s=>externalize(s));
+      det.body = externalizeHtml(det.body);
+      if(Array.isArray(det.substeps)) det.substeps.forEach(ss=>{
+        if(!ss) return;
+        if(Array.isArray(ss.images)) ss.images = ss.images.map(s=>externalize(s));
+        ss.desc = externalizeHtml(ss.desc);
+      });
+      if(Array.isArray(det.links)) det.links.forEach(l=>{
+        if(l && l.type==='file' && l.data) l.data = externalize(l.data, l.fname || l.text);
+      });
+      n.setAttribute('data-detail', JSON.stringify(det));
+    });
+    clone.querySelectorAll('.flow-rail').forEach(r=>r.remove());
+    // 清掉图片放大器残留的 base64 src（点开过的图会留在 #imgviewImg 上）
+    const _iv = clone.querySelector('#imgviewImg'); if(_iv) _iv.removeAttribute('src');
+    const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    files.unshift({name:'SOP流程.html', bytes:new TextEncoder().encode(html)});
+    // 打包说明
+    const today = new Date().toISOString().slice(0,10);
+    let readme =
+      '【SOP 流程 — 打包说明】\n\n' +
+      '1. 先把本压缩包【完整解压到一个文件夹】，再双击打开里面的 SOP流程.html。\n' +
+      '   ⚠️ 不要直接在压缩包里双击打开，否则图片/视频/附件会失效。\n' +
+      '2. SOP流程.html 必须和 assets 文件夹放在一起，不能只单独拷贝 HTML。\n' +
+      '3. 如果你编辑后点了「保存」，浏览器只会下载新的 SOP流程.html；\n' +
+      '   要再发给别人时，请重新点「导出 ZIP」重新打包，或手动把 assets 文件夹一起带上。\n';
+    if(externalRefs.length){
+      readme += '\n【需手动确认的外部文件】\n' +
+        '以下文件是相对路径引用，浏览器无法自动打进压缩包，\n' +
+        '请确认它们已经放在 assets 文件夹里再发出去：\n' +
+        externalRefs.map(p=>'  - '+p).join('\n') + '\n';
+    }
+    files.push({name:'打包说明.txt', bytes:new TextEncoder().encode(readme)});
+    // 下载
+    const blob = _buildZip(files);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'SOP流程_打包_'+today+'.zip';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    _restoreAfterExport();
+    if(externalRefs.length){
+      alert('已导出 ZIP。\n\n注意：有 '+externalRefs.length+' 个外部文件（如视频）浏览器无法自动打包，\n请把以下文件手动放进压缩包的 assets 文件夹：\n'+externalRefs.join('\n'));
+    }
+    _exportToast();
   }
 
   /* ============ 全局搜索 ============ */
