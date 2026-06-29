@@ -1072,43 +1072,44 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   to{ opacity:1; transform:translateY(0); }
 }
 
+/* 字号与全局规范统一：卡片标题15 / 描述13.5 / 元信息13 / 正文14 */
 .ni-close{
   background:none; border:1px solid var(--line); border-radius:var(--r);
-  padding:4px 12px; font-size:12px; font-weight:600; color:var(--muted);
+  padding:5px 13px; font-size:13px; font-weight:600; color:var(--muted);
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
 .ni-card{
   background:var(--card-bg); border:1.5px solid var(--card-bd); border-radius:var(--r);
-  padding:12px 14px; width:100%; box-sizing:border-box;
+  padding:14px 16px; width:100%; box-sizing:border-box;
 }
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
-  width:22px; height:22px; border-radius:5px; background:#e3e9f1;
-  color:var(--accent); font-size:11px; font-weight:700; margin-bottom:6px;
+  width:24px; height:24px; border-radius:5px; background:#e3e9f1;
+  color:var(--accent); font-size:12px; font-weight:700; margin-bottom:6px;
 }
-.ni-card .ni-name{ font-size:13px; font-weight:700; margin:0 0 4px; line-height:1.4; }
-.ni-card .ni-desc{ font-size:12px; color:#5a5e6e; line-height:1.55; margin:0; }
+.ni-card .ni-name{ font-size:15px; font-weight:700; margin:0 0 4px; line-height:1.4; }
+.ni-card .ni-desc{ font-size:13.5px; color:#5a5e6e; line-height:1.55; margin:0; }
 .node-inline-arrow{
   display:flex; flex-direction:column; align-items:center;
   width:100%; padding:4px 0;
 }
 .node-inline-arrow .ni-line{ width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
-.node-inline-arrow .ni-tip{ font-size:13px; color:#8a96b8; line-height:1; }
+.node-inline-arrow .ni-tip{ font-size:14px; color:#8a96b8; line-height:1; }
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
-  font-size:12px; color:#5a5e6e; margin-bottom:10px;
+  font-size:13px; color:var(--muted); margin-bottom:12px;
 }
 .ni-meta-row b{ color:var(--ink); font-weight:600; }
 .ni-body{
-  font-size:13px; color:#5a5e6e; line-height:1.65;
+  font-size:14px; color:#5a5e6e; line-height:1.6;
   background:var(--paper); border:1px solid var(--line);
-  border-radius:var(--r); padding:10px 12px;
-  margin-bottom:12px; width:100%; max-width:100%; box-sizing:border-box;
+  border-radius:var(--r); padding:12px 14px;
+  margin-bottom:14px; width:100%; max-width:100%; box-sizing:border-box;
 }
 .ni-ss-title{
-  font-size:12px; font-weight:700; color:var(--accent);
-  letter-spacing:.04em; margin-bottom:8px;
+  font-size:15px; font-weight:800; color:var(--ink);
+  margin-bottom:10px;
 }
 /* 尊重“减弱动态效果” */
 @media (prefers-reduced-motion: reduce){
