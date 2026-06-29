@@ -1027,12 +1027,12 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .module-panel.active .stage.detail-active .steps.has-expanded{
   display:flex !important; flex-direction:column; align-items:flex-start; gap:0;
 }
-/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度与水平位置，不拉伸 */
+/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度，统一靠左对齐，不拉伸 */
 .steps.has-expanded > .node.node-expanded,
 .steps.has-expanded > .node-inline-substeps{
   width:var(--card-w, 100%) !important;
   max-width:100%;
-  margin-left:var(--card-x, 0px);
+  margin-left:0;
 }
 .steps.has-expanded > .node:not(.node-expanded),
 .steps.has-expanded > .step-arrow,
@@ -3802,12 +3802,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     // 记录被点卡片切换前的几何信息：
     //  - top：布局切换后用滚动补偿，保证卡片“留在原地”、不整页跳动
-    //  - width / left：锁定展开后卡片与子步骤的宽度和水平位置 = 原始格子，不拉伸
+    //  - width：锁定展开后卡片与子步骤的宽度 = 原始格子，不拉伸；统一靠左展示
     const cardRect  = node.getBoundingClientRect();
-    const stepsRect = stepsEl.getBoundingClientRect();
     const beforeTop = cardRect.top;
     stepsEl.style.setProperty('--card-w', Math.round(cardRect.width) + 'px');
-    stepsEl.style.setProperty('--card-x', Math.round(cardRect.left - stepsRect.left) + 'px');
 
     stepsEl.classList.add('has-expanded');
     node.classList.add('node-expanded');
@@ -3906,7 +3904,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       if(stepsEl){
         stepsEl.classList.remove('has-expanded');
         stepsEl.style.removeProperty('--card-w');
-        stepsEl.style.removeProperty('--card-x');
       }
       node.classList.remove('node-expanded');
       if(wrap) wrap.remove();
@@ -3914,7 +3911,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     if(immediate || !wrap){ finish(); return; }
 
-    // 平滑收起：子步骤容器先收拢，再恢复其他卡片
+    // 快速收起：返回时不要慢吞吞，用更短的过渡（展开仍保持缓慢）
+    wrap.style.transition = 'max-height .16s ease, opacity .12s ease';
     wrap.style.maxHeight = wrap.scrollHeight + 'px';
     wrap.offsetHeight;                 // 强制回流，确保过渡生效
     wrap.classList.remove('show');
@@ -3922,7 +3920,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     let done = false;
     const onEnd = ()=>{ if(done) return; done = true; finish(); };
     wrap.addEventListener('transitionend', onEnd, { once:true });
-    setTimeout(onEnd, 550);            // 兜底，防过渡事件丢失
+    setTimeout(onEnd, 200);            // 兜底，防过渡事件丢失
   }
 
   /* ---- 步骤下钻：详情页 ---- */
