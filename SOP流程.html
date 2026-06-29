@@ -1023,52 +1023,101 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 /* ============================================================
    内联展开子步骤（点卡片后在原位向下展开，其他卡片隐藏）
    ============================================================ */
-.steps.has-expanded > .node:not(.node-expanded),
-.steps.has-expanded > .step-arrow { display:none !important; }
-.node.node-expanded { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-soft); }
-
-.node-inline-substeps {
-  display:flex; flex-direction:column; align-items:flex-start;
-  padding:8px 0 16px; gap:0;
+/* 展开态：网格切换为单列竖向流，被点卡片保持原宽度置顶，其余卡片淡出折叠 */
+.module-panel.active .stage.detail-active .steps.has-expanded{
+  display:flex !important; flex-direction:column; align-items:flex-start; gap:0;
 }
-.ni-close {
+/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度与水平位置，不拉伸 */
+.steps.has-expanded > .node.node-expanded,
+.steps.has-expanded > .node-inline-substeps{
+  width:var(--card-w, 100%) !important;
+  max-width:100%;
+  margin-left:var(--card-x, 0px);
+}
+.steps.has-expanded > .node:not(.node-expanded),
+.steps.has-expanded > .step-arrow,
+.steps.has-expanded > .add-step{
+  /* 用动画淡出折叠，避免“整页跳变”的生硬感 */
+  animation:ni-card-out .22s ease forwards;
+  pointer-events:none;
+}
+@keyframes ni-card-out{
+  from{ opacity:1; }
+  to  { opacity:0; height:0; margin:0; padding:0; border-width:0; overflow:hidden; }
+}
+.node.node-expanded{
+  order:-1;                                  /* 始终排到本阶段最前，减少纵向跳动 */
+  border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+/* 子步骤容器：用 max-height + opacity 过渡“缓慢展开”，配合子元素逐个淡入 */
+.node-inline-substeps{
+  display:flex; flex-direction:column; align-items:flex-start;
+  padding:10px 0 16px; gap:0;
+  overflow:hidden;
+  max-height:0; opacity:0;
+  transition:max-height .5s cubic-bezier(.22,1,.36,1), opacity .4s ease;
+}
+.node-inline-substeps.show{ max-height:4000px; opacity:1; }
+
+/* 子元素逐个出现：默认隐藏 + 上移，.show 时按 --i 延迟依次落位 */
+.node-inline-substeps > *{
+  opacity:0; transform:translateY(14px);
+}
+.node-inline-substeps.show > *{
+  animation:ni-item-in .42s cubic-bezier(.34,1.4,.64,1) forwards;
+  animation-delay:calc(var(--i, 0) * .09s);
+}
+@keyframes ni-item-in{
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.ni-close{
   background:none; border:1px solid var(--line); border-radius:var(--r);
   padding:4px 12px; font-size:12px; font-weight:600; color:var(--muted);
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
-.ni-close:hover { background:var(--paper); color:var(--ink); }
-.ni-card {
+.ni-close:hover{ background:var(--paper); color:var(--ink); }
+.ni-card{
   background:var(--card-bg); border:1.5px solid var(--card-bd); border-radius:var(--r);
-  padding:12px 14px; width:var(--card-w, 200px); box-sizing:border-box;
+  padding:12px 14px; width:100%; box-sizing:border-box;
 }
-.ni-card .ni-num {
+.ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
   width:22px; height:22px; border-radius:5px; background:#e3e9f1;
   color:var(--accent); font-size:11px; font-weight:700; margin-bottom:6px;
 }
-.ni-card .ni-name { font-size:13px; font-weight:700; margin:0 0 4px; line-height:1.4; }
-.ni-card .ni-desc { font-size:12px; color:#5a5e6e; line-height:1.55; margin:0; }
-.node-inline-arrow {
+.ni-card .ni-name{ font-size:13px; font-weight:700; margin:0 0 4px; line-height:1.4; }
+.ni-card .ni-desc{ font-size:12px; color:#5a5e6e; line-height:1.55; margin:0; }
+.node-inline-arrow{
   display:flex; flex-direction:column; align-items:center;
-  width:var(--card-w, 200px); padding:4px 0;
+  width:100%; padding:4px 0;
 }
-.node-inline-arrow .ni-line { width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
-.node-inline-arrow .ni-tip  { font-size:13px; color:#8a96b8; line-height:1; }
-.ni-meta-row {
+.node-inline-arrow .ni-line{ width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
+.node-inline-arrow .ni-tip{ font-size:13px; color:#8a96b8; line-height:1; }
+.ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
   font-size:12px; color:#5a5e6e; margin-bottom:10px;
 }
-.ni-meta-row b { color:var(--ink); font-weight:600; }
-.ni-body {
+.ni-meta-row b{ color:var(--ink); font-weight:600; }
+.ni-body{
   font-size:13px; color:#5a5e6e; line-height:1.65;
   background:var(--paper); border:1px solid var(--line);
   border-radius:var(--r); padding:10px 12px;
-  margin-bottom:12px; max-width:var(--card-w, 200px);
-  width:100%;
+  margin-bottom:12px; width:100%; max-width:100%; box-sizing:border-box;
 }
-.ni-ss-title {
+.ni-ss-title{
   font-size:12px; font-weight:700; color:var(--accent);
   letter-spacing:.04em; margin-bottom:8px;
+}
+/* 尊重“减弱动态效果” */
+@media (prefers-reduced-motion: reduce){
+  .node-inline-substeps{ transition:none; }
+  .node-inline-substeps > *,
+  .node-inline-substeps.show > *{ animation:none; opacity:1; transform:none; }
+  .steps.has-expanded > .node:not(.node-expanded),
+  .steps.has-expanded > .step-arrow,
+  .steps.has-expanded > .add-step{ animation:none; display:none !important; }
 }
 
 /* ============================================================
@@ -3743,13 +3792,23 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
   function expandNodeInline(node){
     if(_expandedNode === node){ collapseNodeInline(); return; }
-    collapseNodeInline();
+    collapseNodeInline(true);   // 立即清掉上一个，不等动画
 
     node._detail = node._detail || {owner:'—',time:'—',freq:'—',body:'',images:[],links:[]};
     node._detail.substeps = node._detail.substeps || [];
 
     const stepsEl = node.closest('.steps');
     if(!stepsEl) return;
+
+    // 记录被点卡片切换前的几何信息：
+    //  - top：布局切换后用滚动补偿，保证卡片“留在原地”、不整页跳动
+    //  - width / left：锁定展开后卡片与子步骤的宽度和水平位置 = 原始格子，不拉伸
+    const cardRect  = node.getBoundingClientRect();
+    const stepsRect = stepsEl.getBoundingClientRect();
+    const beforeTop = cardRect.top;
+    stepsEl.style.setProperty('--card-w', Math.round(cardRect.width) + 'px');
+    stepsEl.style.setProperty('--card-x', Math.round(cardRect.left - stepsRect.left) + 'px');
+
     stepsEl.classList.add('has-expanded');
     node.classList.add('node-expanded');
 
@@ -3819,19 +3878,51 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       });
     }
 
-    const stepsWrap = stepsEl.closest('.steps-wrap') || stepsEl.parentElement;
-    stepsWrap.appendChild(wrap);
+    // 插到被点卡片正下方（同一 flex 列内），子步骤紧贴它向下展开
+    node.insertAdjacentElement('afterend', wrap);
+
+    // 给每个子元素设置递增延迟序号，实现“逐个缓慢出现”
+    [...wrap.children].forEach((el, i)=> el.style.setProperty('--i', i));
+
+    // 滚动补偿：把卡片拉回它原来的视口位置，消除“整体移位”
+    const afterTop = node.getBoundingClientRect().top;
+    const delta = afterTop - beforeTop;
+    if(Math.abs(delta) > 0.5) window.scrollBy(0, delta);
+
+    // 下一帧加 .show，触发高度展开 + 子元素依次淡入
+    requestAnimationFrame(()=> requestAnimationFrame(()=> wrap.classList.add('show')));
+
     _expandedNode = node;
   }
 
-  function collapseNodeInline(){
+  function collapseNodeInline(immediate){
     if(!_expandedNode) return;
-    const stepsEl = _expandedNode.closest('.steps');
-    if(stepsEl) stepsEl.classList.remove('has-expanded');
-    _expandedNode.classList.remove('node-expanded');
-    const stepsWrap = stepsEl ? (stepsEl.closest('.steps-wrap') || stepsEl.parentElement) : null;
-    if(stepsWrap){ const sub = stepsWrap.querySelector('.node-inline-substeps'); if(sub) sub.remove(); }
+    const node = _expandedNode;
+    const stepsEl = node.closest('.steps');
+    const wrap = stepsEl ? stepsEl.querySelector('.node-inline-substeps') : null;
     _expandedNode = null;
+
+    const finish = ()=>{
+      if(stepsEl){
+        stepsEl.classList.remove('has-expanded');
+        stepsEl.style.removeProperty('--card-w');
+        stepsEl.style.removeProperty('--card-x');
+      }
+      node.classList.remove('node-expanded');
+      if(wrap) wrap.remove();
+    };
+
+    if(immediate || !wrap){ finish(); return; }
+
+    // 平滑收起：子步骤容器先收拢，再恢复其他卡片
+    wrap.style.maxHeight = wrap.scrollHeight + 'px';
+    wrap.offsetHeight;                 // 强制回流，确保过渡生效
+    wrap.classList.remove('show');
+    wrap.style.maxHeight = '0';
+    let done = false;
+    const onEnd = ()=>{ if(done) return; done = true; finish(); };
+    wrap.addEventListener('transitionend', onEnd, { once:true });
+    setTimeout(onEnd, 550);            // 兜底，防过渡事件丢失
   }
 
   /* ---- 步骤下钻：详情页 ---- */
