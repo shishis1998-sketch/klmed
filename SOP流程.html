@@ -1083,17 +1083,17 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
-/* 子步骤卡片：淡蓝底 + 蓝色描边，与灰底阶段卡片区分；无前后关系，不用箭头，纯堆叠 */
+/* 子步骤卡片：纯白底 + 灰色描边，与灰底阶段卡片区分；无前后关系，不用箭头，纯堆叠 */
 .ni-card{
   position:relative;
-  background:#eef5fc; border:1.5px solid #d3e3f4; border-radius:var(--r);
+  background:#fff; border:1.5px solid var(--line); border-radius:var(--r);
   padding:14px 16px; width:100%; box-sizing:border-box;
   margin-bottom:10px;
 }
 .ni-card:last-child{ margin-bottom:0; }
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
-  width:24px; height:24px; border-radius:5px; background:#d8e7f7;
+  width:24px; height:24px; border-radius:5px; background:#eef1f4;
   color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
 }
 /* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一。
