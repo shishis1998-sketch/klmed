@@ -1090,12 +1090,17 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 }
 .ni-card .ni-name{ font-size:15px; font-weight:700; margin:0 0 4px; line-height:1.4; }
 .ni-card .ni-desc{ font-size:13.5px; color:#5a5e6e; line-height:1.55; margin:0; }
+/* 子步骤之间的连接器：竖线 + CSS 人字形箭头，居中、连贯、自然 */
 .node-inline-arrow{
   display:flex; flex-direction:column; align-items:center;
-  width:100%; padding:4px 0;
+  width:100%; padding:0; margin:2px 0;
 }
-.node-inline-arrow .ni-line{ width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
-.node-inline-arrow .ni-tip{ font-size:14px; color:#8a96b8; line-height:1; }
+.node-inline-arrow .ni-line{ width:2px; height:20px; background:#c6d0e6; }
+.node-inline-arrow .ni-chev{
+  width:9px; height:9px; margin-top:-6px;
+  border-right:2px solid #c6d0e6; border-bottom:2px solid #c6d0e6;
+  transform:rotate(45deg);
+}
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
   font-size:13px; color:var(--muted); margin-bottom:12px;
@@ -3864,7 +3869,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         if(i > 0){
           const arr = document.createElement('div');
           arr.className = 'node-inline-arrow';
-          arr.innerHTML = '<div class="ni-line"></div><div class="ni-tip">▼</div>';
+          arr.innerHTML = '<span class="ni-line"></span><span class="ni-chev"></span>';
           wrap.appendChild(arr);
         }
         const card = document.createElement('div');
