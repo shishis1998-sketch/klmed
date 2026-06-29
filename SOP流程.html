@@ -1027,12 +1027,12 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .module-panel.active .stage.detail-active .steps.has-expanded{
   display:flex !important; flex-direction:column; align-items:flex-start; gap:0;
 }
-/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度与水平位置，不拉伸 */
+/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度，统一靠左对齐，不拉伸 */
 .steps.has-expanded > .node.node-expanded,
 .steps.has-expanded > .node-inline-substeps{
   width:var(--card-w, 100%) !important;
   max-width:100%;
-  margin-left:var(--card-x, 0px);
+  margin-left:0;
 }
 .steps.has-expanded > .node:not(.node-expanded),
 .steps.has-expanded > .step-arrow,
@@ -1072,43 +1072,49 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   to{ opacity:1; transform:translateY(0); }
 }
 
+/* 字号与全局规范统一：卡片标题15 / 描述13.5 / 元信息13 / 正文14 */
 .ni-close{
   background:none; border:1px solid var(--line); border-radius:var(--r);
-  padding:4px 12px; font-size:12px; font-weight:600; color:var(--muted);
+  padding:5px 13px; font-size:13px; font-weight:600; color:var(--muted);
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
 .ni-card{
   background:var(--card-bg); border:1.5px solid var(--card-bd); border-radius:var(--r);
-  padding:12px 14px; width:100%; box-sizing:border-box;
+  padding:14px 16px; width:100%; box-sizing:border-box;
 }
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
-  width:22px; height:22px; border-radius:5px; background:#e3e9f1;
-  color:var(--accent); font-size:11px; font-weight:700; margin-bottom:6px;
+  width:24px; height:24px; border-radius:5px; background:#e3e9f1;
+  color:var(--accent); font-size:12px; font-weight:700; margin-bottom:6px;
 }
-.ni-card .ni-name{ font-size:13px; font-weight:700; margin:0 0 4px; line-height:1.4; }
-.ni-card .ni-desc{ font-size:12px; color:#5a5e6e; line-height:1.55; margin:0; }
+.ni-card .ni-name{ font-size:15px; font-weight:700; margin:0 0 4px; line-height:1.4; }
+.ni-card .ni-desc{ font-size:13.5px; color:#5a5e6e; line-height:1.55; margin:0; }
+/* 子步骤之间的连接器：竖线 + CSS 人字形箭头，居中、连贯、自然 */
 .node-inline-arrow{
   display:flex; flex-direction:column; align-items:center;
-  width:100%; padding:4px 0;
+  width:100%; padding:0; margin:2px 0;
 }
-.node-inline-arrow .ni-line{ width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
-.node-inline-arrow .ni-tip{ font-size:13px; color:#8a96b8; line-height:1; }
+.node-inline-arrow .ni-line{ width:2px; height:20px; background:#c6d0e6; }
+.node-inline-arrow .ni-chev{
+  width:9px; height:9px; margin-top:-6px;
+  border-right:2px solid #c6d0e6; border-bottom:2px solid #c6d0e6;
+  transform:rotate(45deg);
+}
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
-  font-size:12px; color:#5a5e6e; margin-bottom:10px;
+  font-size:13px; color:var(--muted); margin-bottom:12px;
 }
 .ni-meta-row b{ color:var(--ink); font-weight:600; }
 .ni-body{
-  font-size:13px; color:#5a5e6e; line-height:1.65;
+  font-size:14px; color:#5a5e6e; line-height:1.6;
   background:var(--paper); border:1px solid var(--line);
-  border-radius:var(--r); padding:10px 12px;
-  margin-bottom:12px; width:100%; max-width:100%; box-sizing:border-box;
+  border-radius:var(--r); padding:12px 14px;
+  margin-bottom:14px; width:100%; max-width:100%; box-sizing:border-box;
 }
 .ni-ss-title{
-  font-size:12px; font-weight:700; color:var(--accent);
-  letter-spacing:.04em; margin-bottom:8px;
+  font-size:15px; font-weight:800; color:var(--ink);
+  margin-bottom:10px;
 }
 /* 尊重“减弱动态效果” */
 @media (prefers-reduced-motion: reduce){
@@ -3802,12 +3808,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     // 记录被点卡片切换前的几何信息：
     //  - top：布局切换后用滚动补偿，保证卡片“留在原地”、不整页跳动
-    //  - width / left：锁定展开后卡片与子步骤的宽度和水平位置 = 原始格子，不拉伸
+    //  - width：锁定展开后卡片与子步骤的宽度 = 原始格子，不拉伸；统一靠左展示
     const cardRect  = node.getBoundingClientRect();
-    const stepsRect = stepsEl.getBoundingClientRect();
     const beforeTop = cardRect.top;
     stepsEl.style.setProperty('--card-w', Math.round(cardRect.width) + 'px');
-    stepsEl.style.setProperty('--card-x', Math.round(cardRect.left - stepsRect.left) + 'px');
 
     stepsEl.classList.add('has-expanded');
     node.classList.add('node-expanded');
@@ -3865,7 +3869,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
         if(i > 0){
           const arr = document.createElement('div');
           arr.className = 'node-inline-arrow';
-          arr.innerHTML = '<div class="ni-line"></div><div class="ni-tip">▼</div>';
+          arr.innerHTML = '<span class="ni-line"></span><span class="ni-chev"></span>';
           wrap.appendChild(arr);
         }
         const card = document.createElement('div');
@@ -3906,7 +3910,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       if(stepsEl){
         stepsEl.classList.remove('has-expanded');
         stepsEl.style.removeProperty('--card-w');
-        stepsEl.style.removeProperty('--card-x');
       }
       node.classList.remove('node-expanded');
       if(wrap) wrap.remove();
@@ -3914,7 +3917,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 
     if(immediate || !wrap){ finish(); return; }
 
-    // 平滑收起：子步骤容器先收拢，再恢复其他卡片
+    // 快速收起：返回时不要慢吞吞，用更短的过渡（展开仍保持缓慢）
+    wrap.style.transition = 'max-height .16s ease, opacity .12s ease';
     wrap.style.maxHeight = wrap.scrollHeight + 'px';
     wrap.offsetHeight;                 // 强制回流，确保过渡生效
     wrap.classList.remove('show');
@@ -3922,7 +3926,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     let done = false;
     const onEnd = ()=>{ if(done) return; done = true; finish(); };
     wrap.addEventListener('transitionend', onEnd, { once:true });
-    setTimeout(onEnd, 550);            // 兜底，防过渡事件丢失
+    setTimeout(onEnd, 200);            // 兜底，防过渡事件丢失
   }
 
   /* ---- 步骤下钻：详情页 ---- */
