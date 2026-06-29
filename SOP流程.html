@@ -1100,12 +1100,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-size:13px; color:var(--muted); margin-bottom:12px;
 }
 .ni-meta-row b{ color:var(--ink); font-weight:600; }
-.ni-body{
-  font-size:14px; color:#5a5e6e; line-height:1.6;
-  background:var(--paper); border:1px solid var(--line);
-  border-radius:var(--r); padding:12px 14px;
-  margin-bottom:14px; width:100%; max-width:100%; box-sizing:border-box;
-}
 .ni-ss-title{
   font-size:15px; font-weight:800; color:var(--ink);
   margin-bottom:10px;
@@ -3836,14 +3830,6 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
       .map(([label, val]) => `<span class="ni-meta-item"><b>${label}：</b>${escapeHtml(val)}</span>`)
       .join('');
     wrap.appendChild(metaRow);
-
-    // 详细说明
-    if(det.body && det.body.trim()){
-      const body = document.createElement('div');
-      body.className = 'ni-body';
-      body.innerHTML = det.body;
-      wrap.appendChild(body);
-    }
 
     // 子步骤标题（仅有子步骤时显示）
     if(substeps.length > 0){
