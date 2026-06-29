@@ -1021,6 +1021,41 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 }
 
 /* ============================================================
+   内联展开子步骤（点卡片后在原位向下展开，其他卡片隐藏）
+   ============================================================ */
+.steps.has-expanded > .node:not(.node-expanded),
+.steps.has-expanded > .step-arrow { display:none !important; }
+.node.node-expanded { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-soft); }
+
+.node-inline-substeps {
+  display:flex; flex-direction:column; align-items:flex-start;
+  padding:8px 0 16px; gap:0;
+}
+.ni-close {
+  background:none; border:1px solid var(--line); border-radius:var(--r);
+  padding:4px 12px; font-size:12px; font-weight:600; color:var(--muted);
+  cursor:pointer; margin-bottom:12px; transition:.12s;
+}
+.ni-close:hover { background:var(--paper); color:var(--ink); }
+.ni-card {
+  background:var(--card-bg); border:1.5px solid var(--card-bd); border-radius:var(--r);
+  padding:12px 14px; width:var(--card-w, 200px); box-sizing:border-box;
+}
+.ni-card .ni-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:5px; background:#e3e9f1;
+  color:var(--accent); font-size:11px; font-weight:700; margin-bottom:6px;
+}
+.ni-card .ni-name { font-size:13px; font-weight:700; margin:0 0 4px; line-height:1.4; }
+.ni-card .ni-desc { font-size:12px; color:#5a5e6e; line-height:1.55; margin:0; }
+.node-inline-arrow {
+  display:flex; flex-direction:column; align-items:center;
+  width:var(--card-w, 200px); padding:4px 0;
+}
+.node-inline-arrow .ni-line { width:2px; height:16px; background:#c8d0e8; border-radius:1px; }
+.node-inline-arrow .ni-tip  { font-size:13px; color:#8a96b8; line-height:1; }
+
+/* ============================================================
    下钻：步骤详情页（覆盖右侧内容区）
    ============================================================ */
 #stepView{
@@ -3678,15 +3713,77 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   const _saveFile = saveFile;
   saveFile = function(){ closeStep(); _saveFile(); };
 
-  /* ---- 点卡片下钻（只读态）；编辑态下点卡片改文字、不下钻 ---- */
+  /* ---- 点卡片内联展开子步骤（只读态）；编辑态不展开 ---- */
   document.addEventListener('click', e=>{
     const node = e.target.closest('.module-panel.active .node');
     if(!node) return;
-    if(document.body.classList.contains('edit-all')) return;   // 全局编辑模式：不下钻
-    if(node.classList.contains('editing')) return;             // 单卡编辑中：不下钻
+    if(document.body.classList.contains('edit-all')) return;
+    if(node.classList.contains('editing')) return;
     if(e.target.closest('button, a, input, textarea, select, [contenteditable="true"], .node-bar')) return;
-    openStep(node);
+    expandNodeInline(node);
   });
+
+  let _expandedNode = null;
+
+  function expandNodeInline(node){
+    if(_expandedNode === node){ collapseNodeInline(); return; }
+    collapseNodeInline();
+
+    node._detail = node._detail || {owner:'—',time:'—',freq:'—',body:'',images:[],links:[]};
+    node._detail.substeps = node._detail.substeps || [];
+
+    const stepsEl = node.closest('.steps');
+    if(!stepsEl) return;
+    stepsEl.classList.add('has-expanded');
+    node.classList.add('node-expanded');
+
+    const substeps = node._detail.substeps;
+    const wrap = document.createElement('div');
+    wrap.className = 'node-inline-substeps';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'ni-close'; closeBtn.type = 'button';
+    closeBtn.textContent = '← 返回';
+    closeBtn.onclick = collapseNodeInline;
+    wrap.appendChild(closeBtn);
+
+    if(substeps.length === 0){
+      const empty = document.createElement('p');
+      empty.style.cssText = 'font-size:13px;color:#9ba3b8;padding:4px 0;';
+      empty.textContent = '暂无子步骤';
+      wrap.appendChild(empty);
+    } else {
+      substeps.forEach((ss, i)=>{
+        if(i > 0){
+          const arr = document.createElement('div');
+          arr.className = 'node-inline-arrow';
+          arr.innerHTML = '<div class="ni-line"></div><div class="ni-tip">▼</div>';
+          wrap.appendChild(arr);
+        }
+        const card = document.createElement('div');
+        card.className = 'ni-card';
+        card.innerHTML =
+          `<div class="ni-num">${i+1}</div>` +
+          `<p class="ni-name">${ss.name ? escapeHtml(ss.name) : ''}</p>` +
+          `<p class="ni-desc">${ss.desc || ''}</p>`;
+        wrap.appendChild(card);
+      });
+    }
+
+    const stepsWrap = stepsEl.closest('.steps-wrap') || stepsEl.parentElement;
+    stepsWrap.appendChild(wrap);
+    _expandedNode = node;
+  }
+
+  function collapseNodeInline(){
+    if(!_expandedNode) return;
+    const stepsEl = _expandedNode.closest('.steps');
+    if(stepsEl) stepsEl.classList.remove('has-expanded');
+    _expandedNode.classList.remove('node-expanded');
+    const stepsWrap = stepsEl ? (stepsEl.closest('.steps-wrap') || stepsEl.parentElement) : null;
+    if(stepsWrap){ const sub = stepsWrap.querySelector('.node-inline-substeps'); if(sub) sub.remove(); }
+    _expandedNode = null;
+  }
 
   /* ---- 步骤下钻：详情页 ---- */
   function openStep(node){
@@ -3701,6 +3798,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   }
   function closeStep(){
     currentStep = null;
+    collapseNodeInline();
     const sv = document.getElementById('stepView');
     if(sv){ sv.classList.remove('show'); sv.innerHTML = ''; }
     updateBreadcrumb();
@@ -3807,8 +3905,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
     });
   }
 
-  /* ESC 关闭下钻页 */
-  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && currentStep) closeStep(); });
+  /* ESC 关闭展开 */
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape'){ if(_expandedNode) collapseNodeInline(); else if(currentStep) closeStep(); } });
 
   /* 编辑阶段标题时，左侧栏名称 / 面包屑实时同步 */
   let _syncRAF = null;
