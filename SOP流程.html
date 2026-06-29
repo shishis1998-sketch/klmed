@@ -380,7 +380,7 @@
 
   /* 浮动格式工具条 */
   #fmtbar{
-    position:fixed;z-index:999;display:none;gap:2px;
+    position:fixed;z-index:999;display:none;gap:2px;align-items:center;
     background:#222;border-radius:4px;padding:5px;box-shadow:0 8px 24px rgba(0,0,0,.3);
     transform:translate(-50%,-100%);
   }
@@ -391,14 +391,12 @@
   }
   #fmtbar button:hover{background:rgba(255,255,255,.2);}
   #fmtbar .sep{width:1px;background:rgba(255,255,255,.2);margin:3px 2px;}
-  #fmtbar input[type=color]{
-    width:28px;height:28px;border:none;background:none;cursor:pointer;padding:0;
-    border-radius:3px;
+  /* 固定主题色块：只给一组与整体配色一致的常用色，替代任意取色器 */
+  #fmtbar .fmt-color{
+    width:22px;height:22px;padding:0;border-radius:50%;
+    border:2px solid rgba(255,255,255,.25);background:var(--c);
   }
-  #fmtbar select{
-    background:#333;color:#fff;border:none;border-radius:3px;font-size:12px;
-    height:28px;cursor:pointer;
-  }
+  #fmtbar .fmt-color:hover{ border-color:#fff;background:var(--c); }
 
   .saved-toast{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
@@ -1959,15 +1957,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   <button onmousedown="cmd(event,'italic')" title="斜体"><i>I</i></button>
   <button onmousedown="cmd(event,'underline')" title="下划线"><u>U</u></button>
   <span class="sep"></span>
-  <select onmousedown="event.stopPropagation()" onchange="fontSize(this)" title="字号">
-    <option value="">字号</option>
-    <option value="2">小</option>
-    <option value="3">正常</option>
-    <option value="5">大</option>
-    <option value="6">特大</option>
-  </select>
+  <button class="fmt-color" style="--c:#354754" onmousedown="foreColor(event,'#354754')" title="默认色（深蓝灰）"></button>
+  <button class="fmt-color" style="--c:#0070c2" onmousedown="foreColor(event,'#0070c2')" title="商务蓝"></button>
+  <button class="fmt-color" style="--c:#fe9a00" onmousedown="foreColor(event,'#fe9a00')" title="活力橙"></button>
+  <button class="fmt-color" style="--c:#003f7a" onmousedown="foreColor(event,'#003f7a')" title="深海蓝"></button>
   <span class="sep"></span>
-  <input type="color" onmousedown="event.stopPropagation()" oninput="foreColor(this)" title="文字颜色" value="#003f7a">
   <button onmousedown="cmd(event,'removeFormat')" title="清除格式">⌫</button>
 </div>
 
@@ -2986,8 +2980,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     fmtbar.style.top = (r.top - 8) + 'px';
   });
   function cmd(e,c){ e.preventDefault(); document.execCommand(c,false,null); }
-  function foreColor(i){ document.execCommand('foreColor',false,i.value); }
-  function fontSize(s){ if(s.value) document.execCommand('fontSize',false,s.value); s.value=''; }
+  /* 用 onmousedown+preventDefault 触发，避免点击色块时选区被清空 */
+  function foreColor(e,c){ e.preventDefault(); document.execCommand('foreColor',false,c); }
   document.addEventListener('scroll',()=>fmtbar.style.display='none',true);
 
   // ESC 关闭详情弹窗；点击遮罩空白处也关闭
