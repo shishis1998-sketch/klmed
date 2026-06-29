@@ -1034,16 +1034,13 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   max-width:100%;
   margin-left:0;
 }
+/* 其余卡片 / 箭头 / 加卡片按钮：直接隐藏。
+   注意不能用动画把 padding/height 归零 —— .node 的 padding 带 !important，
+   会压过动画关键帧，导致塌不掉、残留 ~32px 空盒堆叠成大空白。直接 display:none 最稳。 */
 .steps.has-expanded > .node:not(.node-expanded),
 .steps.has-expanded > .step-arrow,
 .steps.has-expanded > .add-step{
-  /* 用动画淡出折叠，避免“整页跳变”的生硬感 */
-  animation:ni-card-out .22s ease forwards;
-  pointer-events:none;
-}
-@keyframes ni-card-out{
-  from{ opacity:1; }
-  to  { opacity:0; height:0; margin:0; padding:0; border-width:0; overflow:hidden; }
+  display:none !important;
 }
 .node.node-expanded{
   order:-1;                                  /* 始终排到本阶段最前，减少纵向跳动 */
