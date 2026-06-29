@@ -42,7 +42,7 @@ dashed-add(虚线)。
 
 > 项目核心。一张 `.node` 同时是"卡片""流程节点""工作流卡片"。
 
-**Purpose** 表示流程中的一个**步骤**;点击可下钻到 `#stepView` 详情。
+**Purpose** 表示流程中的一个**步骤**;点击在**原位内联展开**该步骤的元信息与子步骤(不再跳转下钻页)。
 
 **Visual** 灰底 `--card-bg #f3f4f6` + `1px var(--card-bd)` 边 + `10px` 圆角(APP 外壳标准);
 旧外壳下为白底 + `--shadow` + **彩色顶边 `border-top:4px`** 标识类型。内含:顶部操作条
@@ -66,9 +66,13 @@ dashed-add(虚线)。
 **Spacing** padding `15px 16px`(APP 外壳)/ `14px 16px`(旧);网格 `gap:var(--gutter)`;
 `node-bar` 下边距 6px。
 
-**Interaction** 整卡可点 → `openStep(node)` 下钻;hover 反馈;编辑模式下显示右上角编辑/删除
-(`body.edit-all` 或 `.editing` 时 `.node-bar` 才 `display:flex`);可拖拽排序(grip 触发
-`draggable`)。
+**Interaction** 整卡可点 → `expandNodeInline(node)` **原位展开**:被点卡片置顶并锁定原始格宽
+(`--card-w`)、其余同阶段卡片 `display:none` 隐藏,卡片下方滑出「返回 + 负责人/预计/频率 +
+子步骤卡片」,子步骤逐个淡入(详见 ANIMATION.md);点「← 返回」/ ESC 收起。编辑模式
+(`body.edit-all`)下展开视图额外提供「＋ 添加子步骤」与逐张改字/删除。hover 反馈;编辑模式
+下显示右上角编辑/删除(`.node-bar` `display:flex`);可拖拽排序(grip 触发 `draggable`)。
+
+> 注:旧的全屏下钻页 `#stepView` / `openStep` / `renderStepView` 已移除,改为上述内联展开。
 
 **Accessibility** 可编辑字段用 `contenteditable`,聚焦显示 `outline:2px dashed var(--accent)`;
 拖拽手柄/删除带 `title`;reduced-motion 关闭 hover 上浮与弹入弹出。
@@ -235,7 +239,7 @@ scroll-spy:`.is-current`(圆点蓝色放大 + 光晕)、`.is-passed`(灰)、`.is
 **States** `.show`(可见);详情用 `visibility+opacity` 过渡;面板从点击卡片处缩放展开
 (`scale(.92)→1`,`transform-origin` 由 JS 设)。
 
-**Interaction** 打开 `openDetail()/openStep()`;点遮罩或返回关闭;reduced-motion 简化为纯淡入。
+**Interaction** 打开 `openDetail()`;点遮罩或返回关闭;reduced-motion 简化为纯淡入。
 
 **Accessibility** 遮罩 `pointer-events` 随状态切换;焦点可达;返回按钮显著。
 
@@ -299,19 +303,19 @@ scroll-spy:`.is-current`(圆点蓝色放大 + 光晕)、`.is-passed`(灰)、`.is
 
 ## 16. Detail Sections — Stat/KPI Cards、Checklist、Link Item、Image Grid
 
-详情弹窗 `.detail-body` 与下钻页 `#stepView` 内的可复用块:
+详情弹窗 `.detail-body` 与卡片内联展开区 `.node-inline-substeps` 内的可复用块:
 
 | 子组件 | Purpose | Visual |
 |--------|---------|--------|
-| **属性卡 `.attr`(Stat/KPI 卡)** | 显示负责人/耗时/频率等键值 | 白底 + `1px var(--line)` + `4px`;`label`(11px `#8a8270`)+ `val`(14px/700)。三栏 `attr-grid` |
-| **描述框 `.d-desc` / `.step-note`** | 长描述正文 | 白底框,`line-height:1.7`,`min-height:80px` |
-| **清单/添加 `.add-link` / `.add-img` / `.add-substep`** | 虚线"添加项"按钮 | `1.5px dashed var(--line)` + 蓝字,hover `--accent-soft` |
+| **属性卡 `.attr`(Stat/KPI 卡)** | 详情弹窗显示负责人/耗时/频率等键值 | 白底 + `1px var(--line)` + `4px`;`label`(11px `#8a8270`)+ `val`(14px/700)。三栏 `attr-grid` |
+| **描述框 `.d-desc`** | 详情弹窗长描述正文 | 白底框,`line-height:1.7`,`min-height:80px` |
+| **清单/添加 `.add-link` / `.add-img` / `.ni-addsub`** | 虚线"添加项"按钮 | `1.5px dashed` + 蓝字,hover `--accent-soft`;`.ni-addsub`=内联展开里的「＋ 添加子步骤」,与子步骤卡片同宽 |
 | **链接项 `.link-item`** | 外链/附件条目 | 白底 + `1px` 边 + `4px`;图标(网址蓝/附件橙)+ 文字 + 删除;文件变体显示大小 |
-| **图片缩略 `.img-thumb` / `.ss-imgs`** | 截图附件 | `120×90` 覆盖裁切缩略,角标删除按钮;点开 `#imgview` 大图 |
-| **子步骤 `.substep`** | 下钻页内的子步骤大卡片 | 灰底 `--card-bg` + `--r`;序号 `.seq`(24×24 蓝字方块)+ 标题 16px/700 + 描述 + 图片 + 编辑栏 |
+| **图片缩略 `.img-thumb`** | 详情弹窗截图附件 | `120×90` 覆盖裁切缩略,角标删除按钮;点开 `#imgview` 大图 |
+| **内联子步骤卡 `.ni-card`** | 卡片内联展开里的子步骤小卡 | **淡蓝底 `#eef5fc` + `1.5px #d3e3f4` 边** + `--r`;序号 `.ni-num`(24×24 蓝字方块,底 `#d8e7f7`)+ 标题 `.ni-name` 与描述 `.ni-desc` **同 14px**(仅粗细/颜色区分);无连接箭头,纯堆叠 |
 
-**States** 多数含读/编辑两态:`.editing` 时显示输入边框、删除按钮、操作区;读模式 hover 才浮出
-`.ss-bar` 编辑/删除。
+**States** 内联子步骤卡 `.ni-card`:读态只读;编辑态(`.ni-card.editing`,随 `body.edit-all`)
+标题/描述变白底输入框、右上角浮出删除按钮 `.ni-del`。详情弹窗内的块同样含读/编辑两态。
 
 ---
 
