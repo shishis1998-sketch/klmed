@@ -3024,6 +3024,12 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 记录当前激活的模块
     const activeTab = document.querySelector('.module-tab.active');
     if(activeTab) document.getElementById('moduleTabs').dataset.activeModule = activeTab.dataset.module;
+    // 把侧栏「更新时间」刷新为今天（即最后一次保存/导出的日期）
+    const su = document.getElementById('sideUpdated');
+    if(su){
+      const d = new Date();
+      su.textContent = d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+    }
   }
   // 导出后把当前页面的路线导航重新建回来
   function _restoreAfterExport(){
