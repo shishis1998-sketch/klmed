@@ -3112,7 +3112,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     return new Blob([...parts, ...central, eocd], {type:'application/zip'});
   }
   function exportZip(){
-    closeStep();
+    closeDetail();
     _prepareExport();
     const files = [];                 // {name, bytes}
     const used = new Set();
