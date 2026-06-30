@@ -965,6 +965,17 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
   transform:translateY(-50%); width:3px; height:15px; border-radius:2px; background:var(--accent); }
 #appSidebar .stage-item.active .cnt{ color:var(--accent); }
 #appSidebar .stage-item.hit{ box-shadow:inset 3px 0 0 var(--gold); }
+/* ===== 编辑模式：拖拽排序手柄（模块 / 阶段 / 子步骤；步骤卡片用 .node-grip） ===== */
+#appSidebar .mod-head .drag-grip,
+#appSidebar .stage-item .drag-grip{ display:none; cursor:grab; color:#9aa3ae; font-size:14px; line-height:1; user-select:none; flex:none; }
+#appSidebar .mod-head .drag-grip:active,
+#appSidebar .stage-item .drag-grip:active{ cursor:grabbing; }
+body.edit-all #appSidebar .mod-head .drag-grip{ display:inline-flex; align-items:center; }
+#appSidebar .stage-item .drag-grip{ position:absolute; left:12px; top:50%; transform:translateY(-50%); }
+body.edit-all #appSidebar .stage-item .drag-grip{ display:inline-flex; }
+body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑态左侧让位给手柄，隐藏激活竖条 */
+#appSidebar .mod.dragging, #appSidebar .stage-item.dragging{ opacity:.4; }
+#appSidebar .mod.drag-over > .mod-head, #appSidebar .stage-item.drag-over{ box-shadow:0 -2px 0 0 var(--accent); }
 #appSidebar .add-stage{ margin:2px 0 0 24px; padding:7px 10px; border-radius:var(--r);
   font-size:12.5px; color:#aab2bd; cursor:pointer; display:flex; align-items:center; gap:6px; }
 #appSidebar .add-stage:hover{ background:var(--paper); color:var(--accent); }
@@ -1030,6 +1041,8 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 body.edit-all .module-panel.active .node .node-bar,
 .module-panel.active .node.editing .node-bar{ display:flex; opacity:1; }
 .module-panel.active .node .node-grip{ display:none; }
+/* 步骤卡片拖拽手柄：拖拽 JS 已就绪，仅需在编辑模式显示 */
+body.edit-all .module-panel.active .node .node-grip{ display:inline-flex; align-items:center; }
 /* 读模式精简：阶段控件、末尾加卡片仅在编辑模式显示 */
 .stage .stage-ctrl{ display:none !important; }
 body.edit-all .stage.detail-active .stage-ctrl{ display:flex !important; opacity:1 !important;
@@ -1184,6 +1197,14 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .add-step{
   display:none !important;
 }
+/* 子步骤拖拽手柄：编辑态显示在卡片左侧 */
+.ni-card .ni-grip{ display:none; position:absolute; left:9px; top:13px; cursor:grab;
+  color:#9aa3ae; font-size:14px; line-height:1; user-select:none; }
+.ni-card .ni-grip:active{ cursor:grabbing; }
+.ni-card.editing{ padding-left:30px; }
+.ni-card.editing .ni-grip{ display:inline-flex; }
+.ni-card.dragging{ opacity:.4; }
+.ni-card.drag-over{ box-shadow:0 -2px 0 0 var(--accent); }
 /* 可编辑字段：编辑态给个浅框，提示可输入 */
 .ni-card.editing .ni-name,
 .ni-card.editing .ni-desc{
@@ -3825,6 +3846,73 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ---- 左侧栏：模块→阶段 两级 ---- */
+  /* ============ 通用拖拽排序（垂直列表：模块 / 阶段 / 子步骤）============
+     手柄触发：按住 handle 才把 el 设为 draggable，避免误拖；
+     仅在全局编辑模式下生效；只允许同一容器（同 group）内排序；
+     落点用纵向中点判断，落定后回调 onReorder(dragEl, targetEl, after)。 */
+  let _sortDrag = null, _sortGroup = null;
+  function makeSortable(el, handle, group, onReorder){
+    if(!el || !handle) return;
+    handle.addEventListener('mousedown', ()=>{ if(document.body.classList.contains('edit-all')) el.setAttribute('draggable','true'); });
+    el.addEventListener('dragstart', e=>{
+      if(el.getAttribute('draggable')!=='true') return;
+      _sortDrag = el; _sortGroup = group; el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text','');
+      e.stopPropagation();
+    });
+    el.addEventListener('dragend', e=>{
+      el.classList.remove('dragging'); el.removeAttribute('draggable');
+      document.querySelectorAll('.drag-over').forEach(n=>n.classList.remove('drag-over'));
+      _sortDrag = null; _sortGroup = null; e.stopPropagation();
+    });
+    el.addEventListener('dragover', e=>{
+      if(_sortGroup!==group || !_sortDrag || _sortDrag===el) return;
+      if(_sortDrag.parentElement !== el.parentElement) return;   // 仅同容器内排序
+      e.preventDefault(); el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', ()=> el.classList.remove('drag-over'));
+    el.addEventListener('drop', e=>{
+      if(_sortGroup!==group || !_sortDrag || _sortDrag===el) return;
+      if(_sortDrag.parentElement !== el.parentElement) return;
+      e.preventDefault(); e.stopPropagation();
+      el.classList.remove('drag-over');
+      const r = el.getBoundingClientRect();
+      const after = e.clientY > r.top + r.height/2;
+      onReorder(_sortDrag, el, after);
+      // 重排可能重建 DOM 致 dragend 不触发，这里兜底清理拖拽状态
+      document.querySelectorAll('.drag-over,.dragging').forEach(n=>n.classList.remove('drag-over','dragging'));
+      _sortDrag = null; _sortGroup = null;
+    });
+  }
+  // 模块重排：按侧栏顺序同步调整隐藏的 module-tab 与 module-panel，再重建侧栏
+  function reorderModules(drag, target, after){
+    const tabsHost = document.getElementById('moduleTabs');
+    const dt = document.querySelector(`.module-tab[data-module="${drag.dataset.module}"]`);
+    const tt = document.querySelector(`.module-tab[data-module="${target.dataset.module}"]`);
+    if(dt && tt && tabsHost) tabsHost.insertBefore(dt, after ? tt.nextSibling : tt);
+    const dp = document.getElementById('panel-' + drag.dataset.module);
+    const tp = document.getElementById('panel-' + target.dataset.module);
+    if(dp && tp) dp.parentNode.insertBefore(dp, after ? tp.nextSibling : tp);
+    buildSidebar(); updateBreadcrumb();
+  }
+  // 阶段重排：在所属模块的 flow 内移动 .stage，重排后保持原激活阶段
+  function reorderStages(drag, target, after){
+    const modId = drag.dataset.module;
+    const flow = document.getElementById('flow-' + modId);
+    if(!flow) return;
+    const stages = [...flow.querySelectorAll('.stage')];
+    const ds = stages[+drag.dataset.idx], ts = stages[+target.dataset.idx];
+    if(!ds || !ts) return;
+    const panel = document.getElementById('panel-' + modId);
+    const activeStage = stages[panel ? (+(panel.dataset.activeStage||0)) : 0];
+    flow.insertBefore(ds, after ? ts.nextSibling : ts);
+    renumber(flow);   // 重排箭头/路线条 + 重建侧栏
+    if(panel && activeStage){
+      const ni = [...flow.querySelectorAll('.stage')].indexOf(activeStage);
+      if(ni >= 0){ panel.dataset.activeStage = ni; refreshSidebarActive(); }
+    }
+  }
+
   function buildSidebar(){
     const host = document.getElementById('sideScroll');
     if(!host) return;
@@ -3845,11 +3933,13 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       const head = document.createElement('div');
       head.className = 'mod-head';
       head.innerHTML =
+        `<span class="drag-grip" title="拖动调整模块顺序">⠿</span>` +
         `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
         `<span class="m-name">${escapeHtml(name)}</span>` +
         `<span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"/></svg></span></span>` +
         `<span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"/></svg></span></span>`;
       head.addEventListener('click', e=>{
+        if(e.target.closest('.drag-grip')) return;   // 点手柄不切换模块
         if(e.target.closest('.m-edit')){ e.stopPropagation(); renameModule(id); return; }
         if(e.target.closest('.m-del')){ e.stopPropagation(); deleteModule(id); return; }
         if(id !== activeModuleId()){ collapseNodeInline(true); switchModule(id); }
@@ -3865,8 +3955,10 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         it.className = 'stage-item';
         it.dataset.module = id; it.dataset.idx = i;
         it.innerHTML =
+          `<span class="drag-grip" title="拖动调整阶段顺序">⠿</span>` +
           `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>`;
-        it.addEventListener('click', ()=> selectStage(id, i));
+        it.addEventListener('click', e=>{ if(e.target.closest('.drag-grip')) return; selectStage(id, i); });
+        makeSortable(it, it.querySelector('.drag-grip'), 'stage', reorderStages);
         sw.appendChild(it);
       });
       const addS = document.createElement('div');
@@ -3883,6 +3975,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       });
       sw.appendChild(addS);
       mod.appendChild(sw);
+      makeSortable(mod, head.querySelector('.drag-grip'), 'mod', reorderModules);
       host.appendChild(mod);
     });
     refreshSidebarActive();
@@ -4093,6 +4186,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       const card = document.createElement('div');
       card.className = 'ni-card' + (editing ? ' editing' : '');
       card.innerHTML =
+        (editing ? `<span class="ni-grip" title="拖动排序">⠿</span>` : '') +
         `<div class="ni-num">${i+1}</div>` +
         (editing ? `<button class="ni-del" type="button" title="删除子步骤">✕</button>` : '') +
         `<div class="ni-name" contenteditable="${ce}">${ss.name ? escapeHtml(ss.name) : ''}</div>` +
@@ -4101,6 +4195,17 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         card.querySelector('.ni-del').onclick = ()=>{ substeps.splice(i,1); fillInlineSubsteps(wrap, node, editing); };
         card.querySelector('.ni-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
         card.querySelector('.ni-desc').addEventListener('input', e=>{ ss.desc = e.target.innerHTML; });
+        // 拖拽排序：重排 substeps 数组后重渲染
+        makeSortable(card, card.querySelector('.ni-grip'), 'sub', (drag, tgt, after)=>{
+          const cards = [...host.querySelectorAll('.ni-card')];
+          const from = cards.indexOf(drag); let to = cards.indexOf(tgt);
+          if(from < 0 || to < 0) return;
+          const [m] = substeps.splice(from, 1);
+          let ins = to + (after ? 1 : 0);
+          if(from < ins) ins--;
+          substeps.splice(ins, 0, m);
+          fillInlineSubsteps(wrap, node, editing);
+        });
       }
       host.appendChild(card);
     });
