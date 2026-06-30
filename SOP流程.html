@@ -1084,10 +1084,14 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 /* 链接 / 文件列表 */
 .ni-side .ni-links{ display:flex; flex-direction:column; gap:6px; }
 .ni-side .ni-links:not(:empty){ margin-bottom:10px; }
-/* 编辑态插入按钮：插入图片占整行，网址链接 / 嵌入文件各半行 */
+/* 编辑态插入按钮：插入图片占整行，视频 / 网址链接 / 嵌入文件三等分 */
 .ni-side .ni-attach-btns{ display:flex; flex-wrap:wrap; gap:8px; }
 .ni-side .ni-attach-btns .add-img{ flex:1 1 100%; width:auto; }
-.ni-side .ni-attach-btns .add-link{ flex:1 1 calc(50% - 4px); width:auto; min-width:0; }
+.ni-side .ni-attach-btns .add-link{ flex:1 1 calc(33.333% - 6px); width:auto; min-width:0; }
+/* 视频附件（相对路径引用，不嵌入）用主色区分 */
+.ni-side .link-item.video .li-icon,
+.ni-side .link-item.video .li-text{ color:var(--accent); font-weight:600; }
+.ni-side .link-item .li-text:empty::before{ content:attr(data-ph); color:#b3bccb; font-weight:400; }
 /* 窄屏：两栏改为上下堆叠，附件落到子步骤下方 */
 @media(max-width:1000px){
   .node-inline-substeps{ flex-direction:column; gap:4px; }
@@ -3195,6 +3199,13 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       });
       if(Array.isArray(det.links)) det.links.forEach(l=>{
         if(l && l.type==='file' && l.data) l.data = externalize(l.data, l.fname || l.text);
+        // 视频 / 网址链接若是相对路径（指向 assets/ 等），浏览器读不到字节，
+        // 记入「需手动确认的外部文件」，提醒随包带上
+        else if(l && (l.type==='video' || l.type==='url') && l.text
+                && !/^(https?:|mailto:|tel:|\/\/|data:)/i.test(l.text)
+                && externalRefs.indexOf(l.text)<0){
+          externalRefs.push(l.text);
+        }
       });
       n.setAttribute('data-detail', JSON.stringify(det));
     });
@@ -4120,6 +4131,22 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         inp.click();
       };
       btns.appendChild(aImg);
+      // ＋ 视频（引用 assets 文件夹里的视频文件，不嵌入 HTML，文件不膨胀）
+      const aVid = document.createElement('button');
+      aVid.className = 'add-link'; aVid.type = 'button'; aVid.textContent = '＋ 视频';
+      aVid.title = '引用 HTML 同目录 assets 文件夹里的视频（如 assets/教程.mp4），不嵌入 HTML';
+      aVid.onclick = ()=>{
+        det.links.push({type:'video', text:'assets/'});
+        fillInlineAttach(side, node, editing);
+        const texts = side.querySelectorAll('.ni-links .link-item.video .li-text');
+        const last = texts[texts.length-1];
+        if(last){
+          last.focus();
+          const r = document.createRange(); r.selectNodeContents(last); r.collapse(false);
+          const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        }
+      };
+      btns.appendChild(aVid);
       // ＋ 网址链接（可粘贴视频链接）
       const aUrl = document.createElement('button');
       aUrl.className = 'add-link'; aUrl.type = 'button'; aUrl.textContent = '＋ 网址链接';
@@ -4150,13 +4177,16 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   function makeInlineLinkItem(l, editing, onDel){
     const li = document.createElement('div');
     const isFile = l.type === 'file';
-    li.className = 'link-item' + (isFile ? ' file' : '');
+    const isVideo = l.type === 'video';
+    li.className = 'link-item' + (isFile ? ' file' : '') + (isVideo ? ' video' : '');
     const isEmbedded = isFile && l.data && l.data.startsWith('data:');
     const size = isEmbedded ? `<span class="li-size">${fmtSize(l.data.length)}</span>` : '';
-    const editUrl = editing && !isFile;
+    const icon = isFile ? '📎' : (isVideo ? '🎬' : '🔗');
+    // 网址 / 视频路径可内联编辑；嵌入文件名不可改
+    const editText = editing && !isFile;
     li.innerHTML =
-      `<span class="li-icon">${isFile ? '📎' : '🔗'}</span>` +
-      `<span class="li-text" ${editUrl ? 'contenteditable="true"' : ''}>${escapeHtml(l.text || '')}</span>` +
+      `<span class="li-icon">${icon}</span>` +
+      `<span class="li-text" ${editText ? 'contenteditable="true"' : ''} data-ph="${isVideo ? 'assets/视频文件名.mp4' : ''}">${escapeHtml(l.text || '')}</span>` +
       size +
       (editing ? `<button class="li-del" type="button" title="删除">✕</button>` : '');
     const txt = li.querySelector('.li-text');
@@ -4164,8 +4194,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       txt.style.cursor = 'pointer';
       txt.onclick = ()=>{ const a = document.createElement('a'); a.href = l.data || ''; a.download = l.fname || '附件'; a.click(); };
     } else if(!editing){
+      // 只读态：网址或相对路径（assets/视频）都直接打开；相对路径在本地随 HTML 解析
       txt.style.cursor = 'pointer';
-      txt.onclick = ()=>{ if(l.text && /^(https?:|\/\/)/i.test(l.text)) window.open(l.text, '_blank'); };
+      txt.onclick = ()=>{ if(l.text) window.open(l.text, '_blank'); };
     } else {
       txt.addEventListener('input', e=>{ l.text = e.target.textContent; });
     }
