@@ -894,6 +894,21 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar .tb-actions button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
 #appTopbar .tb-actions button.primary:hover{ background:#003f7a; }
 #appTopbar .tb-actions button.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
+/* 「全局编辑」改成标准 iOS 滑动开关：编辑文字 + 圆头滑轨，开时整条轨道变蓝、滑钮滑到右 */
+#btnEdit.edit-switch{ gap:9px; }
+#btnEdit.edit-switch:hover{ background:var(--paper); }
+#btnEdit.edit-switch.on{ background:#fff; color:var(--ink); border-color:var(--line); }   /* 开时按钮本体保持常态，只让滑轨变蓝 */
+#btnEdit .es-track{
+  position:relative; width:40px; height:22px; border-radius:999px; flex:none;
+  background:#c7cdd2; transition:background .2s;
+}
+#btnEdit.on .es-track{ background:var(--accent); }
+#btnEdit .es-knob{
+  position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3);
+  transition:transform .22s cubic-bezier(.4,.2,.2,1);
+}
+#btnEdit.on .es-knob{ transform:translateX(18px); }
 .ic{ display:inline-flex; align-items:center; justify-content:center; }
 .ic svg{ width:1em; height:1em; display:block; fill:none; stroke:currentColor;
   stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -1278,7 +1293,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     <!-- 搜索结果列表：跨所有阶段列出命中卡片，点某条 → 跳到该阶段并定位高亮 -->
     <div id="searchResults" class="search-results" hidden=""></div>
   </div><div class="tb-actions">
-    <button id="btnEdit" class="toggle" onclick="toggleEdit()"><span class="ic"><svg><use href="#i-edit"></use></svg></span>编辑</button>
+    <button id="btnEdit" class="edit-switch" role="switch" aria-checked="false" title="全局编辑开关" onclick="toggleEdit()"><span class="es-label">编辑</span><span class="es-track"><span class="es-knob"></span></span></button>
     <button class="primary" onclick="saveFile()"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存</button>
     <button onclick="exportZip()" title="打包成 ZIP（HTML + assets 文件夹），适合发给别人，视频不膨胀"><span class="ic"><svg><use href="#i-folder"></use></svg></span>导出 ZIP</button>
     <button onclick="window.print()"><span class="ic"><svg><use href="#i-export"></use></svg></span>导出 PDF</button>
@@ -3049,6 +3064,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 退出所有编辑态，确保保存/重开后文件默认只读
     exitAllEditing();
     editOn=false; document.body.classList.remove('edit-all');
+    // 同步复位顶部「编辑」滑动开关，避免导出的文件以“开”状态打开
+    const _be=document.getElementById('btnEdit');
+    if(_be){ _be.classList.remove('on'); _be.setAttribute('aria-checked','false'); }
     inlineEditables().forEach(el=>el.setAttribute('contenteditable','false'));
     document.querySelectorAll('.drag-over,.dragging').forEach(n=>n.classList.remove('drag-over','dragging'));
     // 移除运行时生成/临时的 UI，保证导出的 HTML 干净（重新打开会自动重建）
@@ -3920,7 +3938,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   toggleEdit = function(){
     _toggleEdit();
     const on = document.body.classList.contains('edit-all');
-    document.getElementById('btnEdit')?.classList.toggle('on', on);
+    const be = document.getElementById('btnEdit');
+    if(be){ be.classList.toggle('on', on); be.setAttribute('aria-checked', String(on)); }
     refreshInlineEditState();   // 展开的卡片同步显示/隐藏子步骤编辑控件
   };
   const _saveFile = saveFile;
