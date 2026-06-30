@@ -1077,7 +1077,18 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 }
 .ni-side .ni-img-title{ font-size:15px; font-weight:800; color:var(--ink); margin:0 0 10px; }
 .ni-side .ni-img-empty{ font-size:13px; color:#9ba3b8; padding:4px 0; }
-/* 窄屏：两栏改为上下堆叠，图片落到子步骤下方 */
+/* 图片缩略图：按实际尺寸显示，过大则收缩到右栏宽度（不裁剪、不固定方框） */
+.ni-side .ni-img-grid{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.ni-side .ni-thumb{ width:auto; height:auto; max-width:100%; border-radius:6px; }
+.ni-side .ni-thumb img{ width:auto; height:auto; max-width:100%; object-fit:contain; }
+/* 链接 / 文件列表 */
+.ni-side .ni-links{ display:flex; flex-direction:column; gap:6px; }
+.ni-side .ni-links:not(:empty){ margin-bottom:10px; }
+/* 编辑态插入按钮：插入图片占整行，网址链接 / 嵌入文件各半行 */
+.ni-side .ni-attach-btns{ display:flex; flex-wrap:wrap; gap:8px; }
+.ni-side .ni-attach-btns .add-img{ flex:1 1 100%; width:auto; }
+.ni-side .ni-attach-btns .add-link{ flex:1 1 calc(50% - 4px); width:auto; min-width:0; }
+/* 窄屏：两栏改为上下堆叠，附件落到子步骤下方 */
 @media(max-width:1000px){
   .node-inline-substeps{ flex-direction:column; gap:4px; }
   .ni-main, .ni-side{ flex:none; width:100%; max-width:100%; }
@@ -3971,9 +3982,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     wrap.appendChild(niSide);
 
     const editing = document.body.classList.contains('edit-all');
-    // 子步骤区填入左栏；图片区填入右栏
+    // 子步骤区填入左栏；附件区（图片 + 链接）填入右栏
     fillInlineSubsteps(wrap, node, editing);
-    fillInlineImages(niSide, node, editing);
+    fillInlineAttach(niSide, node, editing);
 
     // 插到被点卡片正下方（同一 flex 列内），子步骤紧贴它向下展开
     node.insertAdjacentElement('afterend', wrap);
@@ -4043,22 +4054,24 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     }
   }
 
-  /* 右栏图片区：只读态显示缩略图（可点开大图）；编辑态可删除 / 插入图片。
-     直接读写 node._detail.images，保存 / 导出沿用既有流程，无需额外同步。 */
-  function fillInlineImages(side, node, editing){
+  /* 右栏「附件」区：图片缩略图 + 网址链接 / 嵌入文件（含视频链接）。
+     只读态可查看/打开；编辑态可删除、插入图片、加网址链接、嵌入文件。
+     直接读写 node._detail.images / links，保存 / 导出沿用既有流程。 */
+  function fillInlineAttach(side, node, editing){
     side.innerHTML = '';
-    const det = node._detail; det.images = det.images || [];
+    const det = node._detail; det.images = det.images || []; det.links = det.links || [];
 
     const title = document.createElement('p');
     title.className = 'ni-img-title';
-    title.textContent = '图片';
+    title.textContent = '附件';
     side.appendChild(title);
 
+    // 图片缩略图（实际尺寸，过大则收到右栏宽度）
     const grid = document.createElement('div');
-    grid.className = 'img-grid';
+    grid.className = 'ni-img-grid';
     det.images.forEach((src, i)=>{
       const thumb = document.createElement('div');
-      thumb.className = 'img-thumb';
+      thumb.className = 'img-thumb ni-thumb';
       thumb.innerHTML = `<img src="${src}">` +
         (editing ? `<button class="ig-del" type="button" title="删除图片">✕</button>` : '');
       thumb.querySelector('img').onclick = ()=>{
@@ -4067,36 +4080,97 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       };
       if(editing){
         thumb.querySelector('.ig-del').onclick = e=>{
-          e.stopPropagation(); det.images.splice(i,1); fillInlineImages(side, node, editing);
+          e.stopPropagation(); det.images.splice(i,1); fillInlineAttach(side, node, editing);
         };
       }
       grid.appendChild(thumb);
     });
     side.appendChild(grid);
 
-    if(!det.images.length && !editing){
+    // 链接 / 文件（网址链接里可放视频链接）
+    const linkWrap = document.createElement('div');
+    linkWrap.className = 'ni-links';
+    det.links.forEach((l, i)=>{
+      linkWrap.appendChild(makeInlineLinkItem(l, editing,
+        ()=>{ det.links.splice(i,1); fillInlineAttach(side, node, editing); }));
+    });
+    side.appendChild(linkWrap);
+
+    if(!det.images.length && !det.links.length && !editing){
       const empty = document.createElement('p');
       empty.className = 'ni-img-empty';
-      empty.textContent = '暂无图片';
+      empty.textContent = '暂无附件';
       side.appendChild(empty);
     }
 
     if(editing){
-      const add = document.createElement('button');
-      add.className = 'add-img'; add.type = 'button';
-      add.textContent = '＋ 插入图片';
-      add.onclick = ()=>{
+      const btns = document.createElement('div');
+      btns.className = 'ni-attach-btns';
+      // ＋ 插入图片
+      const aImg = document.createElement('button');
+      aImg.className = 'add-img'; aImg.type = 'button'; aImg.textContent = '＋ 插入图片';
+      aImg.onclick = ()=>{
         const inp = document.getElementById('fileInput');
         inp.onchange = ()=>{
           const f = inp.files[0]; if(!f) return;
           const r = new FileReader();
-          r.onload = ()=>{ det.images.push(r.result); fillInlineImages(side, node, editing); };
+          r.onload = ()=>{ det.images.push(r.result); fillInlineAttach(side, node, editing); };
           r.readAsDataURL(f); inp.value = '';
         };
         inp.click();
       };
-      side.appendChild(add);
+      btns.appendChild(aImg);
+      // ＋ 网址链接（可粘贴视频链接）
+      const aUrl = document.createElement('button');
+      aUrl.className = 'add-link'; aUrl.type = 'button'; aUrl.textContent = '＋ 网址链接';
+      aUrl.onclick = ()=>{ det.links.push({type:'url', text:'https://'}); fillInlineAttach(side, node, editing); };
+      btns.appendChild(aUrl);
+      // ＋ 嵌入文件（图片 / 视频 / PDF 等）
+      const aFile = document.createElement('button');
+      aFile.className = 'add-link'; aFile.type = 'button'; aFile.textContent = '＋ 嵌入文件';
+      aFile.onclick = ()=>{
+        const inp = document.getElementById('docInput');
+        inp.onchange = ()=>{
+          const f = inp.files[0]; if(!f) return;
+          if(f.size > 8*1048576){
+            alert('文件较大（>8MB），嵌入会让 HTML 变臃肿。建议改用「网址链接」指向云盘文件。');
+          }
+          const r = new FileReader();
+          r.onload = ()=>{ det.links.push({type:'file', text:f.name, fname:f.name, data:r.result}); fillInlineAttach(side, node, editing); };
+          r.readAsDataURL(f); inp.value = '';
+        };
+        inp.click();
+      };
+      btns.appendChild(aFile);
+      side.appendChild(btns);
     }
+  }
+
+  /* 右栏内联链接项：只读态可点击打开 / 下载；编辑态可改文字、删除 */
+  function makeInlineLinkItem(l, editing, onDel){
+    const li = document.createElement('div');
+    const isFile = l.type === 'file';
+    li.className = 'link-item' + (isFile ? ' file' : '');
+    const isEmbedded = isFile && l.data && l.data.startsWith('data:');
+    const size = isEmbedded ? `<span class="li-size">${fmtSize(l.data.length)}</span>` : '';
+    const editUrl = editing && !isFile;
+    li.innerHTML =
+      `<span class="li-icon">${isFile ? '📎' : '🔗'}</span>` +
+      `<span class="li-text" ${editUrl ? 'contenteditable="true"' : ''}>${escapeHtml(l.text || '')}</span>` +
+      size +
+      (editing ? `<button class="li-del" type="button" title="删除">✕</button>` : '');
+    const txt = li.querySelector('.li-text');
+    if(isFile){
+      txt.style.cursor = 'pointer';
+      txt.onclick = ()=>{ const a = document.createElement('a'); a.href = l.data || ''; a.download = l.fname || '附件'; a.click(); };
+    } else if(!editing){
+      txt.style.cursor = 'pointer';
+      txt.onclick = ()=>{ if(l.text && /^(https?:|\/\/)/i.test(l.text)) window.open(l.text, '_blank'); };
+    } else {
+      txt.addEventListener('input', e=>{ l.text = e.target.textContent; });
+    }
+    if(editing) li.querySelector('.li-del').onclick = onDel;
+    return li;
   }
 
   /* 编辑模式切换时，若有展开的卡片，刷新其子步骤区以显示/隐藏编辑控件 */
@@ -4108,7 +4182,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       const editing = document.body.classList.contains('edit-all');
       fillInlineSubsteps(wrap, _expandedNode, editing);
       const side = wrap.querySelector('.ni-side');
-      if(side) fillInlineImages(side, _expandedNode, editing);
+      if(side) fillInlineAttach(side, _expandedNode, editing);
       wrap.classList.add('show');   // 跳过入场动画，保持展开
     }
   }
