@@ -344,8 +344,8 @@
 
   /* ===== 编辑按钮 & 编辑中高亮（默认只读，点 ✎ 才可编辑）===== */
   .title-row{display:flex;align-items:center;gap:10px;}
-  .icon-btn.edit{background:var(--accent);color:#fff;}   /* 编辑键统一深蓝底白图标 */
-  .icon-btn.edit:hover,.icon-btn.edit.on{background:#003f7a;color:#fff;}
+  /* 编辑键默认中性灰（同复制/删除），悬停或正在编辑(.on)才变蓝 */
+  .icon-btn.edit:hover,.icon-btn.edit.on{background:var(--accent);color:#fff;}
   .node-bar-right{display:flex;align-items:center;gap:8px;}
   .node-edit,.node-copy{
     display:inline-flex;align-items:center;justify-content:center;
@@ -353,8 +353,8 @@
     background:rgba(53,71,84,.07);color:#7a8898;cursor:pointer;
     font-size:14px;line-height:1;transition:.12s;
   }
-  .node-edit{background:var(--accent);color:#fff;}   /* 编辑键统一深蓝底白图标 */
-  .node-edit:hover,.node-edit.on{background:#003f7a;color:#fff;}
+  /* 编辑键默认中性灰（同复制键），悬停或正在编辑(.on)才变蓝 */
+  .node-edit:hover,.node-edit.on{background:var(--accent);color:#fff;}
   .node-copy:hover{background:var(--gold);color:#fff;}
   .stage.editing{box-shadow:0 0 0 2px var(--accent)!important;}
   .node.editing{box-shadow:0 0 0 2px var(--accent);}
@@ -894,21 +894,24 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar .tb-actions button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
 #appTopbar .tb-actions button.primary:hover{ background:#003f7a; }
 #appTopbar .tb-actions button.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
-/* 「全局编辑」改成标准 iOS 滑动开关：编辑文字 + 圆头滑轨，开时整条轨道变蓝、滑钮滑到右 */
-#btnEdit.edit-switch{ gap:9px; }
-#btnEdit.edit-switch:hover{ background:var(--paper); }
-#btnEdit.edit-switch.on{ background:#fff; color:var(--ink); border-color:var(--line); }   /* 开时按钮本体保持常态，只让滑轨变蓝 */
+/* 「全局编辑」标准 iOS 滑动开关：编辑文字 + 圆头滑轨，开时滑轨变蓝、滑钮滑到右。
+   开/关时按钮本体始终保持白底深字（用更高特异性盖过上面通用的 .on 蓝底规则），
+   只让滑轨与滑钮变化，避免开启时整块变蓝、和相邻的蓝色「保存」糊在一起。 */
+#btnEdit.edit-switch{ gap:7px; padding:0 11px; }
+#appTopbar .tb-actions #btnEdit.edit-switch,
+#appTopbar .tb-actions #btnEdit.edit-switch.on{ background:#fff; color:var(--ink); border-color:var(--line); }
+#appTopbar .tb-actions #btnEdit.edit-switch:hover{ background:var(--paper); color:var(--ink); border-color:var(--line); }
 #btnEdit .es-track{
-  position:relative; width:40px; height:22px; border-radius:999px; flex:none;
+  position:relative; width:36px; height:20px; border-radius:999px; flex:none;
   background:#c7cdd2; transition:background .2s;
 }
 #btnEdit.on .es-track{ background:var(--accent); }
 #btnEdit .es-knob{
-  position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
   background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3);
   transition:transform .22s cubic-bezier(.4,.2,.2,1);
 }
-#btnEdit.on .es-knob{ transform:translateX(18px); }
+#btnEdit.on .es-knob{ transform:translateX(16px); }
 .ic{ display:inline-flex; align-items:center; justify-content:center; }
 .ic svg{ width:1em; height:1em; display:block; fill:none; stroke:currentColor;
   stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -942,8 +945,8 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 body.edit-all #appSidebar .mod-head .m-edit,
 body.edit-all #appSidebar .mod-head .m-del{ display:inline-flex; }
 body.edit-all #appSidebar .mod-head .badge{ display:none; }
-#appSidebar .mod-head .m-edit{ background:var(--accent); color:#fff; }   /* 编辑键统一深蓝底白图标 */
-#appSidebar .mod-head .m-edit:hover{ background:#003f7a; color:#fff; }
+/* 编辑键默认中性灰（同删除键），悬停才变蓝 */
+#appSidebar .mod-head .m-edit:hover{ background:var(--accent); color:#fff; }
 #appSidebar .mod-head .m-del:hover{ background:var(--danger); color:#fff; }
 #appSidebar .mod-head .m-del:active{ background:var(--danger-d); color:#fff; }
 /* 二级：阶段 */
