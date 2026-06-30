@@ -1,6 +1,6 @@
 # ANIMATION.md — 动效系统规范 (Motion Specification)
 
-> 来源:`SOP流程.html`。下列每条 keyframes、transition、easing、duration 均从该文件真实
+> 来源:`sop-index.html`。下列每条 keyframes、transition、easing、duration 均从该文件真实
 > 实现中提取。新动效必须复用这里已有的时长与缓动,不要发明新曲线。
 
 ---
