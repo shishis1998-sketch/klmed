@@ -1034,12 +1034,15 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .module-panel.active .stage.detail-active .steps.has-expanded{
   display:flex !important; flex-direction:column; align-items:flex-start; gap:0;
 }
-/* 展开卡片与子步骤容器：锁定为点击前的原始格子宽度，统一靠左对齐，不拉伸 */
-.steps.has-expanded > .node.node-expanded,
-.steps.has-expanded > .node-inline-substeps{
+/* 展开卡片：锁定为点击前的原始格子宽度，统一靠左对齐，不拉伸 */
+.steps.has-expanded > .node.node-expanded{
   width:var(--card-w, 100%) !important;
   max-width:100%;
   margin-left:0;
+}
+/* 展开区容器跨整行，内部分两栏（左：子步骤，右：图片），充分利用右侧空白 */
+.steps.has-expanded > .node-inline-substeps{
+  width:100% !important; max-width:100%; margin-left:0;
 }
 /* 其余卡片 / 箭头 / 加卡片按钮：直接隐藏。
    注意不能用动画把 padding/height 归零 —— .node 的 padding 带 !important，
@@ -1054,15 +1057,31 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-soft);
 }
 
-/* 子步骤容器：用 max-height + opacity 过渡“缓慢展开”，配合子元素逐个淡入 */
+/* 展开区容器：用 max-height + opacity 过渡“缓慢展开”；横向分两栏 */
 .node-inline-substeps{
-  display:flex; flex-direction:column; align-items:flex-start;
-  padding:10px 0 16px; gap:0;
+  display:flex; flex-direction:row; align-items:flex-start; gap:24px;
+  width:100%; padding:10px 0 16px;
   overflow:hidden;
   max-height:0; opacity:0;
   transition:max-height .5s cubic-bezier(.22,1,.36,1), opacity .4s ease;
 }
 .node-inline-substeps.show{ max-height:4000px; opacity:1; }
+/* 左栏：子步骤，宽度 = 原始卡片宽；右栏：图片，占用右侧剩余空白 */
+.ni-main{
+  flex:0 0 var(--card-w, 100%); max-width:var(--card-w, 100%); min-width:0;
+  display:flex; flex-direction:column; align-items:flex-start;
+}
+.ni-side{
+  flex:1 1 0; min-width:0; align-self:stretch;
+  display:flex; flex-direction:column; align-items:stretch;
+}
+.ni-side .ni-img-title{ font-size:15px; font-weight:800; color:var(--ink); margin:0 0 10px; }
+.ni-side .ni-img-empty{ font-size:13px; color:#9ba3b8; padding:4px 0; }
+/* 窄屏：两栏改为上下堆叠，图片落到子步骤下方 */
+@media(max-width:1000px){
+  .node-inline-substeps{ flex-direction:column; gap:4px; }
+  .ni-main, .ni-side{ flex:none; width:100%; max-width:100%; }
+}
 
 /* 子元素逐个出现：默认隐藏 + 上移，.show 时按 --i 延迟依次落位 */
 .node-inline-substeps > *{
@@ -3922,11 +3941,15 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const wrap = document.createElement('div');
     wrap.className = 'node-inline-substeps';
 
+    // 左栏：返回 / 元信息 / 子步骤
+    const niMain = document.createElement('div');
+    niMain.className = 'ni-main';
+
     const closeBtn = document.createElement('button');
     closeBtn.className = 'ni-close'; closeBtn.type = 'button';
     closeBtn.textContent = '← 返回';
     closeBtn.onclick = collapseNodeInline;
-    wrap.appendChild(closeBtn);
+    niMain.appendChild(closeBtn);
 
     // 元信息行：负责人 / 预计 / 频率
     const metaRow = document.createElement('div');
@@ -3939,10 +3962,18 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     metaRow.innerHTML = metaItems
       .map(([label, val]) => `<span class="ni-meta-item"><b>${label}：</b>${escapeHtml(val)}</span>`)
       .join('');
-    wrap.appendChild(metaRow);
+    niMain.appendChild(metaRow);
+    wrap.appendChild(niMain);
 
-    // 子步骤区（含编辑态的增删改）
-    fillInlineSubsteps(wrap, node, document.body.classList.contains('edit-all'));
+    // 右栏：图片（缩略图 + 编辑态「插入图片」），填补子步骤右侧的空白区
+    const niSide = document.createElement('div');
+    niSide.className = 'ni-side';
+    wrap.appendChild(niSide);
+
+    const editing = document.body.classList.contains('edit-all');
+    // 子步骤区填入左栏；图片区填入右栏
+    fillInlineSubsteps(wrap, node, editing);
+    fillInlineImages(niSide, node, editing);
 
     // 插到被点卡片正下方（同一 flex 列内），子步骤紧贴它向下展开
     node.insertAdjacentElement('afterend', wrap);
@@ -3963,8 +3994,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 
   /* 构建/重建子步骤区：只读态只显示卡片；编辑态可改字、删除、添加 */
   function fillInlineSubsteps(wrap, node, editing){
+    const host = wrap.querySelector('.ni-main') || wrap;
     // 清掉旧的子步骤区元素（保留 返回 / 元信息）
-    wrap.querySelectorAll('.ni-ss-title, .ni-card, .ni-empty, .ni-addsub').forEach(e=> e.remove());
+    host.querySelectorAll('.ni-ss-title, .ni-card, .ni-empty, .ni-addsub').forEach(e=> e.remove());
     const det = node._detail;
     const substeps = det.substeps = det.substeps || [];
 
@@ -3972,12 +4004,12 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       const ssTitle = document.createElement('p');
       ssTitle.className = 'ni-ss-title';
       ssTitle.textContent = '子步骤';
-      wrap.appendChild(ssTitle);
+      host.appendChild(ssTitle);
     } else if(!editing){
       const empty = document.createElement('p');
       empty.className = 'ni-empty';
       empty.textContent = '暂无子步骤';
-      wrap.appendChild(empty);
+      host.appendChild(empty);
     }
 
     const ce = editing ? 'true' : 'false';
@@ -3994,7 +4026,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         card.querySelector('.ni-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
         card.querySelector('.ni-desc').addEventListener('input', e=>{ ss.desc = e.target.innerHTML; });
       }
-      wrap.appendChild(card);
+      host.appendChild(card);
     });
 
     if(editing){
@@ -4004,10 +4036,66 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       add.onclick = ()=>{
         substeps.push({ name:'', desc:'', images:[] });
         fillInlineSubsteps(wrap, node, editing);
-        const names = wrap.querySelectorAll('.ni-card .ni-name');
+        const names = host.querySelectorAll('.ni-card .ni-name');
         const last = names[names.length-1]; if(last) last.focus();
       };
-      wrap.appendChild(add);
+      host.appendChild(add);
+    }
+  }
+
+  /* 右栏图片区：只读态显示缩略图（可点开大图）；编辑态可删除 / 插入图片。
+     直接读写 node._detail.images，保存 / 导出沿用既有流程，无需额外同步。 */
+  function fillInlineImages(side, node, editing){
+    side.innerHTML = '';
+    const det = node._detail; det.images = det.images || [];
+
+    const title = document.createElement('p');
+    title.className = 'ni-img-title';
+    title.textContent = '图片';
+    side.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'img-grid';
+    det.images.forEach((src, i)=>{
+      const thumb = document.createElement('div');
+      thumb.className = 'img-thumb';
+      thumb.innerHTML = `<img src="${src}">` +
+        (editing ? `<button class="ig-del" type="button" title="删除图片">✕</button>` : '');
+      thumb.querySelector('img').onclick = ()=>{
+        document.getElementById('imgviewImg').src = src;
+        document.getElementById('imgview').classList.add('show');
+      };
+      if(editing){
+        thumb.querySelector('.ig-del').onclick = e=>{
+          e.stopPropagation(); det.images.splice(i,1); fillInlineImages(side, node, editing);
+        };
+      }
+      grid.appendChild(thumb);
+    });
+    side.appendChild(grid);
+
+    if(!det.images.length && !editing){
+      const empty = document.createElement('p');
+      empty.className = 'ni-img-empty';
+      empty.textContent = '暂无图片';
+      side.appendChild(empty);
+    }
+
+    if(editing){
+      const add = document.createElement('button');
+      add.className = 'add-img'; add.type = 'button';
+      add.textContent = '＋ 插入图片';
+      add.onclick = ()=>{
+        const inp = document.getElementById('fileInput');
+        inp.onchange = ()=>{
+          const f = inp.files[0]; if(!f) return;
+          const r = new FileReader();
+          r.onload = ()=>{ det.images.push(r.result); fillInlineImages(side, node, editing); };
+          r.readAsDataURL(f); inp.value = '';
+        };
+        inp.click();
+      };
+      side.appendChild(add);
     }
   }
 
@@ -4017,7 +4105,10 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const stepsEl = _expandedNode.closest('.steps');
     const wrap = stepsEl ? stepsEl.querySelector('.node-inline-substeps') : null;
     if(wrap){
-      fillInlineSubsteps(wrap, _expandedNode, document.body.classList.contains('edit-all'));
+      const editing = document.body.classList.contains('edit-all');
+      fillInlineSubsteps(wrap, _expandedNode, editing);
+      const side = wrap.querySelector('.ni-side');
+      if(side) fillInlineImages(side, _expandedNode, editing);
       wrap.classList.add('show');   // 跳过入场动画，保持展开
     }
   }
