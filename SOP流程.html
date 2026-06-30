@@ -1169,6 +1169,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   font-size:13px; color:var(--muted); margin-bottom:12px;
 }
 .ni-meta-row b{ color:var(--ink); font-weight:600; }
+/* 负责人/预计/频率：可编辑但不加浅框，编辑态仅保留聚焦时的全局虚线提示 */
+.ni-meta-val{ min-width:1em; }
+/* 分割线：横跨整个展开区宽度（子步骤左缘 → 附件右缘），区隔“返回+负责人信息”与“子步骤/附件” */
+.ni-divider{ border:none; border-top:1px solid var(--line); width:100%; margin:0 0 16px; }
 .ni-ss-title{
   font-size:15px; font-weight:800; color:var(--ink);
   margin:0 0 10px;
@@ -3984,7 +3988,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const det = node._detail;
     const substeps = det.substeps;
     const stage = node.closest('.stage');
-    const owner = stageOwner(stage) || det.owner || '—';
+    // 负责人优先用本步骤自己的 owner（可单独编辑），为空才回退到阶段负责人
+    const owner = det.owner || stageOwner(stage) || '—';
+    const editing = document.body.classList.contains('edit-all');
 
     const wrap = document.createElement('div');
     wrap.className = 'node-inline-substeps';
@@ -3999,19 +4005,34 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     closeBtn.onclick = collapseNodeInline;
     niHead.appendChild(closeBtn);
 
-    // 元信息行：负责人 / 预计 / 频率
+    // 元信息行：负责人 / 预计 / 频率（可编辑，仅改本步骤数据）
     const metaRow = document.createElement('div');
     metaRow.className = 'ni-meta-row';
-    const metaItems = [
-      ['负责人', owner],
-      ['预计', det.time || '—'],
-      ['频率', det.freq || '—'],
-    ];
-    metaRow.innerHTML = metaItems
-      .map(([label, val]) => `<span class="ni-meta-item"><b>${label}：</b>${escapeHtml(val)}</span>`)
-      .join('');
+    [
+      ['负责人', owner, 'owner'],
+      ['预计', det.time || '—', 'time'],
+      ['频率', det.freq || '—', 'freq'],
+    ].forEach(([label, val, key]) => {
+      const item = document.createElement('span');
+      item.className = 'ni-meta-item';
+      const b = document.createElement('b'); b.textContent = label + '：';
+      const v = document.createElement('span');
+      v.className = 'ni-meta-val';
+      v.dataset.key = key;
+      v.textContent = val;
+      v.setAttribute('contenteditable', editing ? 'true' : 'false');
+      // 编辑后写回本卡片 _detail，保存/导出时一并落盘
+      v.addEventListener('input', () => { det[key] = v.textContent.trim(); });
+      item.appendChild(b); item.appendChild(v);
+      metaRow.appendChild(item);
+    });
     niHead.appendChild(metaRow);
     wrap.appendChild(niHead);
+
+    // 分割线：横跨整个展开区宽度，区隔上方负责人信息与下方子步骤/附件
+    const divider = document.createElement('hr');
+    divider.className = 'ni-divider';
+    wrap.appendChild(divider);
 
     // 两栏容器：左=子步骤，右=附件，两栏顶端对齐
     const niCols = document.createElement('div');
@@ -4026,7 +4047,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     niCols.appendChild(niSide);
     wrap.appendChild(niCols);
 
-    const editing = document.body.classList.contains('edit-all');
     // 子步骤区填入左栏；附件区（图片 + 链接）填入右栏
     fillInlineSubsteps(wrap, node, editing);
     fillInlineAttach(niSide, node, editing);
