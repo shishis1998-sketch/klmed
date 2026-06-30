@@ -194,7 +194,7 @@
   .stage-ctrl{display:flex;gap:5px;flex:none;}
   .icon-btn{
     background:rgba(53,71,84,.07);border:none;color:var(--ink);cursor:pointer;
-    width:26px;height:26px;border-radius:6px;font-size:13px;line-height:1;
+    width:26px;height:26px;border-radius:6px;font-size:14px;line-height:1;
     display:grid;place-items:center;transition:.12s;
   }
   .icon-btn:hover{background:var(--accent);color:#fff;}
@@ -298,8 +298,10 @@
   .node-grip{cursor:grab;font-size:13px;opacity:.45;user-select:none;}
   .node-grip:active{cursor:grabbing;}
   .node-del{
-    background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;
-    line-height:1;padding:3px 7px;border-radius:6px;transition:.12s;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;padding:0;border:none;border-radius:6px;
+    background:rgba(53,71,84,.07);color:#7a8898;cursor:pointer;
+    font-size:14px;line-height:1;transition:.12s;
   }
   .node-del:hover{background:var(--danger);color:#fff;}
   .node-del:active{background:var(--danger-d);color:#fff;}
@@ -345,17 +347,15 @@
   .icon-btn.edit:hover{background:var(--accent);color:#fff;}
   .icon-btn.edit.on{background:var(--accent);color:#fff;}
   .node-bar-right{display:flex;align-items:center;gap:8px;}
-  .node-edit{
-    background:none;border:none;color:#bbb;cursor:pointer;font-size:14px;
-    line-height:1;padding:0 2px;transition:.12s;
+  .node-edit,.node-copy{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;padding:0;border:none;border-radius:6px;
+    background:rgba(53,71,84,.07);color:#7a8898;cursor:pointer;
+    font-size:14px;line-height:1;transition:.12s;
   }
-  .node-edit:hover{color:var(--accent);}
-  .node-edit.on{color:#fff;background:var(--accent);border-radius:6px;}
-  .node-copy{
-    background:none;border:none;color:#bbb;cursor:pointer;font-size:14px;
-    line-height:1;padding:0 2px;transition:.12s;
-  }
-  .node-copy:hover{color:var(--gold);}
+  .node-edit:hover{background:var(--accent);color:#fff;}
+  .node-edit.on{background:var(--accent);color:#fff;}
+  .node-copy:hover{background:var(--gold);color:#fff;}
   .stage.editing{box-shadow:0 0 0 2px var(--accent)!important;}
   .node.editing{box-shadow:0 0 0 2px var(--accent);}
 
@@ -879,8 +879,8 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar #searchbox > button:hover{ background:var(--paper) !important; }
 /* 命中计数固定宽度，防止文字变化时输入框忽长忽短；排在清除按钮之后 */
 #appTopbar #searchbox #searchCount{
-  flex:none; width:90px; order:2;
-  text-align:right; white-space:nowrap;
+  flex:none; width:96px; order:2;
+  text-align:left; white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis;
 }
 #appTopbar .tb-actions{ flex:none; display:flex; align-items:center; gap:8px; }
@@ -3295,11 +3295,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       }
     });
 
-    countEl.textContent = results.length ? `命中 ${results.length} 张卡片` : '无匹配';
+    countEl.textContent = results.length ? `找到 ${results.length} 个结果` : '无结果';
 
     // 结果列表（先展示，由用户点击跳转）
     if(results.length){
-      resBox.innerHTML = `<div class="sr-head">命中 ${results.length} 张卡片 · 点任意一条跳转</div>` +
+      resBox.innerHTML = `<div class="sr-head">找到 ${results.length} 个结果 · 点任意一条跳转</div>` +
         results.map((r,i)=>`<button type="button" class="sr-item" data-i="${i}">`
           + `<div class="sr-stage">📁 ${escapeHtml(r.stageName)}</div>`
           + `<div class="sr-title">${escapeHtml(r.title)}</div>`
@@ -3309,7 +3309,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         btn.addEventListener('click', ()=>jumpToResult(r.sIdx, r.node));
       });
     }else{
-      resBox.innerHTML = `<div class="sr-empty">无匹配（标题、说明、清单、详情内文字都已搜索）</div>`;
+      resBox.innerHTML = `<div class="sr-empty">无结果（标题、说明、清单、详情内文字都已搜索）</div>`;
     }
     resBox.hidden = false;
 
