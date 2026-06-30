@@ -1,6 +1,6 @@
 # COMPONENTS.md — 组件目录 (Component Catalog)
 
-> 来源:`SOP流程.html`。每个组件均为该文件中真实存在的可复用单元。任务清单中列出但本项目
+> 来源:`sop-index.html`。每个组件均为该文件中真实存在的可复用单元。任务清单中列出但本项目
 > **不存在**的组件,在文末"Not present"小节如实标注,避免凭空发明。
 >
 > 每个组件按统一结构记录:**Purpose / Visual / States / Variants / Spacing / Interaction /

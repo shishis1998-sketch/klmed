@@ -1,8 +1,8 @@
 # DESIGN.md — 视觉设计规范 (Visual Design Specification)
 
-> 来源:`SOP流程.html`。以下每条规则均从该文件的真实实现中提取,未发明任何不存在的样式。
+> 来源:`sop-index.html`。以下每条规则均从该文件的真实实现中提取,未发明任何不存在的样式。
 
-`SOP流程.html` 内有**两套 `:root` 令牌**:
+`sop-index.html` 内有**两套 `:root` 令牌**:
 
 - **旧外壳令牌**(`--ink`/`--accent`/`--radius:4px`…)— 早期版本遗留,大量旧组件仍引用其
   *颜色*。

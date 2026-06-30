@@ -1,13 +1,13 @@
 # SOP流程 — 设计系统文档 (Design System Documentation)
 
-> 本仓库的设计系统文档**仅针对 `SOP流程.html`**。
+> 本仓库的设计系统文档**仅针对 `sop-index.html`**。
 > 修改任何代码前,请依次阅读:`README.md` → `DESIGN.md` → `COMPONENTS.md` → `ANIMATION.md`。
 
 ---
 
 ## 1. Project Purpose
 
-`SOP流程.html` 是一个**自包含的单文件交互式 SOP(标准作业流程)编辑器**。它是一个独立的
+`sop-index.html` 是一个**自包含的单文件交互式 SOP(标准作业流程)编辑器**。它是一个独立的
 HTML 页面(内联 CSS + 内联 JavaScript,**零构建步骤、零外部依赖**),用于记录销售/物流
 业务流程,并允许非技术操作员**直接阅读、编辑并重新保存**该流程——无需任何服务器或工具链。
 
@@ -19,7 +19,7 @@ HTML 页面(内联 CSS + 内联 JavaScript,**零构建步骤、零外部依赖**
 
 > 仓库内另有 `索赔退款流程.html` 与 `索赔退款流程_扁平风.html` 两份文档,**不在本设计系统
 > 文档范围内**。本套文档(README / DESIGN / COMPONENTS / ANIMATION)描述的全部规则均
-> 来自 `SOP流程.html` 的真实实现。
+> 来自 `sop-index.html` 的真实实现。
 
 ### How persistence works (重要心智模型)
 
@@ -27,7 +27,7 @@ HTML 页面(内联 CSS + 内联 JavaScript,**零构建步骤、零外部依赖**
 
 1. 文本通过 `contenteditable` 就地编辑。
 2. **保存** (`saveFile()`) 把整个实时 DOM 序列化成 HTML 字符串,触发浏览器下载同名文件
-   `SOP流程.html`。
+   `sop-index.html`。
 3. 重新打开下载的文件即可还原一切——因为保存前会把运行时状态写回 `data-*` 属性
    (每张卡片的 `data-detail`、激活模块 `data-active-module` 等)。
 4. **导出 PDF** 即 `window.print()`,配合专门的 `@media print` 样式。
@@ -45,14 +45,14 @@ klmed/
 ├── DESIGN.md                  ← 视觉设计规范(颜色 / 字体 / 间距 / 圆角 / 阴影 / 布局 / 图标)
 ├── COMPONENTS.md              ← 全部可复用组件目录
 ├── ANIMATION.md               ← 动效系统规范
-├── SOP流程.html               ← 本设计系统的唯一来源(application shell)
+├── sop-index.html               ← 本设计系统的唯一来源(application shell)
 ├── 索赔退款流程.html           ← (不在本文档范围内)
 ├── 索赔退款流程_扁平风.html     ← (不在本文档范围内)
 └── assets/
     └── contabilizacion-stock.mp4
 ```
 
-`SOP流程.html` 内部结构(单文件,全内联):
+`sop-index.html` 内部结构(单文件,全内联):
 
 ```
 <head>
@@ -105,7 +105,7 @@ klmed/
 
 ## 5. Design Philosophy
 
-`SOP流程.html` 的视觉身份是**干净、专业、面向仪表盘的企业级软件**——克制的配色、充足的留白、
+`sop-index.html` 的视觉身份是**干净、专业、面向仪表盘的企业级软件**——克制的配色、充足的留白、
 柔和的层次,以商务蓝为主、单一活力橙为点缀。
 
 - **蓝色承载品牌**(`--accent #0070c2`);**橙色是唯一的强调色**(`--gold #fe9a00`),只
@@ -145,7 +145,7 @@ klmed/
 
 **动手前:** 先读 `DESIGN.md`、`COMPONENTS.md`、`ANIMATION.md`。
 
-在 `SOP流程.html` 内扩展时:
+在 `sop-index.html` 内扩展时:
 
 - **复用 `:root` 令牌块**,不要重新定义颜色/圆角/间距。新值一律走变量。
 - **复用 APP 外壳**(`#appTopbar`、`#appSidebar`、`.module-panel.active` 内容区)。
