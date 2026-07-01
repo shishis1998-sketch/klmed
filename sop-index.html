@@ -996,6 +996,8 @@ body.edit-all #appSidebar .stage-item .s-del{ display:inline-flex; }
 body.edit-all #appSidebar .mod-head .drag-grip{ display:inline-flex; align-items:center; }
 #appSidebar .stage-item .drag-grip{ position:absolute; left:12px; top:50%; transform:translateY(-50%); }
 body.edit-all #appSidebar .stage-item .drag-grip{ display:inline-flex; }
+/* 拖拽已改为「按住条目/卡片任意位置长按 1 秒」触发，不再需要专门的拖动手柄图标，统一隐藏 */
+.node-grip, .stage-head .grip, #appSidebar .drag-grip, .ni-card .ni-grip{ display:none !important; }
 body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑态左侧让位给手柄，隐藏激活竖条 */
 #appSidebar .mod.dragging, #appSidebar .stage-item.dragging{ opacity:.4; }
 #appSidebar .mod.drag-over > .mod-head, #appSidebar .stage-item.drag-over{ box-shadow:0 -2px 0 0 var(--accent); }
@@ -2457,8 +2459,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
      getCandidates()：每次拖拽开始时求值一次，返回允许互相排序的同组元素列表；
      onDrop(dragEl, targetEl, after)：松手且确实悬停在有效目标上时调用一次。 */
   function armManualDrag(handleEl, itemEl, getCandidates, onDrop, delay){
-    delay = delay || 1500;
-    const THRESH = 6;
+    delay = delay || 1000;
+    const THRESH = 18;   // 放宽一些，避免真实鼠标/触控板长按时的手抖被误判成"在移动"而取消计时
     let timer = null, sx = 0, sy = 0, dragging = false, hoverTarget = null, hoverAfter = false;
 
     function clearHover(){
