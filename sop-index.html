@@ -2465,7 +2465,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
      getCandidates()：每次拖拽开始时求值一次，返回允许互相排序的同组元素列表；
      onDrop(dragEl, targetEl, after)：松手且确实悬停在有效目标上时调用一次。 */
   function armManualDrag(handleEl, itemEl, getCandidates, onDrop, delay){
-    delay = delay || 800;
+    delay = delay || 650;
     const THRESH = 18;   // 放宽一些，避免真实鼠标/触控板长按时的手抖被误判成"在移动"而取消计时
     let timer = null, sx = 0, sy = 0, dragging = false, hoverTarget = null, hoverAfter = false;
     let ghost = null, grabDX = 0, grabDY = 0;
@@ -2488,8 +2488,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       for(let i=0;i<srcAll.length;i++) bakeComputedStyle(srcAll[i], dstAll[i]);
       return clone;
     }
+    const LIFT_SHADOW = '0 16px 32px -8px rgba(0,0,0,.35), 0 0 0 2px var(--accent)';
+    const LIFT_TRANSFORM = 'scale(1.04)';
+    const LIFT_MS = 160;
     // 悬浮跟手的"幽灵"卡片：拖动时原卡片留在原位变暗当占位，克隆一份跟着鼠标移动，
-    // 这样才能看出「确实在拖」以及要落到哪里。
+    // 这样才能看出「确实在拖」以及要落到哪里。抬起/放下都做一小段过渡动画，不是硬切换。
     function startDragging(){
       dragging = true;
       const r = itemEl.getBoundingClientRect();
@@ -2505,24 +2508,35 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       ghost.style.height = r.height + 'px';
       ghost.style.margin = '0';
       ghost.style.pointerEvents = 'none';
-      // 上面 bakeComputedStyle 已经把原卡片"没在拖动时"的 box-shadow/opacity/transform/cursor
-      // 都写成内联样式了，内联样式的优先级比 .drag-ghost 这条 class 规则还高，
-      // 所以这几个"看起来在被拖动"的效果必须在这里显式覆盖一遍，否则会被烘焙进去的原样式盖掉。
       ghost.style.zIndex = '9999';
-      ghost.style.boxShadow = '0 16px 32px -8px rgba(0,0,0,.35), 0 0 0 2px var(--accent)';
-      ghost.style.opacity = '.95';
-      ghost.style.transform = 'scale(1.02)';
-      ghost.style.cursor = 'grabbing';
+      // 先以「静止态」（烘焙进来的原卡片阴影/缩放）挂到页面上，下一帧再切到「抬起态」，
+      // 靠 transition 补间出「拿起」的动画，而不是一开始就直接摆出已经抬起的样子。
       ghost.style.transition = 'none';
       document.body.appendChild(ghost);
+      requestAnimationFrame(()=>{
+        if(!ghost) return;
+        ghost.style.transition = `transform ${LIFT_MS}ms ease, box-shadow ${LIFT_MS}ms ease`;
+        ghost.style.boxShadow = LIFT_SHADOW;
+        ghost.style.opacity = '.95';
+        ghost.style.transform = LIFT_TRANSFORM;
+        ghost.style.cursor = 'grabbing';
+      });
     }
     function moveGhost(x, y){
       if(!ghost) return;
       ghost.style.left = (x - grabDX) + 'px';
       ghost.style.top = (y - grabDY) + 'px';
     }
+    // 松手时把幽灵卡片补间回「放下」的样子（缩放/阴影复原 + 淡出），动画结束后再真正移除，
+    // 而不是手一松就瞬间消失。
     function removeGhost(){
-      if(ghost){ ghost.remove(); ghost = null; }
+      if(!ghost) return;
+      const g = ghost; ghost = null;
+      g.style.transition = `transform ${LIFT_MS}ms ease, box-shadow ${LIFT_MS}ms ease, opacity ${LIFT_MS}ms ease`;
+      g.style.transform = 'scale(1)';
+      g.style.boxShadow = 'none';
+      g.style.opacity = '0';
+      setTimeout(()=> g.remove(), LIFT_MS);
     }
     function clearHover(){
       if(hoverTarget) hoverTarget.classList.remove('drag-over');
