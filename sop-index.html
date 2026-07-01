@@ -2448,6 +2448,38 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   /* ============ 拖拽排序 ============ */
   let dragEl = null, dragType = null;
 
+  /* 长按 1.5 秒后才允许拖动，不依赖必须按住手柄图标：
+     按在卡片/条目任意位置（含手柄，手柄在其内部会冒泡触发）都可以，
+     松手或移动超过阈值（防止误触发文字选取/滚动）就取消计时。 */
+  /* handleEl：监听按下的区域；targetEl：计时结束后设为 draggable 的元素（默认与 handleEl 相同）。
+     两者分开是为了给「阶段」「模块」这类内部还嵌套着其他可拖拽子项的容器用：
+     只在标题栏（handleEl）范围内长按才武装整块的拖动，避免和内部卡片/子项的拖拽冲突。 */
+  function armLongPressDrag(handleEl, targetEl, delay){
+    targetEl = targetEl || handleEl;
+    delay = delay || 1500;
+    const THRESH = 6;
+    let timer = null, sx = 0, sy = 0;
+    function onMove(e){
+      if(Math.abs(e.clientX-sx) > THRESH || Math.abs(e.clientY-sy) > THRESH) clear();
+    }
+    function onUp(){
+      clear();
+      if(!targetEl.classList.contains('dragging')) targetEl.draggable = false;
+    }
+    function clear(){
+      if(timer){ clearTimeout(timer); timer = null; }
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    handleEl.addEventListener('mousedown', e=>{
+      if(e.button !== 0 || !document.body.classList.contains('edit-all')) return;
+      sx = e.clientX; sy = e.clientY;
+      timer = setTimeout(()=>{ targetEl.draggable = true; }, delay);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
   function onDragStart(e, el, type){
     dragEl = el; dragType = type;
     el.classList.add('dragging');
@@ -2519,8 +2551,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       <p class="node-title" contenteditable="false">${d.title}</p>
       <p class="node-desc" contenteditable="false">${d.desc}</p>
       <button class="node-open">${btnLabel}</button>`;
-    const grip = node.querySelector('.node-grip');
-    grip.addEventListener('mousedown',()=>node.draggable=true);
+    armLongPressDrag(node);
     node.addEventListener('dragstart',e=>onDragStart(e,node,'node'));
     node.addEventListener('dragend',()=>{node.draggable=false;onDragEnd(node);});
     node.addEventListener('dragover',e=>allowDrop(e,node,'node'));
@@ -2760,11 +2791,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       }
       steps.insertBefore(makeNode(), addBtn);
       updateStageCount(stage);
+      renumberStageNodes(stage);
     };
     steps.appendChild(addBtn);
 
-    const grip = stage.querySelector('.grip');
-    grip.addEventListener('mousedown',()=>stage.draggable=true);
+    armLongPressDrag(stage.querySelector('.stage-head'), stage);
     stage.addEventListener('dragstart',e=>{ if(stage.draggable) onDragStart(e,stage,'stage'); });
     stage.addEventListener('dragend',()=>{stage.draggable=false;onDragEnd(stage);});
     stage.addEventListener('dragover',e=>allowDrop(e,stage,'stage'));
@@ -3136,7 +3167,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   // 顶部“全部编辑开/关”：一次性把全文行内文字切到可编辑（不含详情弹窗），方便批量改
   function toggleEdit(){
     editOn=!editOn;
-    if(!editOn) exitAllEditing();
+    if(!editOn){
+      exitAllEditing();
+      // 关闭编辑开关：不管是删除、拖拽移动还是直接改文字，统一在这里兜底刷新每个阶段的 1/2/3 序号
+      document.querySelectorAll('.stage').forEach(st=>{ updateStageCount(st); renumberStageNodes(st); });
+    }
     inlineEditables().forEach(el=>el.setAttribute('contenteditable',editOn));
     document.body.classList.toggle('edit-all', editOn);
   }
@@ -3190,6 +3225,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 退出所有编辑态，确保保存/重开后文件默认只读
     exitAllEditing();
     editOn=false; document.body.classList.remove('edit-all');
+    // 保存前兜底刷新每个阶段的 1/2/3 序号，避免删除/拖拽/改文字后没来得及更新
+    document.querySelectorAll('.stage').forEach(st=>{ updateStageCount(st); renumberStageNodes(st); });
     // 同步复位顶部「编辑」滑动开关，避免导出的文件以“开”状态打开
     const _be=document.getElementById('btnEdit');
     if(_be){ _be.classList.remove('on'); _be.setAttribute('aria-checked','false'); }
@@ -3235,7 +3272,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const blob = new Blob([html],{type:'text/html;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'SOP流程.html';
+    a.download = 'sop-index.html';
     a.click();
     URL.revokeObjectURL(a.href);
     _restoreAfterExport();
@@ -3366,15 +3403,15 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 清掉图片放大器残留的 base64 src（点开过的图会留在 #imgviewImg 上）
     const _iv = clone.querySelector('#imgviewImg'); if(_iv) _iv.removeAttribute('src');
     const html = '<!DOCTYPE html>\n' + clone.outerHTML;
-    files.unshift({name:'SOP流程.html', bytes:new TextEncoder().encode(html)});
+    files.unshift({name:'sop-index.html', bytes:new TextEncoder().encode(html)});
     // 打包说明
     const today = new Date().toISOString().slice(0,10);
     let readme =
       '【SOP 流程 — 打包说明】\n\n' +
-      '1. 先把本压缩包【完整解压到一个文件夹】，再双击打开里面的 SOP流程.html。\n' +
+      '1. 先把本压缩包【完整解压到一个文件夹】，再双击打开里面的 sop-index.html。\n' +
       '   ⚠️ 不要直接在压缩包里双击打开，否则图片/视频/附件会失效。\n' +
-      '2. SOP流程.html 必须和 assets 文件夹放在一起，不能只单独拷贝 HTML。\n' +
-      '3. 如果你编辑后点了「保存」，浏览器只会下载新的 SOP流程.html；\n' +
+      '2. sop-index.html 必须和 assets 文件夹放在一起，不能只单独拷贝 HTML。\n' +
+      '3. 如果你编辑后点了「保存」，浏览器只会下载新的 sop-index.html；\n' +
       '   要再发给别人时，请重新点「导出 ZIP」重新打包，或手动把 assets 文件夹一起带上。\n';
     if(externalRefs.length){
       readme += '\n【需手动确认的外部文件】\n' +
@@ -3387,7 +3424,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const blob = _buildZip(files);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'SOP流程_打包_'+today+'.zip';
+    a.download = 'sop-index_'+today+'.zip';
     a.click();
     URL.revokeObjectURL(a.href);
     _restoreAfterExport();
@@ -3956,7 +3993,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   let _sortDrag = null, _sortGroup = null;
   function makeSortable(el, handle, group, onReorder){
     if(!el || !handle) return;
-    handle.addEventListener('mousedown', ()=>{ if(document.body.classList.contains('edit-all')) el.setAttribute('draggable','true'); });
+    armLongPressDrag(handle, el);
     el.addEventListener('dragstart', e=>{
       if(el.getAttribute('draggable')!=='true') return;
       _sortDrag = el; _sortGroup = group; el.classList.add('dragging');
@@ -4070,7 +4107,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
           if(e.target.closest('.s-del')){ e.stopPropagation(); deleteStage(id, st); return; }
           selectStage(id, i);
         });
-        makeSortable(it, it.querySelector('.drag-grip'), 'stage', reorderStages);
+        makeSortable(it, it, 'stage', reorderStages);
         sw.appendChild(it);
       });
       const addS = document.createElement('div');
@@ -4087,7 +4124,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       });
       sw.appendChild(addS);
       mod.appendChild(sw);
-      makeSortable(mod, head.querySelector('.drag-grip'), 'mod', reorderModules);
+      makeSortable(mod, head, 'mod', reorderModules);
       host.appendChild(mod);
     });
     refreshSidebarActive();
@@ -4332,7 +4369,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         card.querySelector('.ni-name').addEventListener('input', e=>{ ss.name = e.target.textContent; });
         card.querySelector('.ni-desc').addEventListener('input', e=>{ ss.desc = e.target.innerHTML; });
         // 拖拽排序：重排 substeps 数组后重渲染
-        makeSortable(card, card.querySelector('.ni-grip'), 'sub', (drag, tgt, after)=>{
+        makeSortable(card, card, 'sub', (drag, tgt, after)=>{
           const cards = [...host.querySelectorAll('.ni-card')];
           const from = cards.indexOf(drag); let to = cards.indexOf(tgt);
           if(from < 0 || to < 0) return;
