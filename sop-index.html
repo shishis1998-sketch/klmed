@@ -927,6 +927,16 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appSidebar .side-label{ font-size:11px; font-weight:700; letter-spacing:.14em;
   text-transform:uppercase; color:#aab2bd; padding:16px 18px 8px; }
 #appSidebar .side-scroll{ flex:1; min-height:0; overflow-y:auto; padding:0 10px 10px; }
+
+/* ---- 自动隐藏滚动条：平时不显示，滚动时才淡入，停止后淡出 ---- */
+html, #appSidebar .side-scroll{ scrollbar-width:thin; scrollbar-color:transparent transparent; }
+html.is-scrolling, #appSidebar .side-scroll.is-scrolling{ scrollbar-color:rgba(0,0,0,.28) transparent; }
+html::-webkit-scrollbar, #appSidebar .side-scroll::-webkit-scrollbar{ width:8px; }
+html::-webkit-scrollbar-track, #appSidebar .side-scroll::-webkit-scrollbar-track{ background:transparent; }
+html::-webkit-scrollbar-thumb, #appSidebar .side-scroll::-webkit-scrollbar-thumb{
+  background:transparent; border-radius:4px; transition:background .25s ease .3s; }
+html.is-scrolling::-webkit-scrollbar-thumb, #appSidebar .side-scroll.is-scrolling::-webkit-scrollbar-thumb{
+  background:rgba(0,0,0,.28); transition:background .1s ease; }
 /* 一级：模块 */
 #appSidebar .mod-head{
   display:flex; align-items:center; gap:9px; padding:10px 10px; border-radius:var(--r);
@@ -4536,6 +4546,19 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       setTimeout(()=> document.getElementById('appSidebar')?.classList.remove('open'), 200);
     }
   });
+
+  /* ---- 自动隐藏滚动条：滚动时显示，停止滚动后延迟隐藏 ---- */
+  function bindAutoHideScrollbar(el, hideDelay){
+    if(!el) return;
+    let hideTimer;
+    el.addEventListener('scroll', ()=>{
+      el.classList.add('is-scrolling');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(()=> el.classList.remove('is-scrolling'), hideDelay);
+    }, { passive:true });
+  }
+  bindAutoHideScrollbar(document.documentElement, 900);
+  bindAutoHideScrollbar(document.getElementById('sideScroll'), 900);
 </script>
 
 
