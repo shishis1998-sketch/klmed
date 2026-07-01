@@ -2730,7 +2730,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         <span class="meta" contenteditable="false">${d.meta}</span>
         <span class="step-count"></span>
         <span class="stage-ctrl">
-          <button class="icon-btn edit" title="编辑标题"><span class="ic"><svg><use href="#i-edit"/></svg></span></button>
           <button class="icon-btn copy" title="复制此模块到指定模块"><span class="ic"><svg><use href="#i-copy"/></svg></span></button>
           <button class="icon-btn ins" title="在此阶段后插入新阶段"><span class="ic"><svg><use href="#i-plus"/></svg></span></button>
           <button class="icon-btn del" title="删除整个阶段"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
@@ -2774,10 +2773,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     };
     stage.querySelector('.del').onclick=()=>{ stage.remove(); renumber(stage.closest('.flow')||activeFlow()); };
     stage.querySelector('.copy').onclick=()=>openCopyModal(stage);
-    registerEditHost(stage, stage.querySelector('.edit'), [
-      stage.querySelector('.stitle'),
-      stage.querySelector('.meta')
-    ]);
 
     // 折叠/展开：点击标题栏切换（避开按钮、拖拽手柄、可编辑文字区）
     // 左右布局下，阶段恒为展开态、由左侧竖栏切换，点标题不再折叠（避免把当前阶段收起）
