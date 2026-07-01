@@ -2502,7 +2502,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       <div class="node-bar">
         <span class="node-grip" title="拖动排序">⠿</span>
         <span class="node-bar-right">
-          <button class="node-edit" title="编辑"><span class="ic"><svg><use href="#i-edit"/></svg></span></button>
           <button class="node-copy" title="复制此卡片"><span class="ic"><svg><use href="#i-copy"/></svg></span></button>
           <button class="node-del" title="删除卡片"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
         </span>
@@ -2530,11 +2529,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     };
     node.querySelector('.node-copy').onclick=()=>openCardCopyModal(node);
     node.querySelector('.node-open').onclick=()=>openDetail(node);
-    registerEditHost(node, node.querySelector('.node-edit'), [
-      node.querySelector('.tag'),
-      node.querySelector('.node-title'),
-      node.querySelector('.node-desc')
-    ]);
     return node;
   }
 
