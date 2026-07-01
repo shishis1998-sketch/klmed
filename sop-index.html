@@ -972,6 +972,17 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 #appSidebar .stage-item:hover{ background:var(--paper); color:var(--ink); }
 #appSidebar .stage-item .s-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #appSidebar .stage-item .cnt{ flex:none; font-size:11px; color:#aab2bd; }
+/* 阶段的 复制 / 重命名 / 删除：仅编辑模式显示（与模块的一致） */
+#appSidebar .stage-item .s-copy, #appSidebar .stage-item .s-edit, #appSidebar .stage-item .s-del{
+  display:none; flex:none; width:20px; height:20px; border-radius:6px;
+  align-items:center; justify-content:center; color:#9aa3ae; }
+#appSidebar .stage-item .s-copy .ic, #appSidebar .stage-item .s-edit .ic, #appSidebar .stage-item .s-del .ic{ font-size:13px; color:inherit; }
+body.edit-all #appSidebar .stage-item .s-copy,
+body.edit-all #appSidebar .stage-item .s-edit,
+body.edit-all #appSidebar .stage-item .s-del{ display:inline-flex; }
+#appSidebar .stage-item .s-copy:hover, #appSidebar .stage-item .s-edit:hover{ background:var(--accent); color:#fff; }
+#appSidebar .stage-item .s-del:hover{ background:var(--danger); color:#fff; }
+#appSidebar .stage-item .s-del:active{ background:var(--danger-d); color:#fff; }
 #appSidebar .stage-item.active{ background:var(--accent-soft); color:var(--accent); font-weight:700; }
 #appSidebar .stage-item.active::before{ content:""; position:absolute; left:18px; top:50%;
   transform:translateY(-50%); width:3px; height:15px; border-radius:2px; background:var(--accent); }
@@ -1041,17 +1052,8 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
 .flow.has-open .stage:not(.open){ opacity:1 !important; transform:none !important; filter:none !important; }
 
 /* 阶段标题栏整条删除：顶部面包屑已显示当前阶段，无需在步骤上方重复「标题 / 负责人 / 步骤数」。
-   编辑态仅保留右上角的阶段增删控件（复制 / 插入 / 删除阶段）。 */
-.module-panel.active > .flow > .stage.detail-active .stage-head{ display:none; }
-.module-panel.active > .flow > .stage.detail-active .stage-head .stitle,
-.module-panel.active > .flow > .stage.detail-active .stage-head .meta,
-.module-panel.active > .flow > .stage.detail-active .stage-head .step-count{ display:none !important; }
-body.edit-all .module-panel.active > .flow > .stage.detail-active .stage-head{
-  display:flex; align-items:center; justify-content:flex-end; gap:8px;
-  margin:0 0 12px; padding:0; min-height:0; position:static;
-  background:transparent !important; border:none !important;
-}
-.stage-head .stage-ctrl{ margin-left:auto; }
+   阶段的 复制 / 删除 / 新建 均移到左侧模块栏操作，内容区上方不再出现任何阶段按钮。 */
+.module-panel.active > .flow > .stage.detail-active .stage-head{ display:none !important; }
 .stage.detail-active .steps-wrap{ height:auto !important; overflow:visible; border-radius:0; }
 
 /* 步骤卡片：单列竖排列表（master-detail 左栏） */
@@ -2751,11 +2753,6 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         <span class="stitle" contenteditable="false">${d.title}</span>
         <span class="meta" contenteditable="false">${d.meta}</span>
         <span class="step-count"></span>
-        <span class="stage-ctrl">
-          <button class="icon-btn copy" title="复制此模块到指定模块"><span class="ic"><svg><use href="#i-copy"/></svg></span></button>
-          <button class="icon-btn ins" title="在此阶段后插入新阶段"><span class="ic"><svg><use href="#i-plus"/></svg></span></button>
-          <button class="icon-btn del" title="删除整个阶段"><span class="ic"><svg><use href="#i-trash"/></svg></span></button>
-        </span>
         <span class="stage-toggle">▶</span>
       </div>
       <div class="steps-wrap"><div class="steps"></div></div>`;
@@ -2790,11 +2787,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     stage.addEventListener('dragover',e=>allowDrop(e,stage,'stage'));
     stage.addEventListener('dragleave',()=>leaveDrop(stage));
     stage.addEventListener('drop',e=>onDrop(e,stage,'stage'));
-    stage.querySelector('.ins').onclick=()=>{
-      stage.after(makeStage()); renumber(stage.closest('.flow'));
-    };
-    stage.querySelector('.del').onclick=()=>{ stage.remove(); renumber(stage.closest('.flow')||activeFlow()); };
-    stage.querySelector('.copy').onclick=()=>openCopyModal(stage);
+    // 阶段的 复制 / 删除 / 新建 已移到左侧模块栏（每个阶段项的编辑按钮 + 新建阶段）
 
     // 折叠/展开：点击标题栏切换（避开按钮、拖拽手柄、可编辑文字区）
     // 左右布局下，阶段恒为展开态、由左侧竖栏切换，点标题不再折叠（避免把当前阶段收起）
@@ -4083,8 +4076,17 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         it.dataset.module = id; it.dataset.idx = i;
         it.innerHTML =
           `<span class="drag-grip" title="拖动调整阶段顺序">⠿</span>` +
-          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>`;
-        it.addEventListener('click', e=>{ if(e.target.closest('.drag-grip')) return; selectStage(id, i); });
+          `<span class="s-name">${escapeHtml((st.querySelector('.stitle')?.textContent || '阶段').trim())}</span>` +
+          `<span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"/></svg></span></span>` +
+          `<span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"/></svg></span></span>` +
+          `<span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"/></svg></span></span>`;
+        it.addEventListener('click', e=>{
+          if(e.target.closest('.drag-grip')) return;
+          if(e.target.closest('.s-copy')){ e.stopPropagation(); openCopyModal(st); return; }
+          if(e.target.closest('.s-edit')){ e.stopPropagation(); renameStage(id, st); return; }
+          if(e.target.closest('.s-del')){ e.stopPropagation(); deleteStage(id, st); return; }
+          selectStage(id, i);
+        });
         makeSortable(it, it.querySelector('.drag-grip'), 'stage', reorderStages);
         sw.appendChild(it);
       });
@@ -4122,6 +4124,41 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     collapseNodeInline(true);
     if(id !== activeModuleId()) switchModule(id);
     activateStage(document.getElementById('panel-' + id), idx);
+  }
+  /* 重命名阶段：改阶段标题（写回隐藏的 .stitle，联动侧栏/面包屑）*/
+  function renameStage(id, stage){
+    if(!stage) return;
+    const cur = (stage.querySelector('.stitle')?.textContent || '').trim();
+    const name = prompt('阶段名称：', cur);
+    if(name == null) return;
+    const t = name.trim();
+    if(!t) return;
+    const stitle = stage.querySelector('.stitle');
+    if(stitle) stitle.textContent = t;
+    buildSidebar();
+    updateBreadcrumb();
+  }
+  /* 删除阶段：移除该阶段并重排；若删的是当前阶段则改选相邻阶段 */
+  function deleteStage(id, stage){
+    if(!stage) return;
+    const flow = document.getElementById('flow-' + id);
+    if(!flow) return;
+    const stagesBefore = [...flow.querySelectorAll('.stage')];
+    if(stagesBefore.length <= 1){ alert('每个模块至少保留一个阶段。'); return; }
+    if(!confirm('确定删除此阶段及其下所有步骤？')) return;
+    const delIdx = stagesBefore.indexOf(stage);
+    const panel = document.getElementById('panel-' + id);
+    const curActive = panel ? (+(panel.dataset.activeStage || 0)) : 0;
+    stage.remove();
+    renumber(flow);
+    // 计算删除后应激活的阶段索引
+    let nextIdx = curActive;
+    if(delIdx === curActive) nextIdx = Math.max(0, delIdx - 0);      // 原位（下一个顶上来）
+    else if(delIdx < curActive) nextIdx = curActive - 1;             // 删的在前面，索引前移
+    const remaining = flow.querySelectorAll('.stage').length;
+    nextIdx = Math.max(0, Math.min(nextIdx, remaining - 1));
+    if(id !== activeModuleId()) switchModule(id);
+    activateStage(panel, nextIdx);
   }
   /* 重命名模块（所有模块通用）：更新对应隐藏 tab 的名称，再重建侧栏/面包屑 */
   function renameModule(id){
