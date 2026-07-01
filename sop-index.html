@@ -1405,12 +1405,9 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   <button class="module-tab" data-module="mmqqfumch0" onclick="switchModule('mmqqfumch0')">📁 VENTAS<span class="module-del" title="删除此模块" onclick="event.stopPropagation();deleteModule('mmqqfumch0')">✕</span></button><button class="module-tab" data-module="mmqy4asd90" onclick="switchModule('mmqy4asd90')">📁 仓储物流<span class="module-del" title="删除此模块" onclick="event.stopPropagation();deleteModule('mmqy4asd90')">✕</span></button><button class="module-tab" data-module="mmr0owhkp0" onclick="switchModule('mmr0owhkp0')">📁 投诉<span class="module-del" title="删除此模块" onclick="event.stopPropagation();deleteModule('mmr0owhkp0')">✕</span></button><button class="module-tab" data-module="mmr1y77ds0" onclick="switchModule('mmr1y77ds0')">📁 退货<span class="module-del" title="删除此模块" onclick="event.stopPropagation();deleteModule('mmr1y77ds0')">✕</span></button><button class="module-tab add-module" onclick="openAddModuleModal()" title="新建自定义模块">＋ 新建模块</button>
 </div>
 
-<div id="miniModal" class=""><div class="mini-box" id="miniModalBox"><h3>复制到「📁 退货」<br>的哪个阶段？</h3>
-        <div class="mini-list"><button onclick="confirmCardCopy('mmr1y77ds0',0)">业务员带回退货<span style="opacity:.5;font-size:12px;margin-left:6px;">(4 步)</span></button><button onclick="confirmCardCopy('mmr1y77ds0',1)">投诉的退货<span style="opacity:.5;font-size:12px;margin-left:6px;">(4 步)</span></button></div>
-        <div class="mini-actions">
-          <button onclick="openCardCopyModal(pendingCopyNode)">← 返回</button>
-          <button onclick="closeMiniModal()">取消</button>
-        </div></div></div>
+<div id="miniModal" class=""><div class="mini-box" id="miniModalBox"><h3>复制卡片到哪个模块？</h3>
+        <div class="mini-list"><button onclick="selectStageForCard('sales')">📦 销售流程</button><button onclick="selectStageForCard('finance')">💰 财务流程</button><button onclick="selectStageForCard('mmqqfumch0')">📁 VENTAS</button><button onclick="selectStageForCard('mmqy4asd90')">📁 仓储物流</button><button onclick="selectStageForCard('mmr0owhkp0')">📁 投诉</button><button onclick="selectStageForCard('mmr1y77ds0')">📁 退货</button></div>
+        <div class="mini-actions"><button onclick="closeMiniModal()">取消</button></div></div></div>
 
 <div class="module-panel" id="panel-sales" data-active-stage="2">
   <div class="flow has-open" id="flow-sales"><section class="stage">
@@ -1798,7 +1795,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         <span class="stage-num" aria-hidden="true"></span>
         <span class="stitle" contenteditable="false">A3发票</span>
         <span class="meta" contenteditable="false">负责人：SHISHI</span>
-        <span class="step-count">2 步骤</span>
+        <span class="step-count">3 步骤</span>
         <span class="stage-toggle">▶</span>
       </div>
       <div class="steps-wrap" style="height: auto;"><div class="steps"><div class="node" draggable="false" data-detail="{&quot;owner&quot;:&quot;SHISHI&quot;,&quot;time&quot;:&quot;2 小时&quot;,&quot;freq&quot;:&quot;每月初&quot;,&quot;body&quot;:&quot;&quot;,&quot;images&quot;:[&quot;assets/媒体4.png&quot;],&quot;links&quot;:[],&quot;substeps&quot;:[{&quot;name&quot;:&quot;「3. Libro registro - emitidas」从SAP复制到 A3模板&quot;,&quot;desc&quot;:&quot;&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;检查PT/FR/欧盟税号，是否都是entrega intracomunitaria&quot;,&quot;desc&quot;:&quot;&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;如有新客人，A3会自动生成一个430的cuenta，我习惯数据导入之后再去重新创建和SAP一样的cuenta&quot;,&quot;desc&quot;:&quot;最后再删除A3自动生成的cuenta&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;导入时如果有base金额是零的也会跳错，删掉那一行再重新导入&quot;,&quot;desc&quot;:&quot;GRUPO TRISTAN 的发票没有IVA的是OPERACION默认是1，要改成TIPO 6&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;导入的abonos需要修改cuenta 708，导入时默认的cuenta都是700&quot;,&quot;desc&quot;:&quot;可以检查700有没有负数的，以免漏掉&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;Agencia的赔偿发票改成778&quot;,&quot;desc&quot;:&quot;（CBL, ONTIME, GLS）&quot;,&quot;images&quot;:[]},{&quot;name&quot;:&quot;欧盟的abonos需要指原发票以及日期&quot;,&quot;desc&quot;:&quot;&quot;,&quot;images&quot;:[]}]}">
@@ -1823,6 +1820,17 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       <span class="tag" contenteditable="false">操作</span>
       <p class="node-title" contenteditable="false">2. SAP_FACTURAS RECIBIDAS</p>
       <p class="node-desc" contenteditable="false">根据SAP的数据，导入到A3</p>
+      <button class="node-open">详情 →</button></div><div class="step-arrow">➜</div><div class="node" draggable="false" data-detail="{&quot;owner&quot;:&quot;SHISHI&quot;,&quot;time&quot;:&quot;30 分钟&quot;,&quot;freq&quot;:&quot;每月&quot;,&quot;body&quot;:&quot;点击此处编写该步骤的详细操作说明，可分多段…&quot;,&quot;images&quot;:[],&quot;links&quot;:[],&quot;substeps&quot;:[{&quot;name&quot;:&quot;按月整理好 EMITIDAS/RECIBIDAS 发票&quot;,&quot;desc&quot;:&quot;&quot;,&quot;images&quot;:[]}]}">
+      <div class="node-bar">
+        <span class="node-grip" title="拖动排序">⠿</span>
+        <span class="node-bar-right">
+          <button class="node-copy" title="复制此卡片"><span class="ic"><svg><use href="#i-copy"></use></svg></span></button>
+          <button class="node-del" title="删除卡片"><span class="ic"><svg><use href="#i-trash"></use></svg></span></button>
+        </span>
+      </div>
+      <span class="tag" contenteditable="false">操作</span>
+      <p class="node-title" contenteditable="false">DS ALBA 发票给律师楼</p>
+      <p class="node-desc" contenteditable="false">邮件发给律师楼</p>
       <button class="node-open">详情 →</button></div><button class="add-step" title="本阶段加卡片">＋</button></div></div></section></div>
 </div><div class="module-panel" id="panel-mmqqfumch0" data-active-stage="0"><div class="flow has-open" id="flow-mmqqfumch0"><section class="stage detail-active open">
       <div class="stage-head">
@@ -2160,7 +2168,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 </footer>
 
 <!-- 浮动格式工具条 -->
-<div id="fmtbar" style="display: none; left: 1044.09px; top: 67.9906px;">
+<div id="fmtbar" style="display: none; left: 330.623px; top: 289.991px;">
   <button onmousedown="cmd(event,'bold')" title="加粗"><b>B</b></button>
   <button onmousedown="cmd(event,'italic')" title="斜体"><i>I</i></button>
   <button onmousedown="cmd(event,'underline')" title="下划线"><u>U</u></button>
@@ -3244,7 +3252,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const blob = new Blob([html],{type:'text/html;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'sop-index.html';
+    a.download = 'SOP流程.html';
     a.click();
     URL.revokeObjectURL(a.href);
     _restoreAfterExport();
@@ -3375,15 +3383,15 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     // 清掉图片放大器残留的 base64 src（点开过的图会留在 #imgviewImg 上）
     const _iv = clone.querySelector('#imgviewImg'); if(_iv) _iv.removeAttribute('src');
     const html = '<!DOCTYPE html>\n' + clone.outerHTML;
-    files.unshift({name:'sop-index.html', bytes:new TextEncoder().encode(html)});
+    files.unshift({name:'SOP流程.html', bytes:new TextEncoder().encode(html)});
     // 打包说明
     const today = new Date().toISOString().slice(0,10);
     let readme =
       '【SOP 流程 — 打包说明】\n\n' +
-      '1. 先把本压缩包【完整解压到一个文件夹】，再双击打开里面的 sop-index.html。\n' +
+      '1. 先把本压缩包【完整解压到一个文件夹】，再双击打开里面的 SOP流程.html。\n' +
       '   ⚠️ 不要直接在压缩包里双击打开，否则图片/视频/附件会失效。\n' +
-      '2. sop-index.html 必须和 assets 文件夹放在一起，不能只单独拷贝 HTML。\n' +
-      '3. 如果你编辑后点了「保存」，浏览器只会下载新的 sop-index.html；\n' +
+      '2. SOP流程.html 必须和 assets 文件夹放在一起，不能只单独拷贝 HTML。\n' +
+      '3. 如果你编辑后点了「保存」，浏览器只会下载新的 SOP流程.html；\n' +
       '   要再发给别人时，请重新点「导出 ZIP」重新打包，或手动把 assets 文件夹一起带上。\n';
     if(externalRefs.length){
       readme += '\n【需手动确认的外部文件】\n' +
@@ -3396,7 +3404,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const blob = _buildZip(files);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'sop-index_'+today+'.zip';
+    a.download = 'SOP流程_打包_'+today+'.zip';
     a.click();
     URL.revokeObjectURL(a.href);
     _restoreAfterExport();
