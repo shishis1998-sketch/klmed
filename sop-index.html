@@ -2448,35 +2448,63 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   /* ============ 拖拽排序 ============ */
   let dragEl = null, dragType = null;
 
-  /* 长按 1.5 秒后才允许拖动，不依赖必须按住手柄图标：
-     按在卡片/条目任意位置（含手柄，手柄在其内部会冒泡触发）都可以，
-     松手或移动超过阈值（防止误触发文字选取/滚动）就取消计时。 */
-  /* handleEl：监听按下的区域；targetEl：计时结束后设为 draggable 的元素（默认与 handleEl 相同）。
-     两者分开是为了给「阶段」「模块」这类内部还嵌套着其他可拖拽子项的容器用：
-     只在标题栏（handleEl）范围内长按才武装整块的拖动，避免和内部卡片/子项的拖拽冲突。 */
-  function armLongPressDrag(handleEl, targetEl, delay){
-    targetEl = targetEl || handleEl;
+  /* 长按 1.5 秒后才可拖动，不依赖必须按住手柄图标，且不用原生 HTML5 拖拽实现：
+     原生拖拽只认「mousedown 那一刻元素是不是 draggable=true」，按下之后再补设 draggable
+     不会让浏览器承认这次按压是一次拖拽（试过，效果是长按后确实置为 true，但拖不动），
+     所以这里改成手动实现：定时器到点后自行监听 mousemove 判断悬停在哪个同组条目上，
+     松手时把元素插到目标前/后，再回调 onDrop 做收尾（重排箭头/序号/侧栏等）。
+     handleEl：监听按下的区域；itemEl：真正被移动的整个条目；
+     getCandidates()：每次拖拽开始时求值一次，返回允许互相排序的同组元素列表；
+     onDrop(dragEl, targetEl, after)：松手且确实悬停在有效目标上时调用一次。 */
+  function armManualDrag(handleEl, itemEl, getCandidates, onDrop, delay){
     delay = delay || 1500;
     const THRESH = 6;
-    let timer = null, sx = 0, sy = 0;
+    let timer = null, sx = 0, sy = 0, dragging = false, hoverTarget = null, hoverAfter = false;
+
+    function clearHover(){
+      if(hoverTarget) hoverTarget.classList.remove('drag-over');
+      hoverTarget = null;
+    }
     function onMove(e){
-      if(Math.abs(e.clientX-sx) > THRESH || Math.abs(e.clientY-sy) > THRESH) clear();
+      if(!dragging){
+        if(Math.abs(e.clientX-sx) > THRESH || Math.abs(e.clientY-sy) > THRESH) cancelArm();
+        return;
+      }
+      const candidates = getCandidates().filter(n=>n!==itemEl);
+      let found = null, after = false;
+      for(const n of candidates){
+        const r = n.getBoundingClientRect();
+        if(e.clientY >= r.top && e.clientY <= r.bottom){
+          found = n; after = e.clientY > r.top + r.height/2; break;
+        }
+      }
+      if(found !== hoverTarget){ clearHover(); hoverTarget = found; if(hoverTarget) hoverTarget.classList.add('drag-over'); }
+      hoverAfter = after;
     }
     function onUp(){
-      clear();
-      if(!targetEl.classList.contains('dragging')) targetEl.draggable = false;
+      if(timer){ clearTimeout(timer); timer = null; }
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if(dragging){
+        dragging = false;
+        itemEl.classList.remove('dragging');
+        const target = hoverTarget, after = hoverAfter;
+        clearHover();
+        if(target && target !== itemEl) onDrop(itemEl, target, after);
+      }
     }
-    function clear(){
+    function cancelArm(){
       if(timer){ clearTimeout(timer); timer = null; }
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     }
     handleEl.addEventListener('mousedown', e=>{
       if(e.button !== 0 || !document.body.classList.contains('edit-all')) return;
+      if(e.target.closest('button')) return;
       sx = e.clientX; sy = e.clientY;
-      timer = setTimeout(()=>{ targetEl.draggable = true; }, delay);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
+      timer = setTimeout(()=>{ dragging = true; itemEl.classList.add('dragging'); }, delay);
     });
   }
 
@@ -2551,12 +2579,16 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       <p class="node-title" contenteditable="false">${d.title}</p>
       <p class="node-desc" contenteditable="false">${d.desc}</p>
       <button class="node-open">${btnLabel}</button>`;
-    armLongPressDrag(node);
-    node.addEventListener('dragstart',e=>onDragStart(e,node,'node'));
-    node.addEventListener('dragend',()=>{node.draggable=false;onDragEnd(node);});
-    node.addEventListener('dragover',e=>allowDrop(e,node,'node'));
-    node.addEventListener('dragleave',()=>leaveDrop(node));
-    node.addEventListener('drop',e=>onDrop(e,node,'node'));
+    armManualDrag(node, node,
+      ()=>{ const f = node.closest('.flow'); return f ? [...f.querySelectorAll('.node')] : []; },
+      (dragEl, targetEl, after)=>{
+        targetEl.parentNode.insertBefore(dragEl, after ? targetEl.nextSibling : targetEl);
+        const flow = dragEl.closest('.flow');
+        if(flow){
+          flow.querySelectorAll('.steps').forEach(refreshStepArrows);
+          flow.querySelectorAll('.stage').forEach(st=>{ updateStageCount(st); renumberStageNodes(st); });
+        }
+      });
     node.querySelector('.node-del').onclick=()=>{
       const st = node.closest('.stage');
       const panel = node.closest('.module-panel');
@@ -2795,7 +2827,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     };
     steps.appendChild(addBtn);
 
-    armLongPressDrag(stage.querySelector('.stage-head'), stage);
+    const grip = stage.querySelector('.grip');
+    grip.addEventListener('mousedown',()=>stage.draggable=true);
     stage.addEventListener('dragstart',e=>{ if(stage.draggable) onDragStart(e,stage,'stage'); });
     stage.addEventListener('dragend',()=>{stage.draggable=false;onDragEnd(stage);});
     stage.addEventListener('dragover',e=>allowDrop(e,stage,'stage'));
@@ -3987,42 +4020,14 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 
   /* ---- 左侧栏：模块→阶段 两级 ---- */
   /* ============ 通用拖拽排序（垂直列表：模块 / 阶段 / 子步骤）============
-     手柄触发：按住 handle 才把 el 设为 draggable，避免误拖；
-     仅在全局编辑模式下生效；只允许同一容器（同 group）内排序；
-     落点用纵向中点判断，落定后回调 onReorder(dragEl, targetEl, after)。 */
-  let _sortDrag = null, _sortGroup = null;
-  function makeSortable(el, handle, group, onReorder){
+     长按 handle 所在区域 1.5 秒后才可拖动；仅在全局编辑模式下生效；
+     只允许同一容器内、且匹配 itemSelector 的兄弟元素之间排序；
+     落点用纵向中点判断，松手后回调 onReorder(dragEl, targetEl, after)。 */
+  function makeSortable(el, handle, group, onReorder, itemSelector){
     if(!el || !handle) return;
-    armLongPressDrag(handle, el);
-    el.addEventListener('dragstart', e=>{
-      if(el.getAttribute('draggable')!=='true') return;
-      _sortDrag = el; _sortGroup = group; el.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text','');
-      e.stopPropagation();
-    });
-    el.addEventListener('dragend', e=>{
-      el.classList.remove('dragging'); el.removeAttribute('draggable');
-      document.querySelectorAll('.drag-over').forEach(n=>n.classList.remove('drag-over'));
-      _sortDrag = null; _sortGroup = null; e.stopPropagation();
-    });
-    el.addEventListener('dragover', e=>{
-      if(_sortGroup!==group || !_sortDrag || _sortDrag===el) return;
-      if(_sortDrag.parentElement !== el.parentElement) return;   // 仅同容器内排序
-      e.preventDefault(); el.classList.add('drag-over');
-    });
-    el.addEventListener('dragleave', ()=> el.classList.remove('drag-over'));
-    el.addEventListener('drop', e=>{
-      if(_sortGroup!==group || !_sortDrag || _sortDrag===el) return;
-      if(_sortDrag.parentElement !== el.parentElement) return;
-      e.preventDefault(); e.stopPropagation();
-      el.classList.remove('drag-over');
-      const r = el.getBoundingClientRect();
-      const after = e.clientY > r.top + r.height/2;
-      onReorder(_sortDrag, el, after);
-      // 重排可能重建 DOM 致 dragend 不触发，这里兜底清理拖拽状态
-      document.querySelectorAll('.drag-over,.dragging').forEach(n=>n.classList.remove('drag-over','dragging'));
-      _sortDrag = null; _sortGroup = null;
-    });
+    armManualDrag(handle, el,
+      ()=> el.parentElement ? [...el.parentElement.children].filter(n=> !itemSelector || n.matches(itemSelector)) : [],
+      onReorder);
   }
   // 模块重排：按侧栏顺序同步调整隐藏的 module-tab 与 module-panel，再重建侧栏
   function reorderModules(drag, target, after){
@@ -4107,7 +4112,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
           if(e.target.closest('.s-del')){ e.stopPropagation(); deleteStage(id, st); return; }
           selectStage(id, i);
         });
-        makeSortable(it, it, 'stage', reorderStages);
+        makeSortable(it, it, 'stage', reorderStages, '.stage-item');
         sw.appendChild(it);
       });
       const addS = document.createElement('div');
@@ -4124,7 +4129,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       });
       sw.appendChild(addS);
       mod.appendChild(sw);
-      makeSortable(mod, head, 'mod', reorderModules);
+      makeSortable(mod, head, 'mod', reorderModules, '.mod');
       host.appendChild(mod);
     });
     refreshSidebarActive();
@@ -4378,7 +4383,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
           if(from < ins) ins--;
           substeps.splice(ins, 0, m);
           fillInlineSubsteps(wrap, node, editing);
-        });
+        }, '.ni-card');
       }
       host.appendChild(card);
     });
