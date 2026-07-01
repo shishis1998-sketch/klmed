@@ -285,6 +285,12 @@
   }
   .node.dragging{opacity:.4;}
   .node.drag-over{box-shadow:0 0 0 3px var(--gold);}
+  /* 长按拖动时跟手的悬浮克隆卡片：盖在最上层，带阴影，鼠标样式变成抓取中 */
+  .drag-ghost{
+    z-index:9999; pointer-events:none; cursor:grabbing;
+    box-shadow:0 16px 32px -8px rgba(0,0,0,.35), 0 0 0 2px var(--accent);
+    opacity:.95; transform:scale(1.02); transition:none !important;
+  }
   .node.system{border-top-color:var(--blue);}
   .node.system .tag{background:#e8f4ff;color:var(--blue);}
   .node.decision{border-top-color:var(--rose);}
@@ -2462,7 +2468,35 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     delay = delay || 1000;
     const THRESH = 18;   // 放宽一些，避免真实鼠标/触控板长按时的手抖被误判成"在移动"而取消计时
     let timer = null, sx = 0, sy = 0, dragging = false, hoverTarget = null, hoverAfter = false;
+    let ghost = null, grabDX = 0, grabDY = 0;
 
+    // 悬浮跟手的"幽灵"卡片：拖动时原卡片留在原位变暗当占位，克隆一份跟着鼠标移动，
+    // 这样才能看出「确实在拖」以及要落到哪里。
+    function startDragging(){
+      dragging = true;
+      itemEl.classList.add('dragging');
+      const r = itemEl.getBoundingClientRect();
+      grabDX = sx - r.left; grabDY = sy - r.top;
+      ghost = itemEl.cloneNode(true);
+      ghost.classList.remove('dragging');
+      ghost.classList.add('drag-ghost');
+      ghost.style.position = 'fixed';
+      ghost.style.left = r.left + 'px';
+      ghost.style.top = r.top + 'px';
+      ghost.style.width = r.width + 'px';
+      ghost.style.height = r.height + 'px';
+      ghost.style.margin = '0';
+      ghost.style.pointerEvents = 'none';
+      document.body.appendChild(ghost);
+    }
+    function moveGhost(x, y){
+      if(!ghost) return;
+      ghost.style.left = (x - grabDX) + 'px';
+      ghost.style.top = (y - grabDY) + 'px';
+    }
+    function removeGhost(){
+      if(ghost){ ghost.remove(); ghost = null; }
+    }
     function clearHover(){
       if(hoverTarget) hoverTarget.classList.remove('drag-over');
       hoverTarget = null;
@@ -2472,6 +2506,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         if(Math.abs(e.clientX-sx) > THRESH || Math.abs(e.clientY-sy) > THRESH) cancelArm();
         return;
       }
+      moveGhost(e.clientX, e.clientY);
       const candidates = getCandidates().filter(n=>n!==itemEl);
       let found = null, after = false;
       for(const n of candidates){
@@ -2490,6 +2525,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       if(dragging){
         dragging = false;
         itemEl.classList.remove('dragging');
+        removeGhost();
         const target = hoverTarget, after = hoverAfter;
         clearHover();
         if(target && target !== itemEl) onDrop(itemEl, target, after);
@@ -2506,7 +2542,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       sx = e.clientX; sy = e.clientY;
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
-      timer = setTimeout(()=>{ dragging = true; itemEl.classList.add('dragging'); }, delay);
+      timer = setTimeout(startDragging, delay);
     });
   }
 
