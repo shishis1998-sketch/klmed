@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汇率模块 · 示意图</title>
+<style>
+  :root{
+    --ink:#354754;
+    --paper:#f0f0f0;
+    --line:#d5d9dc;
+    --accent:#0070c2;
+    --accent-soft:#e8f4ff;
+    --blue:#0070c2;
+    --gold:#fe9a00;
+    --deep:#003f7a;
+    --shadow:0 2px 8px rgba(53,71,84,.10);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;padding:40px 24px;
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--paper);color:var(--ink);
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+  .demo-note{
+    max-width:520px;margin:0 auto 22px;font-size:12.5px;color:#7a7363;
+    line-height:1.7;background:#fff;border:1px dashed var(--line);
+    border-radius:8px;padding:12px 14px;
+  }
+  .demo-note b{color:var(--accent);}
+
+  /* ===== 汇率模块卡片（对齐现有 .stage 卡片风格）===== */
+  .fx-card{
+    background:#fff;border:1.5px solid var(--line);
+    border-top:3px solid var(--accent);
+    border-radius:10px;box-shadow:var(--shadow);overflow:hidden;
+  }
+  .fx-head{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 16px;min-height:46px;
+    border-bottom:1px solid var(--line);font-weight:700;font-size:15px;
+  }
+  .fx-head .fx-ic{
+    width:26px;height:26px;border-radius:6px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent-soft);color:var(--accent);font-size:15px;
+  }
+  .fx-head .fx-title{letter-spacing:.01em;}
+  .fx-head .fx-sub{
+    font-size:11px;font-weight:600;color:#8b94a0;
+    letter-spacing:.04em;margin-left:2px;
+  }
+  .fx-head .fx-live{
+    margin-left:auto;display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;font-weight:600;color:#8b94a0;
+  }
+  .fx-head .fx-dot{
+    width:7px;height:7px;border-radius:50%;background:#22a06b;
+    box-shadow:0 0 0 3px rgba(34,160,107,.15);
+  }
+  .fx-body{padding:16px;}
+
+  /* OANDA 官方组件容器 */
+  #oanda_ecc{font-size:13px;}
+
+  /* ===== 断网时的静态示意表（布局预览）===== */
+  #fx-fallback{display:none;}
+  .fx-rows{display:flex;flex-direction:column;gap:8px;}
+  .fx-row{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;border:1px solid var(--line);border-radius:8px;
+    background:#fafbfc;
+  }
+  .fx-pair{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;}
+  .fx-flag{font-size:16px;}
+  .fx-arrow{color:#b6bcc4;font-weight:400;}
+  .fx-val{margin-left:auto;font-size:18px;font-weight:800;color:var(--deep);
+          font-variant-numeric:tabular-nums;}
+  .fx-val small{font-size:11px;font-weight:600;color:#8b94a0;margin-left:4px;}
+  .fx-foot{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);
+    font-size:11.5px;color:#8b94a0;
+  }
+  .fx-foot a{color:var(--accent);text-decoration:none;font-weight:600;}
+  .fx-badge{
+    display:inline-block;padding:2px 8px;border-radius:20px;
+    background:var(--accent-soft);color:var(--accent);
+    font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  }
+</style>
+</head>
+<body>
+  <div class="demo-note">
+    <b>示意图说明：</b>这是要嵌进 SOP 页面的「汇率模块」布局预览。卡片里放的是 <b>OANDA 官方嵌入组件</b>——
+    在你自己电脑上联网打开时，这里会直接显示 OANDA 的实时汇率转换器。若检测到未联网（如当前受限环境），
+    则自动显示下方同配色的静态示意表，方便先看布局。
+  </div>
+
+  <div class="wrap">
+    <div class="fx-card">
+      <div class="fx-head">
+        <span class="fx-ic">💱</span>
+        <span class="fx-title">每日汇率</span>
+        <span class="fx-sub">Tipo de Cambio</span>
+        <span class="fx-live"><span class="fx-dot"></span>OANDA 实时</span>
+      </div>
+      <div class="fx-body">
+
+        <!-- OANDA 官方组件（联网时自动渲染） -->
+        <div id="oanda_ecc">
+          <span style="color:#000;text-decoration:none;font-size:9px;float:left;">Currency Converter
+            <a id="oanda_cc_link" style="color:#000;font-size:9px;"
+               href="https://www.oanda.com/currency/converter/">by OANDA</a></span>
+          <script src="https://www.oanda.com/embedded/converter/get/b2FuZGFlY2N1c2VyLy9kZWZhdWx0/?lang=zh"></script>
+        </div>
+
+        <!-- 未联网时的静态示意表 -->
+        <div id="fx-fallback">
+          <div class="fx-rows">
+            <div class="fx-row">
+              <span class="fx-pair"><span class="fx-flag">🇺🇸</span>USD <span class="fx-arrow">→</span> <span class="fx-flag">🇪🇺</span>EUR</span>
+              <span class="fx-val">0.874<small>示意</small></span>
+            </div>
+            <div class="fx-row">
+              <span class="fx-pair"><span class="fx-flag">🇺🇸</span>USD <span class="fx-arrow">→</span> <span class="fx-flag">🇨🇳</span>CNY</span>
+              <span class="fx-val">7.18<small>示意</small></span>
+            </div>
+            <div class="fx-row">
+              <span class="fx-pair"><span class="fx-flag">🇪🇺</span>EUR <span class="fx-arrow">→</span> <span class="fx-flag">🇨🇳</span>CNY</span>
+              <span class="fx-val">8.21<small>示意</small></span>
+            </div>
+          </div>
+          <div class="fx-foot">
+            <span><span class="fx-badge">示意图 · 未联网</span></span>
+            <span>数据源 <a href="https://www.oanda.com/currency-converter/" target="_blank" rel="noopener">OANDA</a></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 检测 OANDA 组件是否成功加载：若 3.5s 后容器内没有出现组件生成的内容，则显示静态示意表。
+    (function(){
+      var box = document.getElementById('oanda_ecc');
+      var fb  = document.getElementById('fx-fallback');
+      var live = document.querySelector('.fx-live');
+      var baselineChildren = box.children.length; // 初始只有 span + script
+      setTimeout(function(){
+        var loaded = box.querySelector('iframe, table, .oanda-widget, [id^="oanda_c"]:not(#oanda_cc_link)')
+                     || box.children.length > baselineChildren + 1;
+        if(!loaded){
+          box.style.display = 'none';
+          fb.style.display = 'block';
+          if(live){ live.innerHTML = '<span class="fx-dot" style="background:#c2c8d2;box-shadow:none"></span>示意'; }
+        }
+      }, 3500);
+    })();
+  </script>
+</body>
+</html>
