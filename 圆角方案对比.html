@@ -1,0 +1,669 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>圆角方案对比 · 索赔退款流程</title>
+<style>
+  /* ========== 外壳（示意页自身的界面，支持深浅色） ========== */
+  :root{
+    --sh-bg:#f2f2f2;
+    --sh-panel:#ffffff;
+    --sh-text:#1a1a1a;
+    --sh-muted:#545454;
+    --sh-border:#cfcfcf;
+    --sh-navy:#003354;
+    --sh-orange:#f26101;
+    --sh-blue:#91bed4;
+    --sh-navy-ink:#003354;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --sh-bg:#14181c;
+      --sh-panel:#1d232a;
+      --sh-text:#e8ebee;
+      --sh-muted:#9aa6b0;
+      --sh-border:#39434c;
+      --sh-navy:#3d7ea6;
+      --sh-navy-ink:#a8cde2;
+    }
+  }
+  :root[data-theme="dark"]{
+    --sh-bg:#14181c;
+    --sh-panel:#1d232a;
+    --sh-text:#e8ebee;
+    --sh-muted:#9aa6b0;
+    --sh-border:#39434c;
+    --sh-navy:#3d7ea6;
+    --sh-navy-ink:#a8cde2;
+  }
+  :root[data-theme="light"]{
+    --sh-bg:#f2f2f2;
+    --sh-panel:#ffffff;
+    --sh-text:#1a1a1a;
+    --sh-muted:#545454;
+    --sh-border:#cfcfcf;
+    --sh-navy:#003354;
+    --sh-navy-ink:#003354;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
+    background:var(--sh-bg);
+    color:var(--sh-text);
+    line-height:1.7;
+  }
+  .shell{max-width:1080px;margin:0 auto;padding:36px 20px 80px}
+  .shell-head .kicker{
+    font-size:12px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--sh-muted);margin-bottom:6px;
+  }
+  .shell-head h1{font-size:24px;font-weight:700;color:var(--sh-navy-ink);text-wrap:balance}
+  .shell-head p{font-size:14px;color:var(--sh-muted);max-width:64ch;margin-top:6px}
+  .shell-head code{
+    font-family:"Consolas","Courier New",monospace;font-size:13px;
+    background:color-mix(in srgb, var(--sh-blue) 18%, transparent);
+    padding:1px 5px;color:var(--sh-navy-ink);
+  }
+
+  section{margin-top:40px}
+  .sec-title{
+    font-size:16px;font-weight:700;color:var(--sh-navy-ink);
+    display:flex;align-items:baseline;gap:10px;margin-bottom:4px;
+  }
+  .sec-title .no{
+    font-family:"Consolas","Courier New",monospace;font-size:12px;
+    color:var(--sh-muted);letter-spacing:1px;
+  }
+  .sec-desc{font-size:13px;color:var(--sh-muted);margin-bottom:16px;max-width:70ch}
+
+  /* ---------- 方案切换条 ---------- */
+  .picker{
+    position:sticky;top:0;z-index:50;
+    background:var(--sh-panel);
+    border:1px solid var(--sh-border);
+    border-top:none;
+    box-shadow:0 2px 8px rgba(0,53,84,0.08);
+    padding:12px 16px;
+    margin:28px -16px 0;
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  }
+  .picker .plabel{font-size:12.5px;color:var(--sh-muted);margin-right:4px;flex:0 0 auto}
+  .pbtn{
+    font-family:inherit;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 12px;
+    background:var(--sh-panel);
+    border:1px solid var(--sh-border);
+    color:var(--sh-text);
+    font-size:13.5px;font-weight:600;
+    transition:all .25s ease;
+  }
+  .pbtn:hover{border-color:var(--sh-navy)}
+  .pbtn:focus-visible{outline:2px solid var(--sh-orange);outline-offset:2px}
+  .pbtn.active{
+    background:var(--sh-navy);color:#fff;border-color:var(--sh-navy);
+  }
+  .pbtn .glyph{
+    width:16px;height:16px;flex:0 0 auto;
+    border:2px solid currentColor;
+    border-right:none;border-bottom:none;
+    opacity:.9;
+  }
+  .pbtn .px{font-family:"Consolas","Courier New",monospace;font-weight:400;font-size:12px;opacity:.75}
+  .pbtn .rec{
+    font-size:10px;font-weight:700;letter-spacing:.5px;
+    background:var(--sh-orange);color:#fff;
+    padding:1px 5px;margin-left:2px;
+  }
+  .readout{
+    flex:1 1 100%;
+    display:flex;gap:18px;flex-wrap:wrap;
+    font-family:"Consolas","Courier New",monospace;font-size:12px;
+    color:var(--sh-muted);
+    padding-top:8px;margin-top:4px;
+    border-top:1px dashed var(--sh-border);
+  }
+  .readout b{color:var(--sh-navy-ink);font-weight:600}
+
+  /* ========== 圆角比例尺（预览用令牌，由 data-preset 切换） ==========
+     --r-card  卡片/大面板：header.title .trigger .step .note .invoice-box .fmt .shot #popup #fmtbar
+     --r-ctl   控件：.btn .num #popup-close fmtbar按钮 .pop
+     --r-chip  行内标签：.tag .formula .kg-link .ref-link
+     --r-badge 微徽标：kg/CBL 角标 .sw 色块                                     */
+  .pv, .mini{
+    --r-card:0px; --r-ctl:0px; --r-chip:0px; --r-badge:0px;
+  }
+  [data-preset="B"]{--r-card:4px;  --r-ctl:3px;  --r-chip:2px; --r-badge:2px}
+  [data-preset="C"]{--r-card:8px;  --r-ctl:6px;  --r-chip:4px; --r-badge:3px}
+  [data-preset="D"]{--r-card:10px; --r-ctl:8px;  --r-chip:5px; --r-badge:3px}
+  [data-preset="E"]{--r-card:16px; --r-ctl:12px; --r-chip:8px; --r-badge:4px}
+
+  /* ========== 预览区：完全复刻 索赔退款流程_扁平风.html 的样式 ==========
+     （颜色/边框/阴影原样保留，仅把 border-radius:0 换成对应层级的变量） */
+  .canvas{
+    background:#F2F2F2;
+    border:1px solid var(--sh-border);
+    padding:28px 24px 32px;
+    overflow:hidden;
+  }
+  .canvas-note{
+    font-size:12px;color:var(--sh-muted);text-align:right;margin-top:6px;
+  }
+  .pv{
+    --text:#1A1A1A; --text-muted:#545454;
+    --accent-blue:#91BED4; --accent-navy:#003354;
+    --accent-orange:#F26101; --accent-dark-orange:#9C3E00;
+    --border:#CFCFCF; --bg:#F2F2F2;
+    --glass-shadow:0 3px 10px rgba(0,53,84,0.08),inset 0 1px 0 rgba(255,255,255,0.80);
+    --glass-shadow-lg:0 6px 20px rgba(0,53,84,0.10),0 0 0 1px rgba(207,207,207,0.50),inset 0 1px 0 rgba(255,255,255,0.90);
+    max-width:760px;margin:0 auto;color:var(--text);
+  }
+  .pv *{transition:border-radius .3s ease}
+  @media (prefers-reduced-motion: reduce){
+    .pv *{transition:none}
+    .pbtn{transition:none}
+  }
+
+  /* 工具栏 + 按钮 */
+  .pv .toolbar{
+    background:#ffffff;border:1px solid var(--border);
+    border-radius:var(--r-card);
+    padding:10px 14px;margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,53,84,0.08);
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  }
+  .pv .toolbar .hint{font-size:12.5px;color:var(--text-muted);margin-right:auto}
+  .pv .btn{
+    border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;
+    padding:9px 16px;border-radius:var(--r-ctl);
+  }
+  .pv .btn.primary{
+    background:var(--accent-orange);border:1px solid var(--accent-orange);color:#fff;
+    box-shadow:0 3px 10px rgba(242,97,1,0.25);
+  }
+  .pv .btn.ghost{
+    background:#ffffff;color:var(--text-muted);border:1px solid var(--border);
+    box-shadow:0 2px 6px rgba(0,53,84,0.06);
+  }
+
+  /* 标题卡 */
+  .pv header.title{
+    background:#ffffff;border:1px solid var(--border);
+    border-top:4px solid var(--accent-navy);
+    border-radius:var(--r-card);
+    padding:24px 28px;box-shadow:var(--glass-shadow-lg);margin-bottom:4px;
+  }
+  .pv header.title .kicker{
+    font-size:12px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:7px;
+  }
+  .pv header.title h1{font-size:20px;font-weight:700;margin-bottom:6px;color:var(--accent-navy)}
+  .pv header.title p{font-size:13px;color:var(--text-muted)}
+
+  /* 触发条 */
+  .pv .trigger{
+    margin:18px 0;background:#ffffff;
+    border:1px solid var(--border);border-left:3px solid var(--accent-orange);
+    border-radius:var(--r-card);
+    padding:16px 20px;font-size:14.5px;box-shadow:var(--glass-shadow);
+  }
+  .pv .trigger b{color:var(--accent-navy);font-weight:700}
+
+  /* 步骤卡 */
+  .pv .step{
+    background:#ffffff;border:1px solid var(--border);
+    border-radius:var(--r-card);
+    padding:20px 22px;margin-bottom:14px;position:relative;
+    box-shadow:var(--glass-shadow);
+  }
+  .pv .step-head{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  .pv .num{
+    flex:0 0 38px;height:38px;border-radius:var(--r-ctl);
+    background:var(--accent-navy);color:#ffffff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:17px;
+    box-shadow:0 2px 6px rgba(0,53,84,0.25);
+  }
+  .pv .step-head h2{font-size:17px;font-weight:700;color:var(--accent-navy)}
+  .pv .step-body{margin:12px 0 0 0}
+  .pv .step-body p{margin-bottom:8px;font-size:14.5px}
+  .pv .step-body ul{margin:8px 0 8px 4px;list-style:none}
+  .pv .step-body li{position:relative;padding-left:20px;margin-bottom:7px;font-size:14px;color:var(--text-muted)}
+  .pv .step-body li::before{
+    content:"";position:absolute;left:2px;top:10px;
+    width:7px;height:7px;border-radius:50%;background:var(--accent-blue);
+  }
+  .pv .arrow{text-align:center;color:var(--accent-orange);font-size:20px;line-height:1;margin:2px 0 12px}
+
+  /* 标签 */
+  .pv .tag{
+    display:inline-block;font-size:12px;font-weight:600;
+    padding:3px 10px;border-radius:var(--r-chip);margin-left:10px;
+    background:rgba(145,190,212,0.15);border:1px solid var(--accent-blue);
+    color:var(--accent-navy);vertical-align:middle;
+  }
+
+  /* 邮件格式框 */
+  .pv .fmt{
+    background:rgba(145,190,212,0.10);border:1px solid var(--accent-blue);
+    border-radius:var(--r-card);
+    padding:12px 16px;font-family:"Consolas","Courier New",monospace;
+    font-size:13px;margin:10px 0;word-break:break-all;letter-spacing:.5px;
+  }
+  .pv .fmt span{color:var(--accent-navy);font-weight:600}
+
+  /* 发票要求框 */
+  .pv .invoice-box{
+    background:rgba(242,97,1,0.05);border:1px solid rgba(242,97,1,0.20);
+    border-radius:var(--r-card);
+    padding:14px 16px;margin-top:10px;
+  }
+  .pv .invoice-box h3{font-size:14px;color:var(--accent-navy);margin-bottom:8px;font-weight:700}
+  .pv .invoice-box ul{list-style:none}
+  .pv .invoice-box li{position:relative;padding-left:20px;margin-bottom:6px;font-size:13.5px;color:var(--text-muted)}
+  .pv .invoice-box li::before{
+    content:"›";position:absolute;left:4px;top:0;color:var(--accent-orange);font-weight:700;font-size:16px;
+    width:auto;height:auto;background:none;border-radius:0;
+  }
+
+  /* 说明块 + 表格 + 公式 */
+  .pv .note{
+    background:rgba(145,190,212,0.08);border:1px solid var(--border);
+    border-left:3px solid var(--accent-blue);
+    border-radius:var(--r-card);
+    padding:16px 20px;margin-top:8px;box-shadow:var(--glass-shadow);
+  }
+  .pv .note h3{font-size:14.5px;color:var(--accent-navy);margin-bottom:10px}
+  .pv .note table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+  .pv .note td{padding:7px 10px;border:1px solid var(--border);vertical-align:top;color:var(--text-muted)}
+  .pv .note td.k{background:rgba(145,190,212,0.12);font-weight:600;width:110px;white-space:nowrap;color:var(--text)}
+  .pv .formula{
+    background:rgba(145,190,212,0.15);border:1px solid var(--accent-blue);
+    border-radius:var(--r-chip);
+    padding:5px 10px;margin-top:6px;font-size:13px;font-weight:600;color:var(--accent-navy);display:inline-block;
+  }
+
+  /* 截图框 */
+  .pv .shot{
+    margin-top:12px;border:1px solid var(--border);
+    border-radius:var(--r-card);
+    overflow:hidden;background:#ffffff;display:inline-block;max-width:100%;
+  }
+  .pv .shot .cap{
+    background:#f8f8f8;padding:8px 14px;font-size:12.5px;color:var(--text-muted);font-weight:600;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);
+  }
+  .pv .shot .cap::before{content:"📷";font-size:13px}
+  .pv .shot .ph{
+    width:340px;max-width:100%;height:110px;margin:10px;
+    background:repeating-linear-gradient(45deg,#eef3f7 0 12px,#e4ecf2 12px 24px);
+    display:flex;align-items:center;justify-content:center;
+    color:#8aa4b5;font-size:12px;letter-spacing:2px;
+  }
+
+  /* 行内知识链接 */
+  .pv .kg-link{
+    background:rgba(145,190,212,0.15);border-left:3px solid var(--accent-blue);
+    padding:2px 8px 2px 10px;font-weight:600;color:var(--accent-navy);
+    border-radius:var(--r-chip);cursor:pointer;
+    box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  }
+  .pv .kg-link::before{
+    content:"kg";display:inline-block;font-size:10px;font-weight:700;line-height:1;
+    color:#ffffff;background:var(--accent-navy);
+    padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;
+    border-radius:var(--r-badge);
+  }
+  .pv .ref-link{
+    background:rgba(156,62,0,0.08);border-left:3px solid var(--accent-dark-orange);
+    padding:2px 8px 2px 10px;font-weight:600;color:var(--accent-dark-orange);
+    border-radius:var(--r-chip);cursor:pointer;
+    box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  }
+  .pv .ref-link::before{
+    content:"CBL";display:inline-block;font-size:10px;font-weight:700;line-height:1;
+    color:#ffffff;background:var(--accent-dark-orange);
+    padding:2px 4px;margin-right:6px;vertical-align:1px;letter-spacing:.5px;
+    border-radius:var(--r-badge);
+  }
+
+  /* 浮层：弹窗 + 格式工具条（静态陈列） */
+  .pv .overlay-demo{
+    display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;margin-top:4px;
+  }
+  .pv .popup{
+    position:relative;max-width:400px;
+    background:#ffffff;border:1px solid var(--border);
+    border-top:3px solid var(--accent-navy);
+    border-radius:var(--r-card);
+    padding:22px 24px 20px;
+    box-shadow:0 10px 32px rgba(0,53,84,0.15);
+  }
+  .pv .popup-close{
+    position:absolute;top:10px;right:12px;
+    background:rgba(0,53,84,0.06);color:var(--text-muted);
+    font-size:15px;font-weight:700;width:26px;height:26px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--border);
+    border-radius:var(--r-ctl);
+    font-family:inherit;
+  }
+  .pv .popup h3{
+    font-size:15px;font-weight:700;color:var(--accent-navy);
+    margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);
+  }
+  .pv .popup p{font-size:13.5px;color:var(--text-muted)}
+  .pv .fmtbar{
+    display:inline-flex;align-items:center;gap:2px;
+    background:#ffffff;border:1px solid var(--border);
+    border-radius:var(--r-card);
+    padding:5px 6px;box-shadow:0 6px 18px rgba(0,53,84,0.12);white-space:nowrap;
+  }
+  .pv .fmtbar button{
+    border:none;cursor:pointer;font-family:inherit;background:transparent;color:var(--text);
+    font-size:14px;font-weight:700;padding:4px 8px;line-height:1;min-width:26px;
+    border-radius:var(--r-ctl);
+  }
+  .pv .fmtbar button:hover{background:var(--bg)}
+  .pv .fmtbar button.active{background:rgba(145,190,212,0.20)}
+  .pv .fmtbar .sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex:0 0 auto}
+  .pv .fmtbar .sw{
+    width:18px;height:18px;padding:0;min-width:0;border:1px solid var(--border);cursor:pointer;
+    border-radius:var(--r-badge);
+  }
+  .pv .subhead{
+    font-size:13px;font-weight:700;color:var(--text-muted);
+    letter-spacing:1px;margin:26px 0 10px;
+  }
+  .pv .subhead:first-child{margin-top:0}
+
+  /* ---------- 并排总览 ---------- */
+  .strip{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+  }
+  .mini-wrap .mname{
+    font-size:13px;font-weight:700;color:var(--sh-navy-ink);
+    display:flex;align-items:baseline;gap:6px;margin-bottom:8px;
+  }
+  .mini-wrap .mname .px{
+    font-family:"Consolas","Courier New",monospace;font-weight:400;
+    font-size:11.5px;color:var(--sh-muted);
+  }
+  .mini-wrap .mname .rec{
+    font-size:10px;font-weight:700;background:var(--sh-orange);color:#fff;padding:1px 5px;
+  }
+  .mini{
+    --text:#1A1A1A;--text-muted:#545454;
+    --accent-blue:#91BED4;--accent-navy:#003354;
+    --accent-orange:#F26101;--border:#CFCFCF;
+    background:#F2F2F2;border:1px solid var(--sh-border);
+    padding:14px;cursor:pointer;
+  }
+  .mini:hover{outline:2px solid var(--sh-navy);outline-offset:-2px}
+  .mini .mcard{
+    background:#fff;border:1px solid var(--border);
+    border-radius:var(--r-card);
+    padding:12px;box-shadow:0 3px 10px rgba(0,53,84,0.08);
+    color:var(--text);
+  }
+  .mini .mhead{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .mini .mnum{
+    flex:0 0 24px;height:24px;border-radius:var(--r-ctl);
+    background:var(--accent-navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  }
+  .mini .mtitle{font-size:12.5px;font-weight:700;color:var(--accent-navy)}
+  .mini .mtag{
+    display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;
+    border-radius:var(--r-chip);
+    background:rgba(145,190,212,0.15);border:1px solid var(--accent-blue);color:var(--accent-navy);
+  }
+  .mini .mbtn{
+    display:inline-block;margin-top:10px;font-size:11px;font-weight:600;
+    padding:5px 10px;border-radius:var(--r-ctl);
+    background:var(--accent-orange);color:#fff;
+  }
+
+  /* ---------- 规格表 ---------- */
+  .spec-wrap{overflow-x:auto;border:1px solid var(--sh-border);background:var(--sh-panel)}
+  table.spec{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+  .spec th,.spec td{
+    padding:8px 12px;border:1px solid var(--sh-border);text-align:left;vertical-align:top;
+  }
+  .spec th{
+    background:color-mix(in srgb, var(--sh-blue) 14%, var(--sh-panel));
+    color:var(--sh-navy-ink);font-weight:700;white-space:nowrap;
+  }
+  .spec td{color:var(--sh-muted)}
+  .spec td:first-child{color:var(--sh-text);font-weight:600;white-space:nowrap}
+  .spec td .sel{
+    font-family:"Consolas","Courier New",monospace;font-size:11.5px;
+    color:var(--sh-muted);font-weight:400;display:block;
+  }
+  .spec td.v{font-family:"Consolas","Courier New",monospace;text-align:center;font-variant-numeric:tabular-nums}
+  .spec tr.tier td{
+    background:color-mix(in srgb, var(--sh-navy) 8%, var(--sh-panel));
+    color:var(--sh-navy-ink);font-weight:700;font-size:12px;letter-spacing:1px;
+  }
+  .spec .colrec{background:color-mix(in srgb, var(--sh-orange) 8%, var(--sh-panel))}
+
+  .footnote{font-size:12.5px;color:var(--sh-muted);margin-top:14px;max-width:74ch}
+  .footnote b{color:var(--sh-navy-ink)}
+
+  @media (max-width:720px){
+    .picker{margin:24px 0 0}
+    .canvas{padding:16px 12px 20px}
+  }
+</style>
+
+<div class="shell">
+
+  <header class="shell-head">
+    <div class="kicker">设计提案 · Border Radius</div>
+    <h1>索赔退款流程页 — 圆角方案对比</h1>
+    <p>当前页面所有元素均为 <code>border-radius:0</code> 直角。下面提供 4 档圆角方案（外加现状），
+    每一档都是一套四级比例尺，覆盖页面里<b>全部</b>带圆角属性的元素：卡片、控件、行内标签、微徽标。
+    点击上方按钮即可在完整预览里实时切换。</p>
+  </header>
+
+  <nav class="picker" id="picker" aria-label="圆角方案切换">
+    <span class="plabel">方案：</span>
+    <button class="pbtn active" data-p="A"><span class="glyph" style="border-radius:0"></span>A 直角 <span class="px">0px·现状</span></button>
+    <button class="pbtn" data-p="B"><span class="glyph" style="border-top-left-radius:4px"></span>B 微圆 <span class="px">4px</span></button>
+    <button class="pbtn" data-p="C"><span class="glyph" style="border-top-left-radius:7px"></span>C 适中 <span class="px">8px</span></button>
+    <button class="pbtn" data-p="D"><span class="glyph" style="border-top-left-radius:9px"></span>D 柔和 <span class="px">10px</span><span class="rec">推荐</span></button>
+    <button class="pbtn" data-p="E"><span class="glyph" style="border-top-left-radius:13px"></span>E 圆润 <span class="px">16px</span></button>
+    <div class="readout" id="readout"></div>
+  </nav>
+
+  <section>
+    <div class="sec-title"><span class="no">01</span>五档并排速览</div>
+    <p class="sec-desc">同一张步骤卡在五档下的样子，点击任意一张可切换下方完整预览。</p>
+    <div class="strip">
+      <div class="mini-wrap"><div class="mname">A 直角 <span class="px">0px</span></div>
+        <div class="mini" data-preset="A" data-p="A"><div class="mcard"><div class="mhead"><div class="mnum">1</div><div class="mtitle">向运输公司索赔</div></div><span class="mtag">邮件抄送 CC</span><br><span class="mbtn">保存到本地</span></div></div></div>
+      <div class="mini-wrap"><div class="mname">B 微圆 <span class="px">4px</span></div>
+        <div class="mini" data-preset="B" data-p="B"><div class="mcard"><div class="mhead"><div class="mnum">1</div><div class="mtitle">向运输公司索赔</div></div><span class="mtag">邮件抄送 CC</span><br><span class="mbtn">保存到本地</span></div></div></div>
+      <div class="mini-wrap"><div class="mname">C 适中 <span class="px">8px</span></div>
+        <div class="mini" data-preset="C" data-p="C"><div class="mcard"><div class="mhead"><div class="mnum">1</div><div class="mtitle">向运输公司索赔</div></div><span class="mtag">邮件抄送 CC</span><br><span class="mbtn">保存到本地</span></div></div></div>
+      <div class="mini-wrap"><div class="mname">D 柔和 <span class="px">10px</span> <span class="rec">推荐</span></div>
+        <div class="mini" data-preset="D" data-p="D"><div class="mcard"><div class="mhead"><div class="mnum">1</div><div class="mtitle">向运输公司索赔</div></div><span class="mtag">邮件抄送 CC</span><br><span class="mbtn">保存到本地</span></div></div></div>
+      <div class="mini-wrap"><div class="mname">E 圆润 <span class="px">16px</span></div>
+        <div class="mini" data-preset="E" data-p="E"><div class="mcard"><div class="mhead"><div class="mnum">1</div><div class="mtitle">向运输公司索赔</div></div><span class="mtag">邮件抄送 CC</span><br><span class="mbtn">保存到本地</span></div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title"><span class="no">02</span>完整页面预览<span id="cur-label" style="font-size:13px;color:var(--sh-orange)">（当前：A 直角 0px）</span></div>
+    <p class="sec-desc">按实际页面 1:1 复刻的全部组件——顶部工具栏、标题卡、触发条、步骤卡、标签、
+    邮件格式框、发票要求框、说明表格、公式、截图框、行内知识链接（kg / CBL）、弹窗与浮动格式工具条。</p>
+
+    <div class="canvas">
+      <div class="pv" id="preview" data-preset="A">
+
+        <div class="toolbar">
+          <span class="hint">✏️ 直接点击文字即可修改 · 改完点"保存到本地"导出 HTML</span>
+          <button class="btn ghost">🖨️ 打印 / 存 PDF</button>
+          <button class="btn primary">💾 保存到本地</button>
+        </div>
+
+        <header class="title">
+          <div class="kicker">内部作业流程 · PROCESO INTERNO</div>
+          <h1>运输公司_导致货物缺失或损坏_退款申请流程</h1>
+          <p>Proceso para solicitar el abono por causa de las agencias de transporte</p>
+        </header>
+
+        <div class="trigger">
+          <b>触发条件：</b>当收到客户/agencia通知，反映<b>货物损坏</b>或<b>缺失</b>时，启动以下流程。
+        </div>
+
+        <div class="step">
+          <div class="step-head">
+            <div class="num">1</div>
+            <h2>发生 Incidencia 时，先按照 CBL 流程处理<span class="tag">运输</span></h2>
+          </div>
+          <div class="step-body">
+            <p>当客户或 agencia 反馈货物缺失、损坏、延误等异常情况时：</p>
+            <ul>
+              <li>先按照 <span class="ref-link">《CBL GENERACIÓN DE ENVIOS》第5条 GESTIÓN DE INCIDENCIAS</span> 的流程进行处理。</li>
+              <li>邮件需抄送给 Felipe 和 Shishi，主题格式见下方 <span class="kg-link">索赔邮件模板</span>。</li>
+            </ul>
+            <div class="fmt">Reclamación <span>[Nº expedición]</span> — <span>[cliente]</span> — mercancía dañada / faltante</div>
+            <div class="invoice-box">
+              <h3>发票开具要求</h3>
+              <ul>
+                <li>抬头开给运输公司（agencia），不是终端客户</li>
+                <li>金额 = 索赔核定金额，含 IVA 说明</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow">↓</div>
+
+        <div class="step">
+          <div class="step-head">
+            <div class="num">2</div>
+            <h2>核算赔付金额并登记<span class="tag green">财务</span></h2>
+          </div>
+          <div class="step-body">
+            <div class="note">
+              <h3>💡 赔付金额说明</h3>
+              <table>
+                <tr><td class="k">赔付基数</td><td>货物成本价（不含运费）</td></tr>
+                <tr><td class="k">运费部分</td><td>由运输公司按协议另行退回</td></tr>
+              </table>
+              <span class="formula">赔付金额 = 成本价 × 缺失数量 + 对应运费</span>
+            </div>
+            <div class="shot">
+              <div class="cap">系统截图：VENTAS 登记界面</div>
+              <div class="ph">截图占位</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subhead">浮层组件（弹窗 / 格式工具条）</div>
+        <div class="overlay-demo">
+          <div class="popup">
+            <button class="popup-close" aria-label="关闭">✕</button>
+            <h3>CBL 流程要点</h3>
+            <p>登记 incidencia 后 48 小时内跟进；索赔资料需包含照片、送货单及发票副本。</p>
+          </div>
+          <div class="fmtbar">
+            <button><b>B</b></button>
+            <button><i>I</i></button>
+            <button><u>U</u></button>
+            <span class="sep"></span>
+            <button class="active">A</button>
+            <button class="sw" style="background:#003354" aria-label="色块"></button>
+            <button class="sw" style="background:#F26101" aria-label="色块"></button>
+            <button class="sw" style="background:#91BED4" aria-label="色块"></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="canvas-note">预览按实际页面的浅色纸面显示，与深浅色主题无关。</div>
+  </section>
+
+  <section>
+    <div class="sec-title"><span class="no">03</span>全元素圆角规格表</div>
+    <p class="sec-desc">落地时照此表逐条替换即可，不会漏掉任何元素。两份文件（原版 + 扁平风）的选择器一致。</p>
+    <div class="spec-wrap">
+      <table class="spec">
+        <thead>
+          <tr>
+            <th>元素</th>
+            <th class="v">A 直角</th><th class="v">B 微圆</th><th class="v">C 适中</th>
+            <th class="v colrec">D 柔和（推荐）</th><th class="v">E 圆润</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tier"><td colspan="6">① 卡片 / 大面板 —— --r-card</td></tr>
+          <tr><td>标题卡<span class="sel">header.title</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>触发条<span class="sel">.trigger</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>步骤卡<span class="sel">.step</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>说明块<span class="sel">.note</span>（含 step-1 顶部内联提示块）</td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>发票要求框<span class="sel">.invoice-box</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>邮件格式框<span class="sel">.fmt</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>截图框<span class="sel">.shot</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>弹窗面板<span class="sel">#popup</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr><td>格式工具条<span class="sel">#fmtbar</span> / 色板 <span class="sel">.pop</span></td><td class="v">0</td><td class="v">4px</td><td class="v">8px</td><td class="v colrec">10px</td><td class="v">16px</td></tr>
+          <tr class="tier"><td colspan="6">② 控件（按钮 / 序号）—— --r-ctl</td></tr>
+          <tr><td>工具栏按钮<span class="sel">.btn（原版另含图片工具按钮）</span></td><td class="v">0</td><td class="v">3px</td><td class="v">6px</td><td class="v colrec">8px</td><td class="v">12px</td></tr>
+          <tr><td>步骤序号<span class="sel">.num（38px）</span></td><td class="v">0</td><td class="v">3px</td><td class="v">6px</td><td class="v colrec">8px</td><td class="v">12px</td></tr>
+          <tr><td>弹窗关闭钮<span class="sel">#popup-close（26px）</span></td><td class="v">0</td><td class="v">3px</td><td class="v">6px</td><td class="v colrec">8px</td><td class="v">12px</td></tr>
+          <tr><td>格式条按钮<span class="sel">#fmtbar button</span></td><td class="v">0</td><td class="v">3px</td><td class="v">6px</td><td class="v colrec">8px</td><td class="v">12px</td></tr>
+          <tr class="tier"><td colspan="6">③ 行内标签 —— --r-chip</td></tr>
+          <tr><td>标签<span class="sel">.tag / .tag.green</span></td><td class="v">0</td><td class="v">2px</td><td class="v">4px</td><td class="v colrec">5px</td><td class="v">8px</td></tr>
+          <tr><td>公式条<span class="sel">.formula</span></td><td class="v">0</td><td class="v">2px</td><td class="v">4px</td><td class="v colrec">5px</td><td class="v">8px</td></tr>
+          <tr><td>知识链接<span class="sel">.kg-link / .ref-link</span></td><td class="v">0</td><td class="v">2px</td><td class="v">4px</td><td class="v colrec">5px</td><td class="v">8px</td></tr>
+          <tr class="tier"><td colspan="6">④ 微徽标 —— --r-badge</td></tr>
+          <tr><td>kg / CBL 角标<span class="sel">.kg-link::before / .ref-link::before</span></td><td class="v">0</td><td class="v">2px</td><td class="v">3px</td><td class="v colrec">3px</td><td class="v">4px</td></tr>
+          <tr><td>颜色色块<span class="sel">#fmtbar .sw（18px）</span></td><td class="v">0</td><td class="v">2px</td><td class="v">3px</td><td class="v colrec">3px</td><td class="v">4px</td></tr>
+          <tr class="tier"><td colspan="6">⑤ 保持不变的元素</td></tr>
+          <tr><td>列表圆点<span class="sel">.step-body li::before</span></td><td class="v" colspan="5">50%（本来就是正圆，不动）</td></tr>
+          <tr><td>发票列表箭头<span class="sel">.invoice-box li::before</span></td><td class="v" colspan="5">"›" 文字符号，圆角无视觉效果，可顺手清掉声明</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote">
+      <b>推荐 D（10px）：</b>与仓库里 <code>sop-index.html</code> 设计系统的标准圆角令牌
+      <code>--r:10px</code> 完全一致，三个页面能统一成一套视觉语言；B（4px）则对应旧令牌
+      <code>--radius:4px</code>。落地时建议在 <code>:root</code> 里加四个变量
+      （<code>--r-card / --r-ctl / --r-chip / --r-badge</code>），把散落的
+      <code>border-radius:0</code> 全部换成变量引用，之后想微调只改四个数字。
+    </p>
+  </section>
+
+</div>
+
+<script>
+  (function(){
+    var presets = {
+      A:{name:'A 直角',px:'0px', card:'0',   ctl:'0',   chip:'0',  badge:'0'},
+      B:{name:'B 微圆',px:'4px', card:'4px', ctl:'3px', chip:'2px',badge:'2px'},
+      C:{name:'C 适中',px:'8px', card:'8px', ctl:'6px', chip:'4px',badge:'3px'},
+      D:{name:'D 柔和',px:'10px',card:'10px',ctl:'8px', chip:'5px',badge:'3px'},
+      E:{name:'E 圆润',px:'16px',card:'16px',ctl:'12px',chip:'8px',badge:'4px'}
+    };
+    var preview = document.getElementById('preview');
+    var readout = document.getElementById('readout');
+    var curLabel = document.getElementById('cur-label');
+    var btns = document.querySelectorAll('.pbtn');
+    function apply(p){
+      preview.dataset.preset = p;
+      btns.forEach(function(b){ b.classList.toggle('active', b.dataset.p===p); });
+      var s = presets[p];
+      readout.innerHTML =
+        '卡片/面板 <b>'+s.card+'</b>&emsp;控件/序号 <b>'+s.ctl+'</b>&emsp;行内标签 <b>'+s.chip+'</b>&emsp;微徽标 <b>'+s.badge+'</b>';
+      curLabel.textContent = '（当前：'+s.name+' '+s.px+'）';
+    }
+    btns.forEach(function(b){ b.addEventListener('click',function(){ apply(b.dataset.p); }); });
+    document.querySelectorAll('.mini').forEach(function(m){
+      m.addEventListener('click',function(){
+        apply(m.dataset.p);
+        document.getElementById('preview').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    });
+    apply('A');
+  })();
+</script>
+</body></html>
