@@ -1396,7 +1396,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     <div id="searchResults" class="search-results" hidden=""></div>
   </div><div class="tb-actions">
     <button id="btnEdit" class="edit-switch" role="switch" aria-checked="false" title="全局编辑开关" onclick="toggleEdit()"><span class="es-label">编辑</span><span class="es-track"><span class="es-knob"></span></span></button>
-    <button class="primary" onclick="saveFile()"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存</button>
+    <button class="primary js-cloud-save" onclick="cloudSave()" title="把当前全部内容直接保存到云端（GitHub Gist）"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存云端</button>
+    <button onclick="saveFile()" title="把当前内容下载成 HTML 文件备份到本机"><span class="ic"><svg><use href="#i-export"></use></svg></span>备份到本地</button>
     <button onclick="exportZip()" title="打包成 ZIP（HTML + assets 文件夹），适合发给别人，视频不膨胀"><span class="ic"><svg><use href="#i-folder"></use></svg></span>导出 ZIP</button>
     <button onclick="window.print()"><span class="ic"><svg><use href="#i-export"></use></svg></span>导出 PDF</button>
   </div>
@@ -1426,7 +1427,8 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 <div class="top-bar-actions">
   
   <div class="toolbar">
-    <button class="primary" onclick="saveFile()">💾 保存（下载）</button>
+    <button class="primary js-cloud-save" onclick="cloudSave()">☁️ 保存云端</button>
+    <button onclick="saveFile()">💾 备份到本地</button>
     <button onclick="exportZip()">🗜 导出 ZIP</button>
     <button onclick="window.print()">🖨 导出 PDF</button>
   </div>
@@ -3509,34 +3511,64 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
   // 取当前整份 HTML（复用导出前的清理 / 导出后的恢复流程）
   function _currentFullHtml(){
+    if(typeof collapseNodeInline==='function') collapseNodeInline(true); // 与本地保存一致：先收起内联展开
     _prepareExport();
     const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
     _restoreAfterExport();
     return html;
   }
+  // 核心上传：把当前整份 HTML 写进 Gist；无 Gist ID 则新建私密 Gist。返回更新后的设置。
+  async function _gistUpload(s){
+    const html=_currentFullHtml();
+    const body={ files:{ [s.filename]:{ content:html } } };
+    let url, method;
+    if(s.gistId){ url='https://api.github.com/gists/'+encodeURIComponent(s.gistId); method='PATCH'; }
+    else { url='https://api.github.com/gists'; method='POST'; body.description='SOP 流程索引'; body.public=false; }
+    const res=await fetch(url,{ method, headers:{
+      'Authorization':'token '+s.token,
+      'Accept':'application/vnd.github+json',
+      'Content-Type':'application/json'
+    }, body:JSON.stringify(body) });
+    if(!res.ok){ throw new Error('HTTP '+res.status+' '+(await res.text()).slice(0,200)); }
+    const data=await res.json();
+    if(!s.gistId && data.id){ s.gistId=data.id; localStorage.setItem(SYNC_KEY, JSON.stringify(s)); }
+    return s;
+  }
+  // 顶部「☁️ 保存云端」按钮：一键直接上传，用底部提示条反馈，不必打开弹窗
+  function _cloudBtns(disabled){
+    document.querySelectorAll('.js-cloud-save').forEach(b=>{ b.disabled=disabled; });
+  }
+  function _cloudToast(msg, hideAfter){
+    const t=document.getElementById('toast'); if(!t) return;
+    if(!msg){ t.classList.remove('show'); return; }
+    t.textContent=msg; t.classList.add('show');
+    if(hideAfter) setTimeout(()=>t.classList.remove('show'), hideAfter);
+  }
+  async function cloudSave(){
+    const s=loadSyncSettings();
+    if(!s.token){   // 首次使用：还没配置账号 → 打开弹窗引导填写
+      openSyncModal();
+      setSyncStatus('首次使用请先填写 Token（和 Gist ID），保存后即可一键同步到云端。','err');
+      return;
+    }
+    _cloudBtns(true); _cloudToast('☁️ 正在保存到云端…', 0);
+    try{
+      await _gistUpload(s);
+      _cloudToast('☁️ 已保存到云端 ✓', 1800);
+    }catch(e){
+      _cloudToast('', 0);
+      alert('❌ 保存到云端失败：\n'+e.message+'\n\n可点击左侧栏「云端同步」检查 Gist ID / Token 是否正确。');
+    }finally{ _cloudBtns(false); }
+  }
+  // 弹窗里的「⬆️ 上传到云端」：反馈显示在弹窗内
   async function cloudUpload(){
     const s=saveSyncSettings(false);
     if(!s.token){ setSyncStatus('请先填写 Access Token。','err'); return; }
     _syncBtns(true); setSyncStatus('正在上传…','');
     try{
-      const html=_currentFullHtml();
-      const body={ files:{ [s.filename]:{ content:html } } };
-      let url, method;
-      if(s.gistId){ url='https://api.github.com/gists/'+encodeURIComponent(s.gistId); method='PATCH'; }
-      else { url='https://api.github.com/gists'; method='POST'; body.description='SOP 流程索引'; body.public=false; }
-      const res=await fetch(url,{ method, headers:{
-        'Authorization':'token '+s.token,
-        'Accept':'application/vnd.github+json',
-        'Content-Type':'application/json'
-      }, body:JSON.stringify(body) });
-      if(!res.ok){ throw new Error('HTTP '+res.status+' '+(await res.text()).slice(0,200)); }
-      const data=await res.json();
-      if(!s.gistId && data.id){
-        s.gistId=data.id;
-        document.getElementById('syncGistId').value=data.id;
-        localStorage.setItem(SYNC_KEY, JSON.stringify(s));
-      }
-      setSyncStatus('✅ 上传成功！Gist ID：'+s.gistId,'ok');
+      const r=await _gistUpload(s);
+      const gi=document.getElementById('syncGistId'); if(gi) gi.value=r.gistId||'';
+      setSyncStatus('✅ 上传成功！Gist ID：'+r.gistId,'ok');
     }catch(e){
       setSyncStatus('❌ 上传失败：'+e.message,'err');
     }finally{ _syncBtns(false); }
