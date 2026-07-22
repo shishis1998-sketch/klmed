@@ -1238,8 +1238,17 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   background:#fff; border:1.5px solid var(--line); border-radius:var(--r);
   padding:14px 16px; width:100%; box-sizing:border-box;
   margin-bottom:10px;
+  transition:transform .16s, box-shadow .16s, border-color .16s, background .16s;
 }
 .ni-card:last-child{ margin-bottom:0; }
+/* 子步骤卡片悬停：与步骤卡片同款动效（上浮+投影+底色淡蓝），描边更细——
+   只把 1.5px 边变主色，不加 inset 内圈，故比步骤卡片(≈2px)细 */
+.ni-card:not(.editing):hover{
+  transform:translateY(-3px);
+  border-color:var(--accent);
+  background:#f2f8ff;
+  box-shadow:0 12px 22px -10px rgba(0,112,194,.28);
+}
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
   width:24px; height:24px; border-radius:5px; background:#eef1f4;
