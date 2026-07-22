@@ -1098,9 +1098,15 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
   background:var(--card-bg) !important; border:1px solid var(--card-bd) !important;
   border-top:1px solid var(--card-bd) !important; border-radius:var(--r) !important;
   box-shadow:none !important; cursor:pointer; padding:15px 16px !important;
-  transition:border-color .15s, background .15s;
+  transition:transform .16s, box-shadow .16s, border-color .16s, background .16s;
 }
-.module-panel.active .node:hover{ transform:none !important; border-color:#c3d6ec !important; background:#eef2f7 !important; }
+/* 悬停：卡片上浮 + 投影 + 底色淡蓝 + 蓝色描边加粗（inset 内圈≈2px，不位移） */
+.module-panel.active .node:hover{
+  transform:translateY(-3px) !important;
+  border-color:var(--accent) !important;
+  background:#f2f8ff !important;
+  box-shadow:0 12px 22px -10px rgba(0,112,194,.28), inset 0 0 0 1px var(--accent) !important;
+}
 /* 当前选中的步骤：主色高亮边框（其他步骤保持可见，不隐藏） */
 .module-panel.active .node.node-selected{
   border-color:var(--accent) !important; background:#fff !important;
