@@ -822,6 +822,7 @@
   --sp:16px;           /* 基础间距单位 */
   --topbar-h:56px;     /* 顶栏高度 */
   --side-w:256px;      /* 左侧栏宽度 */
+  --rail-w:64px;       /* 侧栏收起后的图标窄栏宽度 */
   --card-bg:#f3f4f6;   /* 统一卡片底色（灰） */
   --card-bd:#e4e6ea;   /* 统一卡片描边 */
   --content-bg:#ffffff;/* 右侧内容区底色（白） */
@@ -932,8 +933,15 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   background:#fff; border-right:1px solid var(--line);
   display:flex; flex-direction:column; overflow:hidden;
 }
+#appSidebar .side-head{ display:flex; align-items:flex-start; }
+#appSidebar .side-head .side-label{ flex:1; min-width:0; }
 #appSidebar .side-label{ font-size:12px; font-weight:700; letter-spacing:.14em;
   text-transform:uppercase; color:#aab2bd; padding:16px 18px 8px; }
+#appSidebar .side-toggle{ flex:none; width:26px; height:26px; margin:13px 10px 0 0; border:none;
+  background:none; cursor:pointer; color:var(--muted); border-radius:6px; font-size:16px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .28s cubic-bezier(.22,1,.36,1), background .15s, color .15s; }
+#appSidebar .side-toggle:hover{ background:var(--paper); color:var(--accent); }
 #appSidebar .side-scroll{ flex:1; min-height:0; overflow-y:auto; padding:0 10px 10px; }
 
 /* ---- 自动隐藏滚动条：平时不显示，滚动时才淡入，停止后淡出 ---- */
@@ -1024,6 +1032,34 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
   cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
 #appSidebar .side-sync:hover{ background:var(--accent-soft); border-color:var(--accent); }
 #appSidebar .side-foot .foot-time{ color:#aab2bd; }
+
+/* ===== 侧栏收起（图标窄栏）· 仅桌面 ===== */
+@media(min-width:761px){
+  #appSidebar{ transition:width .28s cubic-bezier(.22,1,.36,1); }
+  .module-panel.active{ transition:margin-left .28s cubic-bezier(.22,1,.36,1); }
+  /* 收起：把 --side-w 换成窄栏宽度，侧栏与内容同步过渡 */
+  body.side-collapsed{ --side-w:var(--rail-w); }
+  /* 隐藏所有文字/次要元素，只留图标 */
+  body.side-collapsed #appSidebar .side-label,
+  body.side-collapsed #appSidebar .m-name,
+  body.side-collapsed #appSidebar .mod-head .drag-grip,
+  body.side-collapsed #appSidebar .mod-head .m-edit,
+  body.side-collapsed #appSidebar .mod-head .m-del,
+  body.side-collapsed #appSidebar .mod-head .badge,
+  body.side-collapsed #appSidebar .mod-stages,
+  body.side-collapsed #appSidebar .side-add .txt,
+  body.side-collapsed #appSidebar .side-foot{ display:none !important; }
+  /* 图标居中 */
+  body.side-collapsed #appSidebar .side-scroll{ padding:0 6px 10px; }
+  body.side-collapsed #appSidebar .mod-head{ justify-content:center; gap:0; padding:10px 0; margin:0 4px; }
+  body.side-collapsed #appSidebar .side-add{ justify-content:center; margin:8px 6px; padding:9px 0; }
+  body.side-collapsed #appSidebar .side-head{ justify-content:center; }
+  body.side-collapsed #appSidebar .side-toggle{ margin:13px 0 0; transform:rotate(180deg); }
+  /* 收起态：高亮当前(active)模块图标 */
+  body.side-collapsed #appSidebar .mod.open > .mod-head{ background:var(--accent-soft); }
+  body.side-collapsed #appSidebar .mod.open > .mod-head .ic{ color:var(--accent); }
+}
+@media(max-width:760px){ #appSidebar .side-toggle{ display:none; } }
 
 /* ===== 云端同步弹窗（GitHub Gist）===== */
 #syncModal{ position:fixed;inset:0;z-index:1300;display:none;
@@ -1420,9 +1456,12 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 
 <!-- ===== 固定左侧栏（JS 填充 模块→阶段 两级）===== -->
 <aside id="appSidebar" class="">
-  <div class="side-label">流程模块</div>
+  <div class="side-head">
+    <div class="side-label">流程模块</div>
+    <button class="side-toggle" onclick="toggleSidebar()" title="收起 / 展开侧栏" aria-label="收起侧栏">‹</button>
+  </div>
   <div class="side-scroll" id="sideScroll"><div class="mod" data-module="sales"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-bag"></use></svg></span><span class="m-name">销售流程</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="sales" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">系统准备</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="sales" data-idx="1"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">接收订单</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="sales" data-idx="2"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">客户信息</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="sales" data-idx="3"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">订单导入 SAP</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="sales" data-idx="4"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">按付款 &amp; 配送方式分流</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="sales" data-idx="5"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">发货与后续跟踪</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div><div class="mod open" data-module="finance"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-wallet"></use></svg></span><span class="m-name">财务流程</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="finance" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">收款登记SAP</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="finance" data-idx="1"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">付款登记SAP</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="finance" data-idx="2"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">FORMA DE PAGOS</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item active" data-module="finance" data-idx="3"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">A3发票</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="finance" data-idx="4"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">INTRASTAT</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div><div class="mod" data-module="mmqqfumch0"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-bag"></use></svg></span><span class="m-name">VENTAS</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="mmqqfumch0" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">Forma de Pago / Crédito</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div><div class="mod" data-module="mmqy4asd90"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-folder"></use></svg></span><span class="m-name">仓储物流</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="mmqy4asd90" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">SAP库存调整</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div><div class="mod" data-module="mmr0owhkp0"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-folder"></use></svg></span><span class="m-name">投诉</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="mmr0owhkp0" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">运输公司索赔</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div><div class="mod" data-module="mmr1y77ds0"><div class="mod-head"><span class="drag-grip" title="拖动调整模块顺序">⠿</span><span class="ic"><svg><use href="#i-folder"></use></svg></span><span class="m-name">退货</span><span class="m-edit" title="重命名模块"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="m-del" title="删除模块"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="mod-stages"><div class="stage-item" data-module="mmr1y77ds0" data-idx="0"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">业务员带回退货</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="stage-item" data-module="mmr1y77ds0" data-idx="1"><span class="drag-grip" title="拖动调整阶段顺序">⠿</span><span class="s-name">投诉的退货</span><span class="s-copy" title="复制此阶段到指定模块"><span class="ic"><svg><use href="#i-copy"></use></svg></span></span><span class="s-edit" title="重命名阶段"><span class="ic"><svg><use href="#i-edit"></use></svg></span></span><span class="s-del" title="删除此阶段"><span class="ic"><svg><use href="#i-trash"></use></svg></span></span></div><div class="add-stage"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建阶段</div></div></div></div>
-  <button class="side-add" onclick="openAddModuleModal()"><span class="ic"><svg><use href="#i-plus"></use></svg></span>新建模块</button>
+  <button class="side-add" onclick="openAddModuleModal()"><span class="ic"><svg><use href="#i-plus"></use></svg></span><span class="txt">新建模块</span></button>
   <div class="side-foot">
     <button class="side-sync" onclick="openSyncModal()">云端同步</button>
     <div class="foot-time"><b>更新时间：</b><span id="sideUpdated">2026/07/02</span></div>
@@ -4382,6 +4421,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 
       const head = document.createElement('div');
       head.className = 'mod-head';
+      head.title = name;   // 收起成图标窄栏时，悬停显示模块名
       head.innerHTML =
         `<span class="drag-grip" title="拖动调整模块顺序">⠿</span>` +
         `<span class="ic"><svg><use href="#${moduleIcon(name)}"/></svg></span>` +
@@ -4881,6 +4921,21 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   function toggleMobSidebar(){
     document.getElementById('appSidebar')?.classList.toggle('open');
   }
+  /* 桌面：收起 / 展开侧栏（图标窄栏）。状态存 localStorage，下次打开沿用。 */
+  function toggleSidebar(){
+    const on = document.body.classList.toggle('side-collapsed');
+    try{ localStorage.setItem('sopSidebarCollapsed', on ? '1' : '0'); }catch(e){}
+    const btn = document.querySelector('#appSidebar .side-toggle');
+    if(btn){ btn.title = on ? '展开侧栏' : '收起 / 展开侧栏'; btn.setAttribute('aria-label', on ? '展开侧栏' : '收起侧栏'); }
+  }
+  (function initSidebarCollapse(){
+    try{
+      const v = localStorage.getItem('sopSidebarCollapsed');
+      if(v === '1') document.body.classList.add('side-collapsed');
+      else if(v === '0') document.body.classList.remove('side-collapsed');
+      // v 为 null 时保留文件本身的默认（不动）
+    }catch(e){}
+  })();
   // 点侧栏外部自动关闭
   document.addEventListener('click', e=>{
     const sb = document.getElementById('appSidebar');
