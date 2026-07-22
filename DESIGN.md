@@ -56,7 +56,8 @@
 | **Surface 内容区底(白)** | `--content-bg` | `#ffffff` | 右侧内容区、顶栏、侧栏、详情面板 |
 | **Card 卡片底(灰)** | `--card-bg` | `#f3f4f6` | APP 外壳下的步骤卡片 `.node` 底色(**Dominant**) |
 | **Card border 卡片描边** | `--card-bd` | `#e4e6ea` | APP 外壳下卡片边框 |
-| **内联子步骤卡底(淡蓝)** | (字面量) | `#eef5fc` / 边 `#d3e3f4` | `.ni-card`,与灰底阶段卡片区分;序号徽标底 `#d8e7f7` |
+| **内联子步骤卡 `.ni-card` 底** | (字面量) | `#fff` / 边 `--line #d5d9dc`(1.5px) | 白底 + 通用细边,与灰底步骤卡区分;序号徽标 `.ni-num` 底 `#eef1f4`、蓝字 |
+| **卡片悬停底(淡蓝)** | (字面量) | `#f2f8ff` | 步骤卡 `.node` 与子步骤卡 `.ni-card` 悬停时的整卡填充底色 |
 | **Border 通用描边线** | `--line` | `#d5d9dc` | 分割线、输入框/按钮边框、虚线占位 |
 | **Text 主文字(墨色)** | `--ink` | `#354754` | 标题、正文主色 |
 | **Text muted 次要文字** | `--muted` | `#7a8898` | 元信息、面包屑、占位、未激活侧栏项 |
@@ -169,8 +170,10 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 | **令牌 `--shadow`(卡片基础)** | `0 2px 8px rgba(53,71,84,.10)` | 卡片默认、toast |
 | **侧栏面板** | `0 2px 8px rgba(53,71,84,.06)` | flow-rail / 顶栏更淡 |
 | **顶栏 appTopbar** | `0 1px 3px rgba(53,71,84,.06)` | 极淡底边投影 |
-| **卡片 hover 上浮** | `0 12px 22px -12px rgba(0,112,194,.13)` | 负扩散、向下收的蓝调阴影 |
-| **阶段展开 open** | `0 12px 22px -12px rgba(0,112,194,.13)` | 同上,聚焦当前阶段 |
+| **卡片 hover(通用 `.node`)** | `0 12px 22px -12px rgba(0,112,194,.13)` | 负扩散蓝调阴影(隐藏面板/旧态用) |
+| **步骤卡 hover(激活面板 · Dominant)** | `0 12px 22px -10px rgba(0,112,194,.28)` + `inset 0 0 0 1px --accent` | 用户实际看到的态:上浮 3px + 底色 `#f2f8ff` + 主色描边(inset 内圈≈2px,不位移) |
+| **子步骤卡 `.ni-card` hover** | `0 12px 22px -10px rgba(0,112,194,.28)` | 同款上浮 + 底色 `#f2f8ff`,但描边更细(仅 1.5px 边变主色,无 inset 内圈) |
+| **阶段展开 open** | `0 12px 22px -12px rgba(0,112,194,.13)` | 聚焦当前阶段 |
 | **吸顶标题 head-stuck** | `0 8px 16px -10px rgba(53,71,84,.45)` / 内容区 `0 6px 12px -10px` | 标题钉住后与滚动内容分层 |
 | **搜索结果下拉** | `0 14px 34px -10px rgba(53,71,84,.28)` | 浮层 |
 | **详情弹窗面板** | `0 20px 60px rgba(0,0,0,.3)` | 最高层模态 |
@@ -214,10 +217,11 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 
 - **Header(顶栏 `#appTopbar`):** `position:fixed; top/left/right:0; height:56px`,白底 + 底边
   `--line` + 极淡投影。内含:品牌(800/19px)、面包屑(`--muted`,蓝色强调)、搜索框(弹性
-  `0 1 320px`)、右侧操作组(编辑/保存 primary/导出)。
+  `0 1 320px`)、右侧操作组(编辑开关 / 「保存云端」primary / 备份到本地 / 导出 ZIP / 导出 PDF)。
 - **Sidebar(左侧栏 `#appSidebar`):** `position:fixed; top:56px; left:0; bottom:0; width:256px`,
   白底 + 右边 `--line`。结构:分组标题 `流程模块` → 可滚动区(模块头 `mod-head` → 阶段项
-  `stage-item`,两级折叠)→ "+ 新建模块" 虚线按钮 → 脚注(负责人/更新时间)。移动端
+  `stage-item`,两级折叠)→ "+ 新建模块" 虚线按钮 → 脚注区 `side-foot`(「云端同步」按钮 `side-sync`
+  + 「更新时间」)。移动端
   (`≤760px`)转抽屉:`translateX(-100%)`,`.open` 滑入并加 `0 0 0 100vmax rgba(0,0,0,.3)` 遮罩。
 - **Content(内容区 `.module-panel.active`):** `margin-left:var(--side-w)`,顶部留
   `--topbar-h + 20px`,左右 `--gutter`,底部 64px,`background:var(--content-bg)`,`min-height:100vh`。
