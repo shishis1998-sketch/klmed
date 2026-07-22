@@ -56,7 +56,8 @@
 | **Surface 内容区底(白)** | `--content-bg` | `#ffffff` | 右侧内容区、顶栏、侧栏、详情面板 |
 | **Card 卡片底(灰)** | `--card-bg` | `#f3f4f6` | APP 外壳下的步骤卡片 `.node` 底色(**Dominant**) |
 | **Card border 卡片描边** | `--card-bd` | `#e4e6ea` | APP 外壳下卡片边框 |
-| **内联子步骤卡底(淡蓝)** | (字面量) | `#eef5fc` / 边 `#d3e3f4` | `.ni-card`,与灰底阶段卡片区分;序号徽标底 `#d8e7f7` |
+| **内联子步骤卡 `.ni-card` 底** | (字面量) | `#fff` / 边 `--line #d5d9dc`(1.5px) | 白底 + 通用细边,与灰底步骤卡区分;序号徽标 `.ni-num` 底 `#eef1f4`、蓝字 |
+| **卡片悬停底(淡蓝)** | (字面量) | `#f2f8ff` | 步骤卡 `.node` 与子步骤卡 `.ni-card` 悬停时的整卡填充底色 |
 | **Border 通用描边线** | `--line` | `#d5d9dc` | 分割线、输入框/按钮边框、虚线占位 |
 | **Text 主文字(墨色)** | `--ink` | `#354754` | 标题、正文主色 |
 | **Text muted 次要文字** | `--muted` | `#7a8898` | 元信息、面包屑、占位、未激活侧栏项 |
@@ -87,27 +88,31 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 
 ### 3.2 字号 / 字重 / 层级
 
+> **字号阶梯统一为 6 档:`30 / 22 / 20 / 16 / 14 / 12`。** 原先零散的 `19 / 15 / 13.5 / 13 / 11.5 / 11`
+> 已全部归并到最近档位(见下表)。**注:图标 / 拖拽手柄 / 箭头字形的 `font-size` 用于控制字形尺寸,
+> 不属于文字排版阶梯,不在本表约束内(保持 `.ic` 等原值)。**
+
 | 角色 | font-size | font-weight | 备注 |
 |------|-----------|-------------|------|
-| **H1 文档标题** | `30px`(移动端 `21px`) | `800` | `letter-spacing:-.01em`,左侧 5px 蓝色竖条 |
-| **顶栏品牌 tb-brand** | `19px` | `800` | |
+| **H1 文档标题** | `30px`(移动端 `20px`) | `800` | `letter-spacing:-.01em`,左侧 5px 蓝色竖条 |
 | **详情弹窗 H2** | `22px` | `800` | 蓝底白字 |
 | **阶段标题 stitle(展开)** | `20px` | `800` | APP 外壳下放大;收起时 `14px`/`700` |
-| **卡片标题 node-title** | `15px` | `700` | |
-| **内联子步骤区标题 ni-ss-title** | `15px` | `800` | 「子步骤」小标题,= section-title |
+| **顶栏品牌 tb-brand** | `20px` | `800` | 原 19,归并到 20 |
+| **卡片标题 node-title** | `16px` | `700` | 原 15,归并到 16 |
+| **内联子步骤区标题 ni-ss-title** | `16px` | `800` | 「子步骤」小标题,= section-title(原 15)|
+| **模块 tab** | `16px` | `700` | 原 15,归并到 16 |
 | **内联子步骤 标题/描述 ni-name / ni-desc** | `14px`(`!important`) | `700` / `400` | 同字号,仅粗细+颜色区分;描述富文本内联字号被强制压到 14 |
-| **模块 tab / 顶栏控件** | `15px`/`13px` | `700`/`600` | |
-| **Body 正文 / 输入框** | `14px` | `400–500` | 基准字号 |
-| **卡片描述 node-desc** | `13.5px` | `400` | 颜色 `#5a5e6e`,`line-height:1.55` |
-| **Label 字段标签 attr label** | `11px` | `600` | 颜色 `#8a8270` |
-| **侧栏分组标题 side-label** | `11px` | `700` | `letter-spacing:.14em`,大写,`#aab2bd` |
+| **Body 正文 / 输入框 / 顶栏控件** | `14px` | `400–600` | 基准字号(顶栏控件原 13,归并到 14)|
+| **卡片描述 node-desc** | `14px` | `400` | 原 13.5,归并到 14;颜色 `#5a5e6e`,`line-height:1.55` |
 | **Eyebrow 小标** | `12px` | `700` | `letter-spacing:.32em`,大写,橙色 |
-| **Tag 标签** | `11px` | `700` | `letter-spacing:.04em` |
-| **Badge 步骤数 step-count** | `11px` | `700` | 胶囊徽章 |
-| **Small 计数/脚注** | `11–13px` | `400–600` | `--muted` 或更浅 |
+| **Label 字段标签 attr label** | `12px` | `600` | 原 11;颜色 `#8a8270` |
+| **侧栏分组标题 side-label** | `12px` | `700` | 原 11;`letter-spacing:.14em`,大写,`#aab2bd` |
+| **Tag 标签** | `12px` | `700` | 原 11;`letter-spacing:.04em` |
+| **Badge 步骤数 step-count** | `12px` | `700` | 原 11;胶囊徽章 |
+| **Small 计数/脚注** | `12px` | `400–600` | 原 11–13,统一到 12;`--muted` 或更浅 |
 
-**层级原则:** 标题 `800` 粗、正文 `400–500`、强调/标签/徽章 `600–700`。字号梯度约为
-`30 / 22 / 20 / 16 / 15 / 14 / 13.5 / 12 / 11`。正文行高 `1.5–1.7`。
+**层级原则:** 标题 `800` 粗、正文 `400–600`、强调/标签/徽章 `600–700`。**字号阶梯(唯一标准):
+`30 / 22 / 20 / 16 / 14 / 12`**——新增文字一律从这 6 档取值,不再引入中间值。正文行高 `1.5–1.7`。
 
 ---
 
@@ -169,8 +174,10 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 | **令牌 `--shadow`(卡片基础)** | `0 2px 8px rgba(53,71,84,.10)` | 卡片默认、toast |
 | **侧栏面板** | `0 2px 8px rgba(53,71,84,.06)` | flow-rail / 顶栏更淡 |
 | **顶栏 appTopbar** | `0 1px 3px rgba(53,71,84,.06)` | 极淡底边投影 |
-| **卡片 hover 上浮** | `0 12px 22px -12px rgba(0,112,194,.13)` | 负扩散、向下收的蓝调阴影 |
-| **阶段展开 open** | `0 12px 22px -12px rgba(0,112,194,.13)` | 同上,聚焦当前阶段 |
+| **卡片 hover(通用 `.node`)** | `0 12px 22px -12px rgba(0,112,194,.13)` | 负扩散蓝调阴影(隐藏面板/旧态用) |
+| **步骤卡 hover(激活面板 · Dominant)** | `0 12px 22px -10px rgba(0,112,194,.28)` + `inset 0 0 0 1px --accent` | 用户实际看到的态:上浮 3px + 底色 `#f2f8ff` + 主色描边(inset 内圈≈2px,不位移) |
+| **子步骤卡 `.ni-card` hover** | `0 12px 22px -10px rgba(0,112,194,.28)` | 同款上浮 + 底色 `#f2f8ff`,但描边更细(仅 1.5px 边变主色,无 inset 内圈) |
+| **阶段展开 open** | `0 12px 22px -12px rgba(0,112,194,.13)` | 聚焦当前阶段 |
 | **吸顶标题 head-stuck** | `0 8px 16px -10px rgba(53,71,84,.45)` / 内容区 `0 6px 12px -10px` | 标题钉住后与滚动内容分层 |
 | **搜索结果下拉** | `0 14px 34px -10px rgba(53,71,84,.28)` | 浮层 |
 | **详情弹窗面板** | `0 20px 60px rgba(0,0,0,.3)` | 最高层模态 |
@@ -214,10 +221,11 @@ font-family: "Segoe UI","PingFang SC","Microsoft YaHei", sans-serif;   /* 全局
 
 - **Header(顶栏 `#appTopbar`):** `position:fixed; top/left/right:0; height:56px`,白底 + 底边
   `--line` + 极淡投影。内含:品牌(800/19px)、面包屑(`--muted`,蓝色强调)、搜索框(弹性
-  `0 1 320px`)、右侧操作组(编辑/保存 primary/导出)。
+  `0 1 320px`)、右侧操作组(编辑开关 / 「保存云端」primary / 备份到本地 / 导出 ZIP / 导出 PDF)。
 - **Sidebar(左侧栏 `#appSidebar`):** `position:fixed; top:56px; left:0; bottom:0; width:256px`,
   白底 + 右边 `--line`。结构:分组标题 `流程模块` → 可滚动区(模块头 `mod-head` → 阶段项
-  `stage-item`,两级折叠)→ "+ 新建模块" 虚线按钮 → 脚注(负责人/更新时间)。移动端
+  `stage-item`,两级折叠)→ "+ 新建模块" 虚线按钮 → 脚注区 `side-foot`(「云端同步」按钮 `side-sync`
+  + 「更新时间」)。移动端
   (`≤760px`)转抽屉:`translateX(-100%)`,`.open` 滑入并加 `0 0 0 100vmax rgba(0,0,0,.3)` 遮罩。
 - **Content(内容区 `.module-panel.active`):** `margin-left:var(--side-w)`,顶部留
   `--topbar-h + 20px`,左右 `--gutter`,底部 64px,`background:var(--content-bg)`,`min-height:100vh`。

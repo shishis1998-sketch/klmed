@@ -43,7 +43,7 @@
     margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em;
     border-left:5px solid var(--accent);padding-left:14px;
   }
-  .hint{margin:10px 0 0 19px;font-size:13px;color:#7a7363;line-height:1.6;}
+  .hint{margin:10px 0 0 19px;font-size:14px;color:#7a7363;line-height:1.6;}
 
   .toolbar{
     max-width:1200px;margin:18px auto 0;display:flex;gap:10px;flex-wrap:wrap;
@@ -67,7 +67,7 @@
   .page-footer .hint{ margin:0; }
   .toolbar button{
     border:1px solid var(--line);background:#fff;color:var(--ink);
-    padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;transition:.15s;
+    padding:7px 14px;border-radius:4px;font-size:14px;cursor:pointer;transition:.15s;
   }
   .toolbar button:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
   .toolbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -181,13 +181,13 @@
   }
   /* 负责人：收起时显示；展开后隐藏，给标题和控制按钮让出空间（窄屏下避免标题被挤没） */
   .stage-head .meta{
-    flex:none;font-size:11.5px;font-weight:500;color:#7a8898;
+    flex:none;font-size:12px;font-weight:500;color:#7a8898;
     max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .stage.open .stage-head .meta{ display:none; }
   /* 步骤数徽章 */
   .stage-head .step-count{
-    flex:none;font-size:11px;font-weight:700;color:var(--accent);
+    flex:none;font-size:12px;font-weight:700;color:var(--accent);
     background:#fff;border:1px solid var(--accent);
     padding:2px 9px;border-radius:20px;white-space:nowrap;
   }
@@ -314,14 +314,14 @@
 
   .tag{
     display:inline-block;align-self:flex-start;
-    font-size:11px;font-weight:700;letter-spacing:.04em;
+    font-size:12px;font-weight:700;letter-spacing:.04em;
     padding:2px 9px;border-radius:3px;margin-bottom:8px;
     background:var(--lilac);color:var(--gold);
   }
   /* align-self:flex-start 让可编辑的标题/描述只占文字本身宽度，不再横向铺满整张卡片，
      这样点击文字右侧的空白处不会误触进入编辑框（只点到不可编辑的卡片本体）。 */
-  .node-title{font-weight:700;font-size:15px;margin:0 0 4px;align-self:flex-start;max-width:100%;}
-  .node-desc{font-size:13.5px;color:#5a5e6e;line-height:1.55;margin:0;flex:1;align-self:flex-start;max-width:100%;}
+  .node-title{font-weight:700;font-size:16px;margin:0 0 4px;align-self:flex-start;max-width:100%;}
+  .node-desc{font-size:14px;color:#5a5e6e;line-height:1.55;margin:0;flex:1;align-self:flex-start;max-width:100%;}
 
   .add-step{
     flex:0 0 44px;min-width:44px;align-self:stretch;display:grid;place-items:center;
@@ -377,7 +377,7 @@
 
   .legend{
     max-width:1200px;margin:34px auto 0;display:flex;gap:22px;flex-wrap:wrap;
-    font-size:12.5px;color:#6b6557;padding:14px 20px;
+    font-size:12px;color:#6b6557;padding:14px 20px;
     background:#fff;border:1px solid var(--line);border-radius:4px;
   }
   .legend span{display:inline-flex;align-items:center;gap:7px;}
@@ -452,16 +452,16 @@
   }
   .detail-back{
     background:rgba(255,255,255,.18);border:none;color:#fff;cursor:pointer;
-    border-radius:4px;padding:7px 13px;font-size:13px;font-weight:600;flex:none;transition:.12s;
+    border-radius:4px;padding:7px 13px;font-size:14px;font-weight:600;flex:none;transition:.12s;
   }
   .detail-back:hover{background:rgba(255,255,255,.35);}
   .detail-top .dt-tag{
-    font-size:11px;font-weight:700;letter-spacing:.05em;opacity:.85;margin-bottom:4px;
+    font-size:12px;font-weight:700;letter-spacing:.05em;opacity:.85;margin-bottom:4px;
   }
   .detail-top h2{margin:0;font-size:22px;font-weight:800;}
   .detail-body{padding:26px;}
   .detail-body h3{
-    font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
+    font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
     font-weight:700;margin:24px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px;
   }
   .detail-body h3:first-child{margin-top:0;}
@@ -478,7 +478,7 @@
     background:#fff;cursor:pointer;outline:none;
   }
   .tag-preview{
-    display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
+    display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;
     padding:4px 11px;border-radius:3px;background:var(--lilac);color:var(--gold);
   }
   .tag-preview.t-system{background:#e8f4ff;color:var(--blue);}
@@ -492,13 +492,13 @@
   /* 属性网格 */
   .attr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
   .attr{background:#fff;border:1px solid var(--line);border-radius:4px;padding:11px 14px;}
-  .attr label{display:block;font-size:11px;color:#8a8270;margin-bottom:3px;font-weight:600;}
+  .attr label{display:block;font-size:12px;color:#8a8270;margin-bottom:3px;font-weight:600;}
   .attr .val{font-size:14px;font-weight:700;}
 
   /* 检查清单 */
   .add-link{
     background:#fff;border:1.5px dashed var(--line);color:var(--accent);
-    border-radius:4px;padding:8px;width:100%;cursor:pointer;font-size:13px;font-weight:600;transition:.12s;
+    border-radius:4px;padding:8px;width:100%;cursor:pointer;font-size:14px;font-weight:600;transition:.12s;
   }
   .add-link:hover{background:var(--accent-soft);border-color:var(--accent);}
 
@@ -508,7 +508,7 @@
     border-radius:4px;padding:9px 12px;margin-bottom:8px;
   }
   .link-item .li-icon{color:var(--blue);flex:none;}
-  .link-item .li-text{flex:1;font-size:13.5px;color:var(--blue);word-break:break-all;}
+  .link-item .li-text{flex:1;font-size:14px;color:var(--blue);word-break:break-all;}
   .link-item .li-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:13px;border-radius:4px;padding:3px 7px;line-height:1;flex:none;}
   .link-item .li-del:hover{background:var(--danger);color:#fff;}
   .link-item .li-del:active{background:var(--danger-d);color:#fff;}
@@ -516,7 +516,7 @@
   /* 嵌入文件附件（区别于普通网址） */
   .link-item.file .li-icon{color:var(--gold);}
   .link-item.file .li-text{color:var(--gold);font-weight:600;cursor:pointer;}
-  .link-item .li-size{font-size:11px;color:#aaa;flex:none;}
+  .link-item .li-size{font-size:12px;color:#aaa;flex:none;}
 
   /* 图片区 */
   .img-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;}
@@ -534,7 +534,7 @@
   .img-thumb .ig-del:active{background:var(--danger-d);}
   .add-img{
     background:#fff;border:1.5px dashed var(--line);color:var(--accent);
-    border-radius:4px;padding:8px;width:100%;cursor:pointer;font-size:13px;font-weight:600;transition:.12s;
+    border-radius:4px;padding:8px;width:100%;cursor:pointer;font-size:14px;font-weight:600;transition:.12s;
   }
   .add-img:hover{background:var(--accent-soft);border-color:var(--accent);}
 
@@ -556,7 +556,7 @@
     width:280px;outline:none;background:#fff;
   }
   #searchbox input:focus{border-color:var(--accent);}
-  #searchbox .scount{font-size:13px;color:#7a7363;}
+  #searchbox .scount{font-size:14px;color:#7a7363;}
 
   /* ===== 搜索结果列表（下拉）：跨所有阶段列出命中，点条目跳转 ===== */
   #searchbox{ position:relative; }
@@ -577,11 +577,11 @@
     transition:background .12s;
   }
   .sr-item:hover,.sr-item:focus{ background:var(--accent-soft); outline:none; }
-  .sr-stage{ font-size:11.5px; color:#8a93a0; margin-bottom:2px; }
-  .sr-title{ font-size:13.5px; font-weight:700; line-height:1.3; }
+  .sr-stage{ font-size:12px; color:#8a93a0; margin-bottom:2px; }
+  .sr-title{ font-size:14px; font-weight:700; line-height:1.3; }
   .sr-snip{ font-size:12px; color:#5a5e6e; margin-top:3px; line-height:1.45; }
   .sr-snip mark, .sr-title mark{ background:var(--gold); color:inherit; padding:0 1px; border-radius:2px; }
-  .sr-empty{ padding:14px 12px; color:#7a8898; font-size:13px; }
+  .sr-empty{ padding:14px 12px; color:#7a8898; font-size:14px; }
 
   /* ===== 搜索无结果：红框 + 抖动错误态（参考 transitions.dev「Error state shake」）=====
      每段抖动各自带 cubic-bezier，总时长 80+60+80+60=280ms；错误态红框盖过 :focus 蓝框。 */
@@ -650,7 +650,7 @@
     transition:background .35s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
   }
   .flow-rail .rail-label{
-    font-size:13px;font-weight:600;line-height:1.35;
+    font-size:14px;font-weight:600;line-height:1.35;
   }
   .flow-rail .rail-dot.current .rail-label{ color:var(--ink); }
   /* 搜索时：含命中卡片的阶段，在左侧竖栏加一道金色左标记 */
@@ -683,7 +683,7 @@
     padding-top:8px;
   }
   .module-tab{
-    padding:10px 28px;font-size:15px;font-weight:700;cursor:pointer;border:none;background:none;
+    padding:10px 28px;font-size:16px;font-weight:700;cursor:pointer;border:none;background:none;
     color:#7a8898;border-radius:4px 4px 0 0;letter-spacing:.02em;transition:.15s;
     border-bottom:3px solid transparent;margin-bottom:-2px;
   }
@@ -747,7 +747,7 @@
   .mini-actions{display:flex;justify-content:flex-end;gap:10px;}
   .mini-actions button{
     border:1px solid var(--line);background:#fff;border-radius:4px;padding:8px 16px;
-    font-size:13px;cursor:pointer;font-weight:600;
+    font-size:14px;cursor:pointer;font-weight:600;
   }
   .mini-actions button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
   .mini-actions button.primary:hover{background:#003f7a;}
@@ -781,29 +781,29 @@
   }
   .module-panel.active > .flow-rail .rail-dot{width:auto;flex:none;white-space:nowrap;}
   header{margin:0 auto 16px;}
-  h1{font-size:21px;padding-left:10px;border-left-width:4px;}
+  h1{font-size:20px;padding-left:10px;border-left-width:4px;}
   .hint{margin-left:14px;font-size:12px;}
   .toolbar{margin-top:12px;justify-content:flex-start;}
   .toolbar button{padding:6px 10px;font-size:12px;}
-  .module-tab{padding:8px 14px;font-size:13px;}
+  .module-tab{padding:8px 14px;font-size:14px;}
   .flow{margin-top:18px;}
 
-  .stage-head{ padding:6px 12px 6px 6px;font-size:13px;gap:8px; }
-  .stage-head .stitle{font-size:13px;}
+  .stage-head{ padding:6px 12px 6px 6px;font-size:14px;gap:8px; }
+  .stage-head .stitle{font-size:14px;}
   /* 左右内边距对称，卡片在阶段内居中（原来左 28px、右 0 会把卡片整体推向右侧） */
   .steps{gap:0;flex-direction:column;align-items:stretch;padding:12px 12px 14px;}
   .step-arrow{transform:rotate(90deg);padding:4px 0;}
   .add-step{margin-left:0;margin-top:6px;align-self:stretch;height:44px;}
   .node{min-width:0;padding:12px 13px 12px;}
   .node-title{font-size:14px;}
-  .node-desc{font-size:13px;}
+  .node-desc{font-size:14px;}
 
   #panel-mmqqfumch0 .ventas-steps{gap:14px;}
   .vgroup{min-width:0;}
-  .vgroup-title{font-size:12.5px;}
+  .vgroup-title{font-size:12px;}
 
   .detail-top{padding:16px 16px;}
-  .detail-top h2{font-size:17px;}
+  .detail-top h2{font-size:16px;}
   .detail-body{padding:16px;}
   .attr-grid{grid-template-columns:1fr 1fr;gap:8px;}
   .tag-edit input{flex:1 1 100%;}
@@ -853,7 +853,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   box-shadow:0 1px 3px rgba(53,71,84,.06);
 }
 /* 顶栏标题：比正文更大、更醒目 */
-#appTopbar .tb-brand{ font-weight:800; font-size:19px; letter-spacing:.01em; color:var(--ink); flex:none; }
+#appTopbar .tb-brand{ font-weight:800; font-size:20px; letter-spacing:.01em; color:var(--ink); flex:none; }
 #appTopbar .tb-crumb{ font-size:14px; color:var(--muted); flex:1; min-width:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 #appTopbar .tb-crumb b{ color:var(--accent); font-weight:700; }
@@ -871,7 +871,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar #searchbox .t-input{
   background:transparent; border:none; outline:none;
   width:100%; height:var(--ctl-h);
-  padding:0 12px 0 32px; font-size:13px; color:var(--ink);
+  padding:0 12px 0 32px; font-size:14px; color:var(--ink);
 }
 #appTopbar #searchbox .t-input:focus{ background:transparent; }
 /* error 态：让外层 wrap 变红边框，与 focus-within 的 accent 逻辑一致 */
@@ -880,7 +880,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 /* 搜索框自带的「清除」按钮（旧内联样式）统一高度/圆角 */
 #appTopbar #searchbox > button{
   height:var(--ctl-h) !important; padding:0 14px !important; border-radius:var(--r) !important;
-  border:1px solid var(--line) !important; background:#fff !important; font-size:13px !important;
+  border:1px solid var(--line) !important; background:#fff !important; font-size:14px !important;
   font-weight:600 !important; color:var(--ink) !important; cursor:pointer; flex:none;
   order:1; /* 紧贴输入框右侧，排在计数前 */
 }
@@ -895,7 +895,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
 #appTopbar .tb-actions button{
   display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
   height:var(--ctl-h); border:1px solid var(--line); background:#fff; color:var(--ink);
-  border-radius:var(--r); padding:0 13px; font-size:13px; font-weight:600;
+  border-radius:var(--r); padding:0 13px; font-size:14px; font-weight:600;
   transition:background .15s,color .15s,border-color .15s;
 }
 #appTopbar .tb-actions button:hover{ background:var(--paper); }
@@ -932,7 +932,7 @@ body{ padding:0 !important; margin:0; background:var(--paper); }
   background:#fff; border-right:1px solid var(--line);
   display:flex; flex-direction:column; overflow:hidden;
 }
-#appSidebar .side-label{ font-size:11px; font-weight:700; letter-spacing:.14em;
+#appSidebar .side-label{ font-size:12px; font-weight:700; letter-spacing:.14em;
   text-transform:uppercase; color:#aab2bd; padding:16px 18px 8px; }
 #appSidebar .side-scroll{ flex:1; min-height:0; overflow-y:auto; padding:0 10px 10px; }
 
@@ -953,7 +953,7 @@ html.is-scrolling::-webkit-scrollbar-thumb, #appSidebar .side-scroll.is-scrollin
 #appSidebar .mod-head:hover{ background:var(--paper); }
 #appSidebar .mod-head .ic{ font-size:17px; color:var(--accent); flex:none; }
 #appSidebar .mod-head .m-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#appSidebar .mod-head .badge{ flex:none; font-size:11px; font-weight:700; color:var(--accent);
+#appSidebar .mod-head .badge{ flex:none; font-size:12px; font-weight:700; color:var(--accent);
   background:var(--accent-soft); border-radius:999px; padding:1px 9px; }
 /* 模块的 编辑(重命名)/删除：所有模块一致，仅在编辑模式显示 */
 #appSidebar .mod-head .m-edit, #appSidebar .mod-head .m-del{
@@ -973,11 +973,11 @@ body.edit-all #appSidebar .mod-head .badge{ display:none; }
 #appSidebar .stage-item{
   position:relative; display:flex; align-items:center; gap:9px;
   padding:8px 12px 8px 34px; border-radius:var(--r); cursor:pointer;
-  font-size:13px; font-weight:500; color:var(--muted);
+  font-size:14px; font-weight:500; color:var(--muted);
 }
 #appSidebar .stage-item:hover{ background:var(--paper); color:var(--ink); }
 #appSidebar .stage-item .s-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#appSidebar .stage-item .cnt{ flex:none; font-size:11px; color:#aab2bd; }
+#appSidebar .stage-item .cnt{ flex:none; font-size:12px; color:#aab2bd; }
 /* 阶段的 复制 / 重命名 / 删除：仅编辑模式显示（与模块的一致） */
 #appSidebar .stage-item .s-copy, #appSidebar .stage-item .s-edit, #appSidebar .stage-item .s-del{
   display:none; flex:none; width:20px; height:20px; border-radius:6px;
@@ -1008,11 +1008,11 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
 #appSidebar .mod.dragging, #appSidebar .stage-item.dragging{ opacity:.4; }
 #appSidebar .mod.drag-over > .mod-head, #appSidebar .stage-item.drag-over{ box-shadow:0 -2px 0 0 var(--accent); }
 #appSidebar .add-stage{ margin:2px 0 0 24px; padding:7px 10px; border-radius:var(--r);
-  font-size:12.5px; color:#aab2bd; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  font-size:12px; color:#aab2bd; cursor:pointer; display:flex; align-items:center; gap:6px; }
 #appSidebar .add-stage:hover{ background:var(--paper); color:var(--accent); }
 #appSidebar .add-stage .ic{ font-size:14px; }
 #appSidebar .side-add{ margin:8px; padding:9px 10px; border:1.5px dashed var(--line);
-  border-radius:var(--r); background:transparent; color:var(--accent); font-size:13px;
+  border-radius:var(--r); background:transparent; color:var(--accent); font-size:14px;
   font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
 #appSidebar .side-add:hover{ background:var(--accent-soft); border-color:var(--accent); }
 #appSidebar .side-add .ic{ font-size:15px; }
@@ -1033,10 +1033,10 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
 #syncModal .mini-box{ max-width:420px; }
 #syncModal label{ display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 5px; }
 #syncModal .mini-input{ margin-bottom:12px; }
-#syncModal .sync-hint{ font-size:11px; color:#aab2bd; line-height:1.6; margin:-4px 0 14px; }
+#syncModal .sync-hint{ font-size:12px; color:#aab2bd; line-height:1.6; margin:-4px 0 14px; }
 #syncModal .sync-actions{ display:flex; gap:10px; margin-bottom:12px; }
 #syncModal .sync-actions button{ flex:1; border:1px solid var(--accent); background:var(--accent-soft);
-  color:var(--accent); border-radius:4px; padding:10px; font-size:13px; font-weight:700; cursor:pointer; }
+  color:var(--accent); border-radius:4px; padding:10px; font-size:14px; font-weight:700; cursor:pointer; }
 #syncModal .sync-actions button:hover{ background:var(--accent); color:#fff; }
 #syncModal .sync-actions button:disabled{ opacity:.5; cursor:not-allowed; }
 #syncModal .sync-status{ font-size:12px; line-height:1.6; min-height:18px; margin-bottom:14px;
@@ -1061,7 +1061,7 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
   padding-left:var(--gutter); border-left:1px solid var(--line);
 }
 .module-panel.active > .step-detail:empty::before{
-  content:'← 选择左侧步骤查看详情'; color:#aab2bd; font-size:13px; display:block; padding:4px 0;
+  content:'← 选择左侧步骤查看详情'; color:#aab2bd; font-size:14px; display:block; padding:4px 0;
 }
 /* 右栏内两小栏：子步骤（左，较宽）+ 附件（右，较窄）*/
 .step-detail .ni-cols{ gap:20px; }
@@ -1114,7 +1114,7 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
 }
 .module-panel.active .node .tag{ display:none !important; }
 .module-panel.active .node .node-open{ display:none !important; }
-.module-panel.active .node .node-title{ font-size:15px; }
+.module-panel.active .node .node-title{ font-size:16px; }
 /* 卡片右上角的 编辑/删除 小按钮：仅在编辑模式 / 单卡编辑中显示，读模式干净 */
 .module-panel.active .node .node-bar{ position:absolute; top:8px; right:8px; margin:0; gap:4px;
   display:none; }
@@ -1190,8 +1190,8 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
   flex:1 1 0; min-width:0; align-self:stretch;
   display:flex; flex-direction:column; align-items:stretch;
 }
-.ni-side .ni-img-title{ font-size:15px; font-weight:800; color:var(--ink); margin:0 0 10px; }
-.ni-side .ni-img-empty{ font-size:13px; color:#9ba3b8; padding:4px 0; }
+.ni-side .ni-img-title{ font-size:16px; font-weight:800; color:var(--ink); margin:0 0 10px; }
+.ni-side .ni-img-empty{ font-size:14px; color:#9ba3b8; padding:4px 0; }
 /* 图片缩略图：按实际尺寸显示，过大则收缩到右栏宽度（不裁剪、不固定方框） */
 .ni-side .ni-img-grid{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-bottom:10px; }
 .ni-side .ni-thumb{ width:auto; height:auto; max-width:100%; border-radius:6px; }
@@ -1228,7 +1228,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 /* 字号与全局规范统一：卡片标题15 / 描述13.5 / 元信息13 / 正文14 */
 .ni-close{
   background:none; border:1px solid var(--line); border-radius:var(--r);
-  padding:5px 13px; font-size:13px; font-weight:600; color:var(--muted);
+  padding:5px 13px; font-size:14px; font-weight:600; color:var(--muted);
   cursor:pointer; margin-bottom:12px; transition:.12s;
 }
 .ni-close:hover{ background:var(--paper); color:var(--ink); }
@@ -1252,7 +1252,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .ni-card .ni-num{
   display:inline-flex; align-items:center; justify-content:center;
   width:24px; height:24px; border-radius:5px; background:#eef1f4;
-  color:var(--accent); font-size:13px; font-weight:700; margin-bottom:6px;
+  color:var(--accent); font-size:14px; font-weight:700; margin-bottom:6px;
 }
 /* 标题与描述同字号(14px)，仅以粗细 / 颜色区分，整体更统一。
    容器用 <div>（不是 <p>）：编辑换行时浏览器会生成 <div> 包裹新行，
@@ -1268,7 +1268,7 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 .ni-card .ni-desc:empty{ display:none; }
 .ni-meta-row{
   display:flex; flex-wrap:wrap; gap:6px 16px;
-  font-size:13px; color:var(--muted); margin-bottom:12px;
+  font-size:14px; color:var(--muted); margin-bottom:12px;
 }
 .ni-meta-row b{ color:var(--ink); font-weight:600; }
 /* 负责人/预计/频率：可编辑但不加浅框，编辑态仅保留聚焦时的全局虚线提示 */
@@ -1276,10 +1276,10 @@ body.edit-all #appSidebar .add-stage{ display:flex; }
 /* 分割线：横跨整个展开区宽度（子步骤左缘 → 附件右缘），区隔“返回+负责人信息”与“子步骤/附件” */
 .ni-divider{ border:none; border-top:1px solid var(--line); width:100%; margin:0 0 16px; }
 .ni-ss-title{
-  font-size:15px; font-weight:800; color:var(--ink);
+  font-size:16px; font-weight:800; color:var(--ink);
   margin:0 0 10px;
 }
-.ni-empty{ font-size:13px; color:#9ba3b8; padding:4px 0; }
+.ni-empty{ font-size:14px; color:#9ba3b8; padding:4px 0; }
 
 /* ===== 编辑态：增删改子步骤 ===== */
 /* 编辑模式下隐藏漏出的“加卡片”按钮（特异性需高于 body.edit-all 的显示规则）*/
@@ -1312,7 +1312,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 .ni-card .ni-del{
   position:absolute; top:10px; right:10px; display:none;
   width:24px; height:24px; border:none; border-radius:6px; cursor:pointer;
-  background:rgba(53,71,84,.08); color:var(--ink); font-size:13px; line-height:1;
+  background:rgba(53,71,84,.08); color:var(--ink); font-size:14px; line-height:1;
 }
 .ni-card.editing .ni-del{ display:grid; place-items:center; }
 .ni-card .ni-del:hover{ background:var(--danger); color:#fff; }
@@ -1406,7 +1406,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       <input type="text" id="searchInput" class="t-input" placeholder="搜索" oninput="runSearch(this.value)">
     </div>
     <span class="scount" id="searchCount"></span>
-    <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:var(--panel-radius,10px);padding:5px 12px;cursor:pointer;font-size:13px;">清除</button>
+    <button onclick="clearSearch()" style="border:1px solid var(--line);background:#fff;border-radius:var(--panel-radius,10px);padding:5px 12px;cursor:pointer;font-size:14px;">清除</button>
     <!-- 搜索结果列表：跨所有阶段列出命中卡片，点某条 → 跳到该阶段并定位高亮 -->
     <div id="searchResults" class="search-results" hidden=""></div>
   </div><div class="tb-actions">
