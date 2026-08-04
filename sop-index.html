@@ -1079,6 +1079,17 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
   color:var(--muted); word-break:break-all; }
 #syncModal .sync-status.ok{ color:#1a7f37; }
 #syncModal .sync-status.err{ color:var(--danger); }
+#syncModal select.mini-input{ background:#fff; cursor:pointer; }
+#syncModal .sync-f{ display:none; }                       /* 按存储方式只显示对应那组字段 */
+#syncModal.m-gist .sync-f-gist,
+#syncModal.m-repo .sync-f-repo{ display:block; }
+
+/* 打开页面时从云端载入最新内容的遮罩（运行时生成，导出前移除） */
+#cloudBoot{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center;
+  gap:10px; background:var(--content-bg,#f5f6f7); color:var(--muted); font-size:14px; }
+#cloudBoot::before{ content:''; width:16px; height:16px; border:2px solid var(--line);
+  border-top-color:var(--accent); border-radius:50%; animation:cloudSpin .7s linear infinite; }
+@keyframes cloudSpin{ to{ transform:rotate(360deg); } }
 
 /* ---- 右侧内容区：把激活的模块面板当作内容容器（master-detail 两栏）---- */
 .module-panel.active{
@@ -1504,20 +1515,34 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
 
 <!-- ===== 云端同步弹窗（GitHub 仓库）===== -->
 <div id="syncModal" onclick="if(event.target===this)closeSyncModal()"><div class="mini-box">
-  <h3>☁️ 云端同步 · GitHub 仓库</h3>
-  <label>仓库（owner/repo）</label>
-  <input type="text" id="syncRepo" class="mini-input" placeholder="例如：shishis1998-sketch/klmed" autocomplete="off">
-  <label>分支</label>
-  <input type="text" id="syncBranch" class="mini-input" placeholder="main" autocomplete="off">
-  <label>文件路径</label>
-  <input type="text" id="syncPath" class="mini-input" placeholder="sop-index.html" autocomplete="off">
+  <h3>☁️ 云端同步</h3>
+  <label>存储方式</label>
+  <select id="syncMode" class="mini-input" onchange="syncModeUI()">
+    <option value="gist">Gist —— 打开页面时自动载入最新内容（Token 只需 gist 权限）</option>
+    <option value="repo">GitHub 仓库 —— 直接提交 commit（Token 需 Contents 写权限）</option>
+  </select>
+  <div class="sync-f sync-f-gist">
+    <label>Gist ID</label>
+    <input type="text" id="syncGistId" class="mini-input" placeholder="留空则保存时自动新建一个私密 Gist" autocomplete="off">
+    <label>文件名</label>
+    <input type="text" id="syncFilename" class="mini-input" placeholder="sop-index.html" autocomplete="off">
+  </div>
+  <div class="sync-f sync-f-repo">
+    <label>仓库（owner/repo）</label>
+    <input type="text" id="syncRepo" class="mini-input" placeholder="例如：shishis1998-sketch/klmed" autocomplete="off">
+    <label>分支</label>
+    <input type="text" id="syncBranch" class="mini-input" placeholder="main" autocomplete="off">
+    <label>文件路径</label>
+    <input type="text" id="syncPath" class="mini-input" placeholder="sop-index.html" autocomplete="off">
+  </div>
   <label>Access Token</label>
-  <input type="password" id="syncToken" class="mini-input" placeholder="ghp_… / github_pat_…（需仓库 Contents 写权限）" autocomplete="off">
+  <input type="password" id="syncToken" class="mini-input" placeholder="ghp_…" autocomplete="off">
   <div class="sync-hint">⚠️ Token 仅保存在本浏览器（localStorage），不会写入导出的 HTML 文件；更换设备或浏览器需重新填写。<br>
-    保存 = 直接向仓库提交一次 commit，网页版约 1 分钟后自动更新。</div>
+    <b>Gist 方式</b>：保存后刷新链接会自动载入最新内容（约 1 秒）。<br>
+    <b>仓库方式</b>：保存 = 提交一次 commit，网页版约 1 分钟后更新。</div>
   <div class="sync-actions">
-    <button id="syncUpBtn" onclick="cloudUpload()">⬆️ 保存到仓库</button>
-    <button id="syncDownBtn" onclick="cloudDownload()">⬇️ 从仓库拉取</button>
+    <button id="syncUpBtn" onclick="cloudUpload()">⬆️ 保存到云端</button>
+    <button id="syncDownBtn" onclick="cloudDownload()">⬇️ 从云端拉取</button>
   </div>
   <div id="syncStatus" class="sync-status"></div>
   <div class="mini-actions">
@@ -2445,7 +2470,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
      - 有足够内容时标题“钉”在原地一丝不动；
      - 收起后页面比视口还短、无法保持时，标题随收起动画平滑归位（浏览器
        会把目标滚动值夹取到可用范围内，逐帧渐变，不会突然跳，且不留空白）。 */
-  let _anchorRAF = null;
+  var _anchorRAF = null;
   function anchorHead(head){
     const anchorTop = head.getBoundingClientRect().top;          // 想要保持的视口位置
     const lock = ()=>{
@@ -2537,7 +2562,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ============ 滚动跟随：点亮当前阶段序号 ============ */
-  let _spyRAF = null;
+  var _spyRAF = null;
   function updateScrollSpy(){
     _spyRAF = null;
     return;   // 左右主从布局：阶段由左侧竖栏切换，不再随滚动跟随高亮
@@ -2579,11 +2604,11 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   window.addEventListener('resize', scheduleScrollSpy);
   window.addEventListener('load', updateScrollSpy);
 
-  let editOn = false;
+  var editOn = false;
 
   // ===== 标签类型配置（可管理：决定卡片颜色）=====
   // cls 为空=操作步骤(默认)，其余对应 CSS 里的 .node.xxx
-  const TAG_TYPES = [
+  var TAG_TYPES = [
     {cls:'',         name:'操作步骤'},
     {cls:'system',   name:'系统 / 工具'},
     {cls:'check',    name:'核对 / 确认'},
@@ -2591,7 +2616,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   ];
 
   /* ============ 拖拽排序 ============ */
-  let dragEl = null, dragType = null;
+  var dragEl = null, dragType = null;
 
   /* 长按 1.5 秒后才可拖动，不依赖必须按住手柄图标，且不用原生 HTML5 拖拽实现：
      原生拖拽只认「mousedown 那一刻元素是不是 draggable=true」，按下之后再补设 draggable
@@ -2825,7 +2850,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ============ 详情弹窗 ============ */
-  let currentNode = null;
+  var currentNode = null;
   // 从卡片所属阶段头读取负责人，写入该卡片详情，实现联动
   function syncOwnerFromStage(node){
     const stage = node.closest('.stage');
@@ -3098,7 +3123,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       return { id: t.dataset.module, name: clone.textContent.trim() };
     });
   }
-  let pendingCopyStage = null;
+  var pendingCopyStage = null;
   function openCopyModal(stage){
     if(currentNode) saveDetail(); // 若详情弹窗开着，先把编辑同步回卡片
     pendingCopyStage = stage;
@@ -3138,7 +3163,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
       setTimeout(()=>{ t.textContent = oldText; }, 300);
     }, 1600);
   }
-  let pendingCopyNode = null;
+  var pendingCopyNode = null;
   function openCardCopyModal(node){
     if(currentNode === node) saveDetail();
     pendingCopyNode = node;
@@ -3220,7 +3245,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ============ 自定义模块：新建 / 删除 ============ */
-  let moduleSeq = 0;
+  var moduleSeq = 0;
   function newModuleId(){
     return 'm' + Date.now().toString(36) + (moduleSeq++);
   }
@@ -3439,7 +3464,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ============ 浮动格式工具条 ============ */
-  const fmtbar = document.getElementById('fmtbar');
+  var fmtbar = document.getElementById('fmtbar');
   document.addEventListener('mouseup',()=>{
     const sel = window.getSelection();
     if(sel.isCollapsed || !sel.toString().trim()){ fmtbar.style.display='none'; return; }
@@ -3482,6 +3507,13 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     inlineEditables().forEach(el=>el.setAttribute('contenteditable','false'));
     document.querySelectorAll('.drag-over,.dragging').forEach(n=>n.classList.remove('drag-over','dragging'));
     // 移除运行时生成/临时的 UI，保证导出的 HTML 干净（重新打开会自动重建）
+    document.getElementById('cloudBoot')?.remove();                  // 云端载入遮罩
+    document.documentElement.removeAttribute('data-cloud-fresh');    // 「本页来自云端」标记不外带
+    // 保存云端时这条提示条正显示着「正在保存…」，不收起来会被一起序列化进去，
+    // 导出的文件一打开就挂着一条永不消失的提示。收起，导出后再恢复。
+    const _tt=document.getElementById('toast');
+    _prepareExport._toastWasShown = !!(_tt && _tt.classList.contains('show'));
+    if(_tt) _tt.classList.remove('show');
     document.querySelectorAll('.flow-rail').forEach(r=>r.remove());
     document.querySelectorAll('.step-detail').forEach(p=>p.remove());   // 右栏详情：运行时生成，导出时移除
     document.querySelectorAll('.node.node-selected').forEach(n=>n.classList.remove('node-selected'));
@@ -3503,6 +3535,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
   // 导出后把当前页面的路线导航重新建回来
   function _restoreAfterExport(){
+    if(_prepareExport._toastWasShown) document.getElementById('toast')?.classList.add('show');
     document.querySelectorAll('.flow').forEach(f=>buildRail(f));
     updateStickyOffsets();
     updateScrollSpy();
@@ -3528,17 +3561,24 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     _exportToast();
   }
 
-  /* ============ 云端同步（GitHub 仓库）============
-     以「仓库里的这个 HTML 文件本身」作为远端存储：
-       · 保存 = 用 Contents API 把当前整份 HTML 提交（commit）回仓库的指定分支；
-                GitHub Pages 随后自动重新发布，刷新网址即是最新内容；
-       · 拉取 = 读回仓库里的 HTML 并整页替换（用于本地文件、或放弃本地改动回到云端版本）。
-     注意：早期版本存的是 GitHub Gist——Gist 和仓库是两套互不相通的存储，
-     内容存进 Gist 不会影响 Pages 网址，那正是「保存了却看不到变化」的原因。
+  /* ============ 云端同步 ============
+     两种远端存储，用「存储方式」切换：
+
+     · gist（默认）—— 保存进 GitHub Gist，Token 只要 gist 权限。
+       Gist 和 Pages 是两套互不相通的存储，光靠保存网址不会变；
+       所以这里配了「打开页面自动载入」：每次打开先去 Gist 比对版本号
+       （baked 在 <html data-cloud-rev> 上），远端更新就整页换成远端那份。
+       刷新链接即最新内容，代价是每次打开多一次拉取。
+
+     · repo —— 用 Contents API 把整份 HTML 提交回仓库，Pages 重新发布，
+       网址本身就是最新的（不依赖自动载入），但 Token 需要 Contents 写权限。
+
      Token 只存 localStorage，不会写进导出的 HTML——saveFile 序列化的是 DOM，
-     而这里用 JS 属性填输入框，value 属性始终为空，序列化时不会带出 Token。 */
-  const SYNC_KEY  = 'sopIndexSync';
-  const GH_API    = 'https://api.github.com';
+     而这里用 JS 属性填输入框，value 属性始终为空，序列化时不会带出 Token。
+     Gist ID 则会写进 HTML（data-cloud-gist），这样别人打开链接也能自动载入。 */
+  var SYNC_KEY  = 'sopIndexSync';
+  var GH_API    = 'https://api.github.com';
+  var GIST_API  = GH_API+'/gists';
   // 从当前网址猜默认仓库配置：Pages 项目站 owner.github.io/repo/x.html → owner/repo + repo 内路径
   function _guessRepoFromUrl(){
     const g={ owner:'', repo:'', path:'sop-index.html' };
@@ -3554,23 +3594,40 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     }catch(e){}
     return g;
   }
+  // HTML 里 baked 的 Gist ID：换设备 / 清了 localStorage 也能自动载入
+  function _bakedGistId(){ return document.documentElement.getAttribute('data-cloud-gist')||''; }
   function loadSyncSettings(){
     let s={}; try{ s=JSON.parse(localStorage.getItem(SYNC_KEY)||'{}'); }catch(e){ s={}; }
     const g=_guessRepoFromUrl();
     return {
-      owner:  s.owner  || g.owner,
-      repo:   s.repo   || g.repo,
-      branch: s.branch || 'main',
-      path:   s.path   || g.path || 'sop-index.html',
-      token:  s.token  || ''
+      mode:    s.mode    || 'gist',
+      gistId:  s.gistId  || _bakedGistId(),
+      filename:s.filename|| 'sop-index.html',
+      owner:   s.owner   || g.owner,
+      repo:    s.repo    || g.repo,
+      branch:  s.branch  || 'main',
+      path:    s.path    || g.path || 'sop-index.html',
+      token:   s.token   || ''
     };
+  }
+  function syncModeUI(){
+    const m=document.getElementById('syncMode').value==='repo'?'repo':'gist';
+    const box=document.getElementById('syncModal');
+    box.classList.toggle('m-gist', m==='gist');
+    box.classList.toggle('m-repo', m==='repo');
+    document.getElementById('syncToken').placeholder =
+      m==='repo' ? 'ghp_… / github_pat_…（需仓库 Contents 写权限）' : 'ghp_…（需勾选 gist 权限）';
   }
   function openSyncModal(){
     const s=loadSyncSettings();
-    document.getElementById('syncRepo').value   = (s.owner&&s.repo)?(s.owner+'/'+s.repo):'';
-    document.getElementById('syncBranch').value = s.branch;
-    document.getElementById('syncPath').value   = s.path;
-    document.getElementById('syncToken').value  = s.token;
+    document.getElementById('syncMode').value    = s.mode;
+    document.getElementById('syncGistId').value  = s.gistId;
+    document.getElementById('syncFilename').value= s.filename;
+    document.getElementById('syncRepo').value    = (s.owner&&s.repo)?(s.owner+'/'+s.repo):'';
+    document.getElementById('syncBranch').value  = s.branch;
+    document.getElementById('syncPath').value    = s.path;
+    document.getElementById('syncToken').value   = s.token;
+    syncModeUI();
     setSyncStatus('','');
     document.getElementById('syncModal').classList.add('show');
   }
@@ -3580,11 +3637,14 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
                  .replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/|\/$/g,'');
     const [owner='', repo=''] = full.split('/');
     const s={
-      owner:  owner.trim(),
-      repo:   repo.trim(),
-      branch: document.getElementById('syncBranch').value.trim()||'main',
-      path:   document.getElementById('syncPath').value.trim().replace(/^\//,'')||'sop-index.html',
-      token:  document.getElementById('syncToken').value.trim()
+      mode:    document.getElementById('syncMode').value==='repo'?'repo':'gist',
+      gistId:  document.getElementById('syncGistId').value.trim(),
+      filename:document.getElementById('syncFilename').value.trim()||'sop-index.html',
+      owner:   owner.trim(),
+      repo:    repo.trim(),
+      branch:  document.getElementById('syncBranch').value.trim()||'main',
+      path:    document.getElementById('syncPath').value.trim().replace(/^\//,'')||'sop-index.html',
+      token:   document.getElementById('syncToken').value.trim()
     };
     localStorage.setItem(SYNC_KEY, JSON.stringify(s));
     if(notify) setSyncStatus('设置已保存到本浏览器。','ok');
@@ -3600,12 +3660,23 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     if(u) u.disabled=disabled; if(d) d.disabled=disabled;
   }
   // 取当前整份 HTML（复用导出前的清理 / 导出后的恢复流程）
-  function _currentFullHtml(){
+  // s 传进来时把 Gist ID 和新版本号 baked 进 <html>：前者让别人打开链接也能自动载入，
+  // 后者用于「远端是不是比手上这份新」的比对。
+  function _currentFullHtml(s){
     if(typeof collapseNodeInline==='function') collapseNodeInline(true); // 与本地保存一致：先收起内联展开
     _prepareExport();
+    if(s){
+      if(s.gistId) document.documentElement.setAttribute('data-cloud-gist', s.gistId);
+      document.documentElement.setAttribute('data-cloud-rev', Date.now().toString(36)+Math.random().toString(36).slice(2,8));
+    }
     const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
     _restoreAfterExport();
     return html;
+  }
+  // 从一份 HTML 文本里读出 baked 的版本号（不解析整棵 DOM，省内存）
+  function _revOf(html){
+    const m=/<html[^>]*\bdata-cloud-rev="([^"]*)"/i.exec(html||'');
+    return m?m[1]:'';
   }
   // ---- GitHub REST 小工具 ----
   function _ghHeaders(s, extra){
@@ -3647,11 +3718,55 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     const hit=list.find(f=>f.path===s.path);
     return hit?hit.sha:null;
   }
+  /* ---- 存储方式 A：Gist ---- */
+  // 保存进 Gist；没有 Gist ID 就新建一个私密 Gist，并把 ID 回写到设置与 <html> 上
+  async function _gistUpload(s){
+    if(!s.token) throw new Error('请先填写 Access Token。');
+    const send=async ()=>{
+      const body={ files:{ [s.filename]:{ content:_currentFullHtml(s) } } };
+      let url, method;
+      if(s.gistId){ url=GIST_API+'/'+encodeURIComponent(s.gistId); method='PATCH'; }
+      else { url=GIST_API; method='POST'; body.description='SOP 流程索引'; body.public=false; }
+      const res=await fetch(url,{ method, headers:_ghHeaders(s,{'Content-Type':'application/json'}), body:JSON.stringify(body) });
+      if(!res.ok) throw await _ghError(res);
+      return res.json();
+    };
+    const data=await send();
+    const isNew=!s.gistId;
+    if(isNew && data.id){
+      // 新建时这一轮还不知道 Gist ID，存进去的那份就没 baked ID；
+      // 拿到 ID 后立刻补存一次，别人打开链接才能自动载入。
+      s.gistId=data.id;
+      document.documentElement.setAttribute('data-cloud-gist', data.id);
+      localStorage.setItem(SYNC_KEY, JSON.stringify(s));
+      await send();
+    }
+    return { gistId:s.gistId, isNew };
+  }
+  // 读回 Gist 里的 HTML 原文（>1MB 会被 API 截断，改走 raw_url）
+  async function _gistFetchHtml(s){
+    const res=await fetch(GIST_API+'/'+encodeURIComponent(s.gistId)+'?t='+Date.now(),
+      { headers:_ghHeaders(s), cache:'no-store' });
+    if(!res.ok) throw await _ghError(res);
+    const data=await res.json();
+    let file=(data.files||{})[s.filename];
+    if(!file){ const k=Object.keys(data.files||{})[0]; file=k?data.files[k]:null; }
+    if(!file) throw new Error('Gist 里找不到文件。');
+    let html=file.content;
+    if(file.truncated){
+      const raw=await fetch(file.raw_url,{ cache:'no-store' });
+      if(!raw.ok) throw new Error('拉取完整内容失败 HTTP '+raw.status);
+      html=await raw.text();
+    }
+    if(!html) throw new Error('远端内容为空。');
+    return html;
+  }
+  /* ---- 存储方式 B：仓库 ---- */
   // 核心保存：把当前整份 HTML 提交回仓库。返回 commit 信息。
   async function _repoUpload(s){
     if(!s.owner||!s.repo) throw new Error('请先填写仓库（owner/repo）。');
     if(!s.token) throw new Error('请先填写 Access Token。');
-    const html=_currentFullHtml();
+    const html=_currentFullHtml(s);
     const content=_b64utf8(html);
     const put=async (sha)=>{
       const body={
@@ -3683,49 +3798,98 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
   async function cloudSave(){
     const s=loadSyncSettings();
-    if(!s.token||!s.owner||!s.repo){   // 首次使用：还没配置 → 打开弹窗引导填写
+    if(!s.token){   // 首次使用：还没配置 → 打开弹窗引导填写
       openSyncModal();
-      setSyncStatus('首次使用请先填写仓库和 Token（Token 需要该仓库的 Contents 写权限），保存后即可一键提交到云端。','err');
+      setSyncStatus('首次使用请先填写 Token，保存后即可一键同步到云端。','err');
       return;
     }
-    _cloudBtns(true); _cloudToast('☁️ 正在提交到仓库…', 0);
+    _cloudBtns(true); _cloudToast('☁️ 正在保存到云端…', 0);
     try{
-      const r=await _repoUpload(s);
-      _cloudToast('☁️ 已保存到云端 ✓ commit '+r.sha+'（网页版约 1 分钟后更新）', 4000);
+      if(s.mode==='repo'){
+        const r=await _repoUpload(s);
+        _cloudToast('☁️ 已保存到云端 ✓ commit '+r.sha+'（网页版约 1 分钟后更新）', 4000);
+      }else{
+        await _gistUpload(s);
+        _cloudToast('☁️ 已保存到云端 ✓（刷新链接即是这一版）', 2600);
+      }
     }catch(e){
       _cloudToast('', 0);
-      alert('❌ 保存到云端失败：\n'+e.message+'\n\n可点击左侧栏「云端同步」检查 仓库 / 分支 / 路径 / Token 是否正确。');
+      alert('❌ 保存到云端失败：\n'+e.message+'\n\n可点击左侧栏「云端同步」检查配置是否正确。');
     }finally{ _cloudBtns(false); }
   }
-  // 弹窗里的「⬆️ 保存到仓库」：反馈显示在弹窗内
+  // 弹窗里的「⬆️ 保存到云端」：反馈显示在弹窗内
   async function cloudUpload(){
     const s=saveSyncSettings(false);
-    _syncBtns(true); setSyncStatus('正在提交…','');
+    _syncBtns(true); setSyncStatus('正在保存…','');
     try{
-      const r=await _repoUpload(s);
-      setSyncStatus('✅ 已提交 commit '+r.sha+'。GitHub Pages 约 1 分钟后重新发布，刷新网址即可看到。','ok');
+      if(s.mode==='repo'){
+        const r=await _repoUpload(s);
+        setSyncStatus('✅ 已提交 commit '+r.sha+'。GitHub Pages 约 1 分钟后重新发布，刷新网址即可看到。','ok');
+      }else{
+        const r=await _gistUpload(s);
+        const gi=document.getElementById('syncGistId'); if(gi) gi.value=r.gistId||'';
+        setSyncStatus('✅ 已保存到 Gist '+r.gistId+(r.isNew?'（新建）':'')+'。刷新链接会自动载入这一版。','ok');
+      }
     }catch(e){
       setSyncStatus('❌ 保存失败：'+e.message,'err');
     }finally{ _syncBtns(false); }
   }
   async function cloudDownload(){
     const s=saveSyncSettings(false);
-    if(!s.owner||!s.repo){ setSyncStatus('请先填写仓库（owner/repo）。','err'); return; }
-    if(!confirm('从仓库拉取会用远端内容覆盖当前页面，未保存 / 未提交的修改将丢失。确定继续？')) return;
+    if(s.mode==='repo'){ if(!s.owner||!s.repo){ setSyncStatus('请先填写仓库（owner/repo）。','err'); return; } }
+    else if(!s.gistId){ setSyncStatus('请先填写 Gist ID。','err'); return; }
+    if(!confirm('从云端拉取会用远端内容覆盖当前页面，未保存的修改将丢失。确定继续？')) return;
     _syncBtns(true); setSyncStatus('正在拉取…','');
     try{
-      const url=_ghRepoUrl(s,'/contents/'+_ghPath(s.path))+'?ref='+encodeURIComponent(s.branch)+'&t='+Date.now();
-      const res=await fetch(url,{ headers:_ghHeaders(s,{'Accept':'application/vnd.github.raw'}), cache:'no-store' });
-      if(!res.ok) throw await _ghError(res);
-      const html=await res.text();
-      if(!html){ throw new Error('远端内容为空。'); }
+      let html;
+      if(s.mode==='repo'){
+        const url=_ghRepoUrl(s,'/contents/'+_ghPath(s.path))+'?ref='+encodeURIComponent(s.branch)+'&t='+Date.now();
+        const res=await fetch(url,{ headers:_ghHeaders(s,{'Accept':'application/vnd.github.raw'}), cache:'no-store' });
+        if(!res.ok) throw await _ghError(res);
+        html=await res.text();
+        if(!html) throw new Error('远端内容为空。');
+      }else{
+        html=await _gistFetchHtml(s);
+      }
       setSyncStatus('✅ 拉取成功，正在载入…','ok');
-      setTimeout(()=>{ document.open(); document.write(html); document.close(); }, 300);
+      setTimeout(()=>_swapDocument(html), 300);
     }catch(e){
       setSyncStatus('❌ 拉取失败：'+e.message,'err');
       _syncBtns(false);
     }
   }
+
+  /* ---- 打开页面时自动载入云端最新内容（Gist 方式）----
+     Gist 存的内容不会改变 Pages 上的文件，所以这里主动比一次版本号：
+     远端 data-cloud-rev 与手上这份不同 → 整页换成远端那份。
+     换进来的那份带 data-cloud-fresh，不会再触发第二轮拉取。 */
+  function _swapDocument(html){
+    document.open();
+    document.write(html.replace(/<html/i, '<html data-cloud-fresh="1"'));
+    document.close();
+  }
+  (function cloudBoot(){
+    if(document.documentElement.hasAttribute('data-cloud-fresh')) return;  // 已经是云端那份
+    const s=loadSyncSettings();
+    if(s.mode==='repo' || !s.gistId) return;          // 仓库方式：网址本身就是最新的，无需拉取
+    const mine=document.documentElement.getAttribute('data-cloud-rev')||'';
+    const task=_gistFetchHtml(s).catch(()=>null);     // 尽早发起请求，与页面初始化并行
+    const apply=async ()=>{
+      let ov=null;
+      const timer=setTimeout(()=>{                    // 慢的时候才显示遮罩，快的话用户无感
+        ov=document.createElement('div'); ov.id='cloudBoot'; ov.textContent='正在载入云端最新内容…';
+        document.body.appendChild(ov);
+      }, 400);
+      const html=await task;
+      clearTimeout(timer); if(ov) ov.remove();
+      if(html && _revOf(html)!==mine) _swapDocument(html);   // 拉取失败就静默用手上这份
+    };
+    // 用 setTimeout 推到本轮事件之后再换页：避免在 DOMContentLoaded 派发途中
+    // document.open() 掉，让后面还没跑的初始化监听器落在一个已销毁的文档上。
+    const later=()=>setTimeout(apply, 0);
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', later);
+    else later();
+  })();
 
   /* ============ 导出 ZIP（HTML + assets/ 文件夹）============
      把内嵌的 base64 媒体（图片 / 附件 / 视频）拆成 assets/ 里的真实文件，
@@ -3757,7 +3921,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     return map[m] || (m.split('/')[1] || 'bin').replace(/[^a-z0-9]/gi,'');
   }
   // 纯 JS ZIP 写入器（store 存储，不压缩——媒体本身已压缩；文件名用 UTF-8）
-  const _crcTable = (()=>{ const t=new Uint32Array(256);
+  var _crcTable = (()=>{ const t=new Uint32Array(256);
     for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); t[n]=c>>>0; }
     return t; })();
   function _crc32(bytes){ let c=0xFFFFFFFF;
@@ -4039,7 +4203,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ============ 初始数据（销售流程）============ */
-  const initial = [
+  var initial = [
     {
       title: '系统准备',
       meta: '负责人：销售/客服',
@@ -4214,7 +4378,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   ];
 
   /* ============ 初始数据（财务流程）============ */
-  const initialFinance = [
+  var initialFinance = [
     {
       title: '收款确认',
       meta: '负责人：财务',
@@ -4400,7 +4564,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
      「步骤详情页」（属性/说明/附件 + 子步骤大卡片，可贴整图）。
      复用已有的 switchModule / activateStage / renumber / saveFile 等逻辑。
      ============================================================ */
-  const TOPBAR_H = 56;   // 与 CSS --topbar-h 保持一致
+  var TOPBAR_H = 56;   // 与 CSS --topbar-h 保持一致
 
   /* 顶栏偏移：本布局下顶部只有固定顶栏，统一用其高度 */
   updateStickyOffsets = function(){
@@ -4633,13 +4797,13 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* ---- 包装已有导航函数：联动新外壳 ---- */
-  const _switchModule = switchModule;
+  var _switchModule = switchModule;
   switchModule = function(m){ _switchModule(m); buildSidebar(); updateBreadcrumb(); };
-  const _activateStage = activateStage;
+  var _activateStage = activateStage;
   activateStage = function(p, i){ _activateStage(p, i); refreshSidebarActive(); updateBreadcrumb(); selectFirstNode(p); };
-  const _renumber = renumber;
+  var _renumber = renumber;
   renumber = function(f){ _renumber(f); buildSidebar(); };
-  const _toggleEdit = toggleEdit;
+  var _toggleEdit = toggleEdit;
   toggleEdit = function(){
     _toggleEdit();
     const on = document.body.classList.contains('edit-all');
@@ -4647,7 +4811,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     if(be){ be.classList.toggle('on', on); be.setAttribute('aria-checked', String(on)); }
     refreshInlineEditState();   // 展开的卡片同步显示/隐藏子步骤编辑控件
   };
-  const _saveFile = saveFile;
+  var _saveFile = saveFile;
   saveFile = function(){ collapseNodeInline(true); _saveFile(); };
 
   /* ---- 点步骤卡片 → 在右栏显示其详情（负责人/子步骤/附件）；其他步骤不隐藏。
@@ -4660,7 +4824,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     selectNode(node);
   });
 
-  let _selectedNode = null;
+  var _selectedNode = null;
 
   // 确保激活面板有一个右栏详情容器（运行时生成，导出时移除）
   function ensureDetailPane(panel){
@@ -4970,7 +5134,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
 
   /* 编辑阶段标题时，左侧栏名称 / 面包屑实时同步 */
-  let _syncRAF = null;
+  var _syncRAF = null;
   document.addEventListener('input', e=>{
     if(e.target.closest('.stage-head .stitle')){
       cancelAnimationFrame(_syncRAF);
