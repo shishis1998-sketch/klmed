@@ -1061,7 +1061,7 @@ body.edit-all #appSidebar .stage-item.active::before{ display:none; }  /* 编辑
 }
 @media(max-width:760px){ #appSidebar .side-toggle{ display:none; } }
 
-/* ===== 云端同步弹窗（GitHub Gist）===== */
+/* ===== 云端同步弹窗（GitHub 仓库）===== */
 #syncModal{ position:fixed;inset:0;z-index:1300;display:none;
   background:rgba(28,37,38,.45);backdrop-filter:blur(2px);
   align-items:center;justify-content:center;padding:20px; }
@@ -1447,7 +1447,7 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     <div id="searchResults" class="search-results" hidden=""></div>
   </div><div class="tb-actions">
     <button id="btnEdit" class="edit-switch" role="switch" aria-checked="false" title="全局编辑开关" onclick="toggleEdit()"><span class="es-label">编辑</span><span class="es-track"><span class="es-knob"></span></span></button>
-    <button class="primary js-cloud-save" onclick="cloudSave()" title="把当前全部内容直接保存到云端（GitHub Gist）"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存云端</button>
+    <button class="primary js-cloud-save" onclick="cloudSave()" title="把当前全部内容直接提交到 GitHub 仓库，网页版随即更新"><span class="ic"><svg><use href="#i-save"></use></svg></span>保存云端</button>
     <button onclick="saveFile()" title="把当前内容下载成 HTML 文件备份到本机"><span class="ic"><svg><use href="#i-export"></use></svg></span>备份到本地</button>
     <button onclick="exportZip()" title="打包成 ZIP（HTML + assets 文件夹），适合发给别人，视频不膨胀"><span class="ic"><svg><use href="#i-folder"></use></svg></span>导出 ZIP</button>
     <button onclick="window.print()"><span class="ic"><svg><use href="#i-export"></use></svg></span>导出 PDF</button>
@@ -1502,19 +1502,22 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
         <button class="primary" onclick="confirmAddModule()">创建</button>
       </div></div></div>
 
-<!-- ===== 云端同步弹窗（GitHub Gist）===== -->
+<!-- ===== 云端同步弹窗（GitHub 仓库）===== -->
 <div id="syncModal" onclick="if(event.target===this)closeSyncModal()"><div class="mini-box">
-  <h3>☁️ 云端同步 · GitHub Gist</h3>
-  <label>Gist ID</label>
-  <input type="text" id="syncGistId" class="mini-input" placeholder="留空则上传时自动新建一个私密 Gist" autocomplete="off">
+  <h3>☁️ 云端同步 · GitHub 仓库</h3>
+  <label>仓库（owner/repo）</label>
+  <input type="text" id="syncRepo" class="mini-input" placeholder="例如：shishis1998-sketch/klmed" autocomplete="off">
+  <label>分支</label>
+  <input type="text" id="syncBranch" class="mini-input" placeholder="main" autocomplete="off">
+  <label>文件路径</label>
+  <input type="text" id="syncPath" class="mini-input" placeholder="sop-index.html" autocomplete="off">
   <label>Access Token</label>
-  <input type="password" id="syncToken" class="mini-input" placeholder="ghp_… （需勾选 gist 权限）" autocomplete="off">
-  <label>文件名</label>
-  <input type="text" id="syncFilename" class="mini-input" placeholder="sop-index.html" autocomplete="off">
-  <div class="sync-hint">⚠️ Token 仅保存在本浏览器（localStorage），不会写入导出的 HTML 文件；更换设备或浏览器需重新填写。</div>
+  <input type="password" id="syncToken" class="mini-input" placeholder="ghp_… / github_pat_…（需仓库 Contents 写权限）" autocomplete="off">
+  <div class="sync-hint">⚠️ Token 仅保存在本浏览器（localStorage），不会写入导出的 HTML 文件；更换设备或浏览器需重新填写。<br>
+    保存 = 直接向仓库提交一次 commit，网页版约 1 分钟后自动更新。</div>
   <div class="sync-actions">
-    <button id="syncUpBtn" onclick="cloudUpload()">⬆️ 上传到云端</button>
-    <button id="syncDownBtn" onclick="cloudDownload()">⬇️ 从云端拉取</button>
+    <button id="syncUpBtn" onclick="cloudUpload()">⬆️ 保存到仓库</button>
+    <button id="syncDownBtn" onclick="cloudDownload()">⬇️ 从仓库拉取</button>
   </div>
   <div id="syncStatus" class="sync-status"></div>
   <div class="mini-actions">
@@ -3525,30 +3528,63 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     _exportToast();
   }
 
-  /* ============ 云端同步（GitHub Gist）============
-     以 Gist 作为远端存储：
-       · 上传 = 把当前整份 HTML PATCH 进 Gist（Gist ID 为空则自动新建一个私密 Gist）；
-       · 拉取 = 读回 Gist 里的 HTML 并整页替换，重新载入即还原全部内容。
+  /* ============ 云端同步（GitHub 仓库）============
+     以「仓库里的这个 HTML 文件本身」作为远端存储：
+       · 保存 = 用 Contents API 把当前整份 HTML 提交（commit）回仓库的指定分支；
+                GitHub Pages 随后自动重新发布，刷新网址即是最新内容；
+       · 拉取 = 读回仓库里的 HTML 并整页替换（用于本地文件、或放弃本地改动回到云端版本）。
+     注意：早期版本存的是 GitHub Gist——Gist 和仓库是两套互不相通的存储，
+     内容存进 Gist 不会影响 Pages 网址，那正是「保存了却看不到变化」的原因。
      Token 只存 localStorage，不会写进导出的 HTML——saveFile 序列化的是 DOM，
      而这里用 JS 属性填输入框，value 属性始终为空，序列化时不会带出 Token。 */
-  const SYNC_KEY = 'sopIndexSync';
+  const SYNC_KEY  = 'sopIndexSync';
+  const GH_API    = 'https://api.github.com';
+  // 从当前网址猜默认仓库配置：Pages 项目站 owner.github.io/repo/x.html → owner/repo + repo 内路径
+  function _guessRepoFromUrl(){
+    const g={ owner:'', repo:'', path:'sop-index.html' };
+    try{
+      const h=location.hostname, m=h.match(/^([^.]+)\.github\.io$/i);
+      if(!m) return g;
+      g.owner=m[1];
+      const segs=decodeURIComponent(location.pathname).split('/').filter(Boolean);
+      const file=(segs.length&&/\.html?$/i.test(segs[segs.length-1]))?segs.pop():'sop-index.html';
+      if(segs.length){ g.repo=segs.shift(); }        // 项目站：第一段是仓库名
+      else { g.repo=m[1]+'.github.io'; }             // 个人主页站：仓库就是 owner.github.io
+      g.path=segs.concat(file).join('/');
+    }catch(e){}
+    return g;
+  }
   function loadSyncSettings(){
-    try{ return JSON.parse(localStorage.getItem(SYNC_KEY)||'{}'); }catch(e){ return {}; }
+    let s={}; try{ s=JSON.parse(localStorage.getItem(SYNC_KEY)||'{}'); }catch(e){ s={}; }
+    const g=_guessRepoFromUrl();
+    return {
+      owner:  s.owner  || g.owner,
+      repo:   s.repo   || g.repo,
+      branch: s.branch || 'main',
+      path:   s.path   || g.path || 'sop-index.html',
+      token:  s.token  || ''
+    };
   }
   function openSyncModal(){
     const s=loadSyncSettings();
-    document.getElementById('syncGistId').value  = s.gistId||'';
-    document.getElementById('syncToken').value   = s.token||'';
-    document.getElementById('syncFilename').value= s.filename||'sop-index.html';
+    document.getElementById('syncRepo').value   = (s.owner&&s.repo)?(s.owner+'/'+s.repo):'';
+    document.getElementById('syncBranch').value = s.branch;
+    document.getElementById('syncPath').value   = s.path;
+    document.getElementById('syncToken').value  = s.token;
     setSyncStatus('','');
     document.getElementById('syncModal').classList.add('show');
   }
   function closeSyncModal(){ document.getElementById('syncModal').classList.remove('show'); }
   function saveSyncSettings(notify){
+    const full=document.getElementById('syncRepo').value.trim()
+                 .replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/|\/$/g,'');
+    const [owner='', repo=''] = full.split('/');
     const s={
-      gistId:  document.getElementById('syncGistId').value.trim(),
-      token:   document.getElementById('syncToken').value.trim(),
-      filename:document.getElementById('syncFilename').value.trim()||'sop-index.html'
+      owner:  owner.trim(),
+      repo:   repo.trim(),
+      branch: document.getElementById('syncBranch').value.trim()||'main',
+      path:   document.getElementById('syncPath').value.trim().replace(/^\//,'')||'sop-index.html',
+      token:  document.getElementById('syncToken').value.trim()
     };
     localStorage.setItem(SYNC_KEY, JSON.stringify(s));
     if(notify) setSyncStatus('设置已保存到本浏览器。','ok');
@@ -3571,22 +3607,69 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
     _restoreAfterExport();
     return html;
   }
-  // 核心上传：把当前整份 HTML 写进 Gist；无 Gist ID 则新建私密 Gist。返回更新后的设置。
-  async function _gistUpload(s){
+  // ---- GitHub REST 小工具 ----
+  function _ghHeaders(s, extra){
+    const h={ 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28' };
+    if(s.token) h['Authorization']='Bearer '+s.token;
+    return Object.assign(h, extra||{});
+  }
+  function _ghPath(p){ return p.split('/').map(encodeURIComponent).join('/'); }
+  function _ghRepoUrl(s, sub){ return GH_API+'/repos/'+encodeURIComponent(s.owner)+'/'+encodeURIComponent(s.repo)+sub; }
+  // 把 HTTP 状态翻译成能直接照做的中文提示
+  async function _ghError(res){
+    let detail=''; try{ const j=await res.json(); detail=j.message||''; }catch(e){}
+    const tip={
+      401:'Token 无效或已过期，请到 GitHub 重新生成。',
+      403:'Token 权限不够，或触发了接口频率限制。细粒度 Token 需要给这个仓库 Contents: Read and write。',
+      404:'找不到仓库 / 分支 / 路径，或 Token 没有这个仓库的写权限（私有库尤其常见）。请核对「仓库、分支、文件路径」三项。',
+      409:'远端文件已被别处改动，版本对不上。',
+      413:'文件太大，超出接口上限。',
+      422:'提交被拒绝：分支不存在，或文件版本对不上。'
+    }[res.status]||'';
+    return new Error('HTTP '+res.status+(detail?('（'+detail+'）'):'')+(tip?('\n'+tip):''));
+  }
+  // UTF-8 安全的 base64（中文内容必须先编码成字节再 btoa）
+  function _b64utf8(str){
+    const bytes=new TextEncoder().encode(str);
+    let bin='', CH=0x8000;
+    for(let i=0;i<bytes.length;i+=CH){ bin+=String.fromCharCode.apply(null, bytes.subarray(i, i+CH)); }
+    return btoa(bin);
+  }
+  // 取远端文件当前的 blob sha（用父目录列表拿，省掉整份文件的下载流量）；文件不存在返回 null
+  async function _ghFileSha(s){
+    const i=s.path.lastIndexOf('/'), dir=i>=0?s.path.slice(0,i):'';
+    const url=_ghRepoUrl(s,'/contents/'+_ghPath(dir))+'?ref='+encodeURIComponent(s.branch)+'&t='+Date.now();
+    const res=await fetch(url,{ headers:_ghHeaders(s), cache:'no-store' });
+    if(res.status===404) return null;                 // 目录（或仓库路径）还不存在 → 当作新建
+    if(!res.ok) throw await _ghError(res);
+    const list=await res.json();
+    if(!Array.isArray(list)) return null;
+    const hit=list.find(f=>f.path===s.path);
+    return hit?hit.sha:null;
+  }
+  // 核心保存：把当前整份 HTML 提交回仓库。返回 commit 信息。
+  async function _repoUpload(s){
+    if(!s.owner||!s.repo) throw new Error('请先填写仓库（owner/repo）。');
+    if(!s.token) throw new Error('请先填写 Access Token。');
     const html=_currentFullHtml();
-    const body={ files:{ [s.filename]:{ content:html } } };
-    let url, method;
-    if(s.gistId){ url='https://api.github.com/gists/'+encodeURIComponent(s.gistId); method='PATCH'; }
-    else { url='https://api.github.com/gists'; method='POST'; body.description='SOP 流程索引'; body.public=false; }
-    const res=await fetch(url,{ method, headers:{
-      'Authorization':'token '+s.token,
-      'Accept':'application/vnd.github+json',
-      'Content-Type':'application/json'
-    }, body:JSON.stringify(body) });
-    if(!res.ok){ throw new Error('HTTP '+res.status+' '+(await res.text()).slice(0,200)); }
+    const content=_b64utf8(html);
+    const put=async (sha)=>{
+      const body={
+        message:'chore(sop): 从页面保存云端 '+new Date().toLocaleString('zh-CN'),
+        content, branch:s.branch
+      };
+      if(sha) body.sha=sha;
+      return fetch(_ghRepoUrl(s,'/contents/'+_ghPath(s.path)),{
+        method:'PUT', headers:_ghHeaders(s,{'Content-Type':'application/json'}), body:JSON.stringify(body)
+      });
+    };
+    let res=await put(await _ghFileSha(s));
+    if(res.status===409||res.status===422){   // sha 过期（别处刚提交过）→ 重取一次再试
+      res=await put(await _ghFileSha(s));
+    }
+    if(!res.ok) throw await _ghError(res);
     const data=await res.json();
-    if(!s.gistId && data.id){ s.gistId=data.id; localStorage.setItem(SYNC_KEY, JSON.stringify(s)); }
-    return s;
+    return { sha:(data.commit&&data.commit.sha||'').slice(0,7), url:(data.commit&&data.commit.html_url)||'' };
   }
   // 顶部「☁️ 保存云端」按钮：一键直接上传，用底部提示条反馈，不必打开弹窗
   function _cloudBtns(disabled){
@@ -3600,53 +3683,41 @@ body.edit-all .module-panel.active .stage.detail-active .steps.has-expanded > .a
   }
   async function cloudSave(){
     const s=loadSyncSettings();
-    if(!s.token){   // 首次使用：还没配置账号 → 打开弹窗引导填写
+    if(!s.token||!s.owner||!s.repo){   // 首次使用：还没配置 → 打开弹窗引导填写
       openSyncModal();
-      setSyncStatus('首次使用请先填写 Token（和 Gist ID），保存后即可一键同步到云端。','err');
+      setSyncStatus('首次使用请先填写仓库和 Token（Token 需要该仓库的 Contents 写权限），保存后即可一键提交到云端。','err');
       return;
     }
-    _cloudBtns(true); _cloudToast('☁️ 正在保存到云端…', 0);
+    _cloudBtns(true); _cloudToast('☁️ 正在提交到仓库…', 0);
     try{
-      await _gistUpload(s);
-      _cloudToast('☁️ 已保存到云端 ✓', 1800);
+      const r=await _repoUpload(s);
+      _cloudToast('☁️ 已保存到云端 ✓ commit '+r.sha+'（网页版约 1 分钟后更新）', 4000);
     }catch(e){
       _cloudToast('', 0);
-      alert('❌ 保存到云端失败：\n'+e.message+'\n\n可点击左侧栏「云端同步」检查 Gist ID / Token 是否正确。');
+      alert('❌ 保存到云端失败：\n'+e.message+'\n\n可点击左侧栏「云端同步」检查 仓库 / 分支 / 路径 / Token 是否正确。');
     }finally{ _cloudBtns(false); }
   }
-  // 弹窗里的「⬆️ 上传到云端」：反馈显示在弹窗内
+  // 弹窗里的「⬆️ 保存到仓库」：反馈显示在弹窗内
   async function cloudUpload(){
     const s=saveSyncSettings(false);
-    if(!s.token){ setSyncStatus('请先填写 Access Token。','err'); return; }
-    _syncBtns(true); setSyncStatus('正在上传…','');
+    _syncBtns(true); setSyncStatus('正在提交…','');
     try{
-      const r=await _gistUpload(s);
-      const gi=document.getElementById('syncGistId'); if(gi) gi.value=r.gistId||'';
-      setSyncStatus('✅ 上传成功！Gist ID：'+r.gistId,'ok');
+      const r=await _repoUpload(s);
+      setSyncStatus('✅ 已提交 commit '+r.sha+'。GitHub Pages 约 1 分钟后重新发布，刷新网址即可看到。','ok');
     }catch(e){
-      setSyncStatus('❌ 上传失败：'+e.message,'err');
+      setSyncStatus('❌ 保存失败：'+e.message,'err');
     }finally{ _syncBtns(false); }
   }
   async function cloudDownload(){
     const s=saveSyncSettings(false);
-    if(!s.gistId){ setSyncStatus('请先填写 Gist ID。','err'); return; }
-    if(!confirm('从云端拉取会用远端内容覆盖当前页面，未保存 / 未上传的修改将丢失。确定继续？')) return;
+    if(!s.owner||!s.repo){ setSyncStatus('请先填写仓库（owner/repo）。','err'); return; }
+    if(!confirm('从仓库拉取会用远端内容覆盖当前页面，未保存 / 未提交的修改将丢失。确定继续？')) return;
     _syncBtns(true); setSyncStatus('正在拉取…','');
     try{
-      const headers={ 'Accept':'application/vnd.github+json' };
-      if(s.token) headers['Authorization']='token '+s.token;
-      const res=await fetch('https://api.github.com/gists/'+encodeURIComponent(s.gistId),{ headers });
-      if(!res.ok){ throw new Error('HTTP '+res.status+' '+(await res.text()).slice(0,200)); }
-      const data=await res.json();
-      let file=(data.files||{})[s.filename];
-      if(!file){ const k=Object.keys(data.files||{})[0]; file=k?data.files[k]:null; }
-      if(!file){ throw new Error('Gist 里找不到文件。'); }
-      let html=file.content;
-      if(file.truncated){          // 文件 >1MB 时 API 会截断，改从 raw_url 取完整内容
-        const rawRes=await fetch(file.raw_url);
-        if(!rawRes.ok){ throw new Error('拉取完整内容失败 HTTP '+rawRes.status); }
-        html=await rawRes.text();
-      }
+      const url=_ghRepoUrl(s,'/contents/'+_ghPath(s.path))+'?ref='+encodeURIComponent(s.branch)+'&t='+Date.now();
+      const res=await fetch(url,{ headers:_ghHeaders(s,{'Accept':'application/vnd.github.raw'}), cache:'no-store' });
+      if(!res.ok) throw await _ghError(res);
+      const html=await res.text();
       if(!html){ throw new Error('远端内容为空。'); }
       setSyncStatus('✅ 拉取成功，正在载入…','ok');
       setTimeout(()=>{ document.open(); document.write(html); document.close(); }, 300);
